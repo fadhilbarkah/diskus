@@ -1,0 +1,96 @@
+import { Context } from 'hono';
+import { AdminService } from '../services/admin.service';
+import { AuthVariables } from '../middlewares/auth';
+
+export class AdminController {
+  static async getSites(c: Context<{ Variables: AuthVariables }>) {
+    const user = c.get('user')!;
+    const sites = await AdminService.getUserSites(user.userId);
+    return c.json({ sites });
+  }
+
+  static async createSite(c: Context<{ Variables: AuthVariables }>) {
+    const user = c.get('user')!;
+    const { domain } = (c.req as any).valid('json');
+    const site = await AdminService.createSite(user.userId, domain);
+    return c.json({ success: true, site });
+  }
+
+  static async deleteSite(c: Context<{ Variables: AuthVariables }>) {
+    const user = c.get('user')!;
+    const id = c.req.param('id') as string;
+    await AdminService.deleteSite(id, user.userId);
+    return c.json({ success: true });
+  }
+
+  static async updateSite(c: Context<{ Variables: AuthVariables }>) {
+    const user = c.get('user')!;
+    const id = c.req.param('id') as string;
+    const { requireLogin } = (c.req as any).valid('json');
+    
+    const updateData: any = {};
+    if (requireLogin !== undefined) updateData.requireLogin = requireLogin;
+
+    await AdminService.updateSite(id, user.userId, updateData);
+    return c.json({ success: true });
+  }
+
+  static async getAnalyticsSummary(c: Context<{ Variables: AuthVariables }>) {
+    const user = c.get('user')!;
+    const siteId = c.req.query('siteId');
+    const summary = await AdminService.getAnalyticsSummary(user.userId, user.role, siteId);
+    return c.json(summary);
+  }
+
+  static async getComments(c: Context<{ Variables: AuthVariables }>) {
+    const user = c.get('user')!;
+    const statusFilter = c.req.query('status');
+    const siteId = c.req.query('siteId');
+    
+    const commentsList = await AdminService.getComments(user.userId, user.role, statusFilter, siteId);
+    return c.json({ comments: commentsList });
+  }
+
+  static async updateCommentsBulk(c: Context<{ Variables: AuthVariables }>) {
+    const user = c.get('user')!;
+    const { ids, status } = (c.req as any).valid('json');
+    await AdminService.updateCommentsStatus(ids, status, user.userId, user.role);
+    return c.json({ success: true });
+  }
+
+  static async deleteCommentsBulk(c: Context<{ Variables: AuthVariables }>) {
+    const user = c.get('user')!;
+    const { ids } = (c.req as any).valid('json');
+    await AdminService.deleteCommentsBulk(ids, user.userId, user.role);
+    return c.json({ success: true });
+  }
+
+  static async getAccount(c: Context<{ Variables: AuthVariables }>) {
+    const user = c.get('user')!;
+    const dbUser = await AdminService.getUserAccount(user.userId);
+    if (!dbUser) return c.json({ error: 'User not found' }, 404);
+    
+    return c.json({ id: dbUser.id, name: dbUser.name || '', email: dbUser.email });
+  }
+
+  static async updateAccount(c: Context<{ Variables: AuthVariables }>) {
+    const user = c.get('user')!;
+    const { name, email, currentPassword, newPassword } = (c.req as any).valid('json');
+
+    const dbUser = await AdminService.getUserAccount(user.userId);
+    if (!dbUser) return c.json({ error: 'User not found' }, 404);
+
+    const updateData: any = {};
+    if (name !== undefined) updateData.name = name;
+    if (email !== undefined) updateData.email = email;
+
+    if (newPassword) {
+      if (!currentPassword) return c.json({ error: 'Current password is required to set a new password' }, 400);
+      if (dbUser.passwordHash !== currentPassword) return c.json({ error: 'Incorrect current password' }, 400);
+      updateData.passwordHash = newPassword;
+    }
+
+    await AdminService.updateUserAccount(user.userId, dbUser, updateData);
+    return c.json({ success: true });
+  }
+}

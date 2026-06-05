@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+/* Markdown prose styles for comments */
+.diskus-prose p { margin-bottom: 0.5rem; }
+.diskus-prose p:last-child { margin-bottom: 0; }
+.diskus-prose strong { font-weight: 600; color: #111827; }
+.diskus-prose em { font-style: italic; }
+.diskus-prose a { color: #2563eb; text-decoration: underline; }
+.diskus-prose a:hover { text-decoration: none; }
+.diskus-prose code { background: #f3f4f6; padding: 0.15rem 0.3rem; border-radius: 0.25rem; font-size: 0.85em; color: #db2777; }
+.diskus-prose pre { background: #1f2937; color: #f9fafb; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin-bottom: 0.5rem; font-size: 0.85em; }
+.diskus-prose pre code { background: transparent; padding: 0; color: inherit; }
+.diskus-prose blockquote { border-left: 4px solid #e5e7eb; padding-left: 1rem; color: #6b7280; font-style: italic; margin-bottom: 0.5rem; margin-top: 0.5rem; }
+.diskus-prose ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.5rem; }
+.diskus-prose ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.5rem; }
+.diskus-prose h1, .diskus-prose h2, .diskus-prose h3, .diskus-prose h4, .diskus-prose h5, .diskus-prose h6 { font-weight: 600; color: #111827; margin-top: 1rem; margin-bottom: 0.5rem; }
+.diskus-prose h1 { font-size: 1.5em; }
+.diskus-prose h2 { font-size: 1.25em; }
+.diskus-prose h3 { font-size: 1.125em; }

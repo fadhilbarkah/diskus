@@ -1,0 +1,99 @@
+import type { Signal } from '@preact/signals';
+import { ChevronRight, ChevronLeft, MessageSquare, Globe, LogOut } from 'lucide-preact';
+import { authState, logout } from '../../lib/auth';
+
+export function Sidebar({ activePage, isCollapsed }: { activePage: Signal<string>, isCollapsed: Signal<boolean> }) {
+  return (
+    <aside class={`hidden md:flex ${isCollapsed.value ? 'w-16' : 'w-64'} bg-white border-r border-gray-100 h-screen fixed left-0 top-0 flex-col font-sans z-50 transition-all duration-300 ease-out`}>
+        
+        {/* Logo and Collapse Toggle */}
+        {isCollapsed.value ? (
+          <div class="h-14 flex items-center justify-center border-b border-gray-100 shrink-0">
+            <div onClick={() => isCollapsed.value = false} class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-base shrink-0 cursor-pointer hover:bg-blue-700 transition-colors" title="Expand Sidebar">
+              D
+            </div>
+          </div>
+        ) : (
+          <div class="h-14 flex items-center justify-between px-4 border-b border-gray-100 shrink-0">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-base shrink-0">
+                D
+              </div>
+              <span class="font-bold text-[16px] text-gray-900 tracking-tight">
+                Diskus
+              </span>
+            </div>
+            <button 
+              onClick={() => isCollapsed.value = true}
+              class="hidden md:block text-gray-400 hover:text-gray-600 hover:bg-gray-50 p-1.5 rounded-lg transition-colors cursor-pointer shrink-0"
+            >
+              <ChevronLeft class="w-5 h-5" />
+            </button>
+          </div>
+        )}
+
+        <nav class={`flex-1 py-6 space-y-4 overflow-y-auto flex flex-col ${isCollapsed.value ? 'px-0 items-center' : 'px-4'}`}>
+          {isCollapsed.value && (
+            <button onClick={() => isCollapsed.value = false} class="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer mb-2" title="Expand Sidebar">
+              <ChevronRight class="w-5 h-5" />
+            </button>
+          )}
+          <button
+            onClick={() => activePage.value = 'comments'}
+            class={`flex items-center transition-colors cursor-pointer ${
+              isCollapsed.value 
+                ? `w-12 h-12 rounded-2xl justify-center shrink-0 ${activePage.value === 'comments' ? 'bg-[#F0F5FF] text-blue-600' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`
+                : `w-full px-3 py-2.5 gap-3 rounded-xl text-sm font-medium ${activePage.value === 'comments' ? 'bg-blue-50 text-blue-600' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`
+            }`}
+            title={isCollapsed.value ? "Comments" : ""}
+          >
+            <MessageSquare class={`shrink-0 ${isCollapsed.value ? 'w-6 h-6' : 'w-5 h-5'} ${activePage.value === 'comments' ? 'text-blue-600' : ''}`} /> 
+            {!isCollapsed.value && <span>Comments</span>}
+          </button>
+
+          <button
+            onClick={() => activePage.value = 'websites'}
+            class={`flex items-center transition-colors cursor-pointer ${
+              isCollapsed.value 
+                ? `w-12 h-12 rounded-2xl justify-center shrink-0 ${activePage.value === 'websites' ? 'bg-[#F0F5FF] text-blue-600' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`
+                : `w-full px-3 py-2.5 gap-3 rounded-xl text-sm font-medium ${activePage.value === 'websites' ? 'bg-blue-50 text-blue-600' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`
+            }`}
+            title={isCollapsed.value ? "Websites" : ""}
+          >
+            <Globe class={`shrink-0 ${isCollapsed.value ? 'w-6 h-6' : 'w-5 h-5'} ${activePage.value === 'websites' ? 'text-blue-600' : ''}`} /> 
+            {!isCollapsed.value && <span>Websites</span>}
+          </button>
+        </nav>
+        
+        <div class={`p-4 mt-auto border-t border-gray-100 shrink-0 ${isCollapsed.value ? 'px-2' : ''}`}>
+          <div class={`bg-white rounded-[20px] p-2 flex items-center justify-between transition-colors duration-200 ${isCollapsed.value ? 'flex-col gap-4 py-4 border-none bg-gray-50/80' : 'border border-gray-200 hover:bg-gray-50'}`}>
+            <button 
+              onClick={() => activePage.value = 'settings'}
+              class={`flex items-center gap-3 min-w-0 text-left cursor-pointer group flex-1 ${isCollapsed.value ? 'justify-center w-full' : ''}`}
+            >
+              <div class={`rounded-full overflow-hidden shrink-0 select-none bg-blue-100 flex items-center justify-center transition-all duration-300 ${isCollapsed.value ? 'w-10 h-10' : 'w-10 h-10'}`}>
+                <img src={`https://api.dicebear.com/10.x/thumbs/svg?seed=${encodeURIComponent(authState.user.value?.email || 'admin')}`} alt="Profile" class="w-full h-full object-cover" />
+              </div>
+              {!isCollapsed.value && (
+                <div class="flex flex-col min-w-0">
+                  <span class="text-sm font-bold text-gray-900 truncate max-w-[110px]" title={authState.user.value?.name || authState.user.value?.email}>
+                    {authState.user.value?.name || authState.user.value?.email?.split('@')[0] || 'User'}
+                  </span>
+                  <span class="text-[11px] text-gray-500 font-medium group-hover:text-blue-600 transition-colors">
+                    Settings
+                  </span>
+                </div>
+              )}
+            </button>
+            <button 
+              onClick={logout} 
+              class={`text-gray-400 hover:text-gray-900 p-2 rounded-xl transition-colors cursor-pointer shrink-0 ${isCollapsed.value ? 'w-full flex justify-center hover:bg-gray-200' : 'hover:bg-gray-100'}`} 
+              title="Logout"
+            >
+              {isCollapsed.value ? <LogOut class="w-5 h-5" /> : <LogOut class="w-4 h-4" />}
+            </button>
+          </div>
+        </div>
+      </aside>
+    );
+}

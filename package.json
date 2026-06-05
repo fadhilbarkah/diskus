@@ -1,0 +1,15 @@
+{
+  "name": "diskus",
+  "version": "1.0.0",
+  "description": "Comment-System-as-a-Service",
+  "workspaces": [
+    "backend",
+    "widget",
+    "dashboard"
+  ],
+  "scripts": {
+    "dev": "cd backend && bun run dev & cd dashboard && bun run dev & cd widget && bun run dev",
+    "build:widget": "cd widget && bun run build",
+    "build:dashboard": "cd dashboard && bun run build"
+  }
+}

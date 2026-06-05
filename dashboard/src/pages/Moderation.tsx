@@ -1,0 +1,311 @@
+import { Search, ChevronLeft, ChevronRight, MoreHorizontal, ChevronDown } from 'lucide-preact';
+import { useSignal } from '@preact/signals';
+import { useEffect } from 'preact/hooks';
+import { api } from '../lib/api';
+import { authState } from '../lib/auth';
+import { selectedSiteId } from '../lib/store';
+import { PageHeader } from '../components/ui/PageHeader';
+import { Card } from '../components/ui/Card';
+
+export function Moderation() {
+  const activeTab = useSignal('all');
+  const comments = useSignal<any[]>([]);
+  const stats = useSignal({ total: 0, pending: 0, approved: 0, spam: 0, trash: 0 });
+  const loading = useSignal(true);
+  const selectedIds = useSignal<string[]>([]);
+  const bulkAction = useSignal('');
+  const openMenuId = useSignal<string | null>(null);
+  
+  // Filters
+  const searchQuery = useSignal('');
+  const filterPost = useSignal('All Posts');
+  const sortBy = useSignal('newest');
+
+  const tabs = [
+    { name: 'All Comments', id: 'all', count: () => stats.value.total },
+    { name: 'Pending', id: 'pending', count: () => stats.value.pending },
+    { name: 'Approved', id: 'approved', count: () => stats.value.approved },
+    { name: 'Spam', id: 'spam', count: () => stats.value.spam },
+    { name: 'Trash', id: 'trash', count: () => stats.value.trash },
+  ];
+
+  const fetchData = async () => {
+    loading.value = true;
+    try {
+      const [statsRes, commentsRes] = await Promise.all([
+        api.getAnalytics(selectedSiteId.value),
+        api.getComments(activeTab.value, selectedSiteId.value)
+      ]);
+      stats.value = statsRes;
+      comments.value = commentsRes.comments;
+    } catch (err) {
+      console.error(err);
+    } finally {
+      loading.value = false;
+    }
+  };
+
+  useEffect(() => {
+    selectedIds.value = [];
+    bulkAction.value = '';
+    openMenuId.value = null;
+    fetchData();
+  }, [activeTab.value, selectedSiteId.value]);
+
+  const toggleSelect = (id: string) => {
+    if (selectedIds.value.includes(id)) {
+      selectedIds.value = selectedIds.value.filter(i => i !== id);
+    } else {
+      selectedIds.value = [...selectedIds.value, id];
+    }
+  };
+
+  const handleBulkAction = async () => {
+    if (!bulkAction.value || selectedIds.value.length === 0) return;
+    try {
+      if (bulkAction.value === 'delete') {
+        await api.deleteComments(selectedIds.value);
+      } else {
+        await api.bulkUpdateComments(selectedIds.value, bulkAction.value);
+      }
+      selectedIds.value = [];
+      bulkAction.value = '';
+      fetchData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleSingleAction = async (id: string, action: string) => {
+    try {
+      if (action === 'delete') {
+        await api.deleteComments([id]);
+      } else {
+        await api.bulkUpdateComments([id], action);
+      }
+      openMenuId.value = null;
+      fetchData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const toggleSelectAll = (e: any) => {
+    if (e.target.checked) {
+      selectedIds.value = comments.value.map(c => c.id);
+    } else {
+      selectedIds.value = [];
+    }
+  };
+
+  // Build comment tree for visual hierarchy
+  const renderComments = () => {
+    let listToRender = comments.value;
+    
+    // Apply filters
+    if (searchQuery.value) {
+      const q = searchQuery.value.toLowerCase();
+      listToRender = listToRender.filter(c => 
+        c.authorName.toLowerCase().includes(q) || 
+        c.authorEmail.toLowerCase().includes(q) || 
+        c.content.toLowerCase().includes(q) || 
+        (c.threadTitle && c.threadTitle.toLowerCase().includes(q))
+      );
+    }
+    
+    if (filterPost.value !== 'All Posts') {
+      listToRender = listToRender.filter(c => c.threadTitle === filterPost.value);
+    }
+    
+    // Sort
+    listToRender = [...listToRender].sort((a, b) => {
+      const timeA = new Date(a.createdAt).getTime();
+      const timeB = new Date(b.createdAt).getTime();
+      return sortBy.value === 'newest' ? timeB - timeA : timeA - timeB;
+    });
+
+    const isFiltering = searchQuery.value !== '' || filterPost.value !== 'All Posts';
+    
+    // Find comments whose parents are not in the current list
+    const orphans = listToRender.filter(c => c.parentId && !listToRender.some(p => p.id === c.parentId));
+    
+    // Treat true roots and orphans as root comments
+    const rootComments = isFiltering ? listToRender : listToRender.filter(c => !c.parentId || orphans.includes(c));
+    const repliesMap = new Map<string, any[]>();
+    
+    if (!isFiltering) {
+      listToRender.forEach(c => {
+        if (c.parentId && !orphans.includes(c)) {
+          const list = repliesMap.get(c.parentId) || [];
+          list.push(c);
+          repliesMap.set(c.parentId, list);
+        }
+      });
+    }
+
+    const renderNode = (c: any, isChild: boolean = false) => {
+      const timeAgo = Math.floor((Date.now() - new Date(c.createdAt).getTime()) / 3600000);
+      const timeStr = timeAgo === 0 ? 'Just now' : `${timeAgo} hours ago`;
+      const replies = repliesMap.get(c.id) || [];
+      const isSelected = selectedIds.value.includes(c.id);
+
+      const statusColors: Record<string, string> = {
+        approved: 'bg-green-50 text-green-600 border-transparent',
+        pending: 'bg-gray-100 text-gray-600 border-transparent',
+        spam: 'bg-red-50 text-red-600 border-transparent',
+      };
+
+      return (
+        <div key={c.id} class={`relative ${!isChild ? 'border-b border-gray-100 last:border-0' : ''}`}>
+          <div class={`flex items-start gap-4 p-4 hover:bg-gray-50/50 group ${isChild ? 'ml-[60px] relative' : ''}`}>
+            {isChild && <div class="absolute -left-[28px] top-[26px] w-[28px] h-px bg-gray-200"></div>}
+            <div class="pt-1 shrink-0">
+              <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(c.id)} class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+            </div>
+            <div class={`w-10 h-10 rounded-full overflow-hidden shrink-0 ${isChild ? 'bg-cyan-100' : 'bg-blue-900'} flex items-center justify-center text-white`}>
+              <img src={`https://api.dicebear.com/10.x/thumbs/svg?seed=${encodeURIComponent(c.authorEmail.trim().toLowerCase())}`} alt={c.authorName} class="w-full h-full object-cover" />
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between mb-1 gap-2">
+                <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                  <div class="flex items-center gap-2 flex-wrap">
+                    <span class="font-bold text-sm text-gray-900">{c.authorName}</span>
+                    {c.authorEmail.includes('admin') && <span class="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">Author</span>}
+                  </div>
+                  <span class="text-xs text-gray-400 font-medium">{timeStr}</span>
+                </div>
+                <div class="flex items-center gap-1 sm:gap-2 shrink-0">
+                  <span class={`border text-[10px] sm:text-xs px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full font-medium capitalize ${statusColors[c.status] || 'bg-gray-50 text-gray-600 border-gray-200'}`}>{c.status}</span>
+                  <div class="relative">
+                    <button onClick={() => openMenuId.value = openMenuId.value === c.id ? null : c.id} class="text-gray-400 hover:text-gray-900 p-1 rounded-md hover:bg-gray-100 transition-colors cursor-pointer"><MoreHorizontal class="w-4 h-4" /></button>
+                    {openMenuId.value === c.id && (
+                      <div class="absolute right-0 top-full mt-1 w-36 bg-white border border-gray-200 shadow-lg rounded-xl py-1 z-20 text-sm">
+                        {c.status !== 'approved' && c.status !== 'trash' && <button onClick={() => handleSingleAction(c.id, 'approved')} class="w-full text-left px-4 py-2 hover:bg-gray-50 text-green-600 font-medium cursor-pointer">Approve</button>}
+                        {c.status !== 'spam' && c.status !== 'trash' && <button onClick={() => handleSingleAction(c.id, 'spam')} class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 font-medium cursor-pointer">Mark as Spam</button>}
+                        {c.status === 'trash' && <button onClick={() => handleSingleAction(c.id, 'approved')} class="w-full text-left px-4 py-2 hover:bg-gray-50 text-blue-600 font-medium cursor-pointer">Restore</button>}
+                        {c.status !== 'trash' && <button onClick={() => handleSingleAction(c.id, 'trash')} class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 font-medium cursor-pointer">Move to Trash</button>}
+                        {c.status === 'trash' && <button onClick={() => handleSingleAction(c.id, 'delete')} class="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 font-bold border-t border-gray-100 mt-1 pt-2 cursor-pointer">Delete Forever</button>}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div class="diskus-prose text-sm text-gray-700 mt-1.5 leading-relaxed break-words" dangerouslySetInnerHTML={{ __html: c.htmlContent || c.content }} />
+            </div>
+          </div>
+          
+          {replies.length > 0 && (
+            <div class="relative pb-2">
+              <div class="absolute left-[34px] top-[-20px] bottom-[30px] w-px bg-gray-200"></div>
+              {replies.map(reply => renderNode(reply, true))}
+            </div>
+          )}
+        </div>
+      );
+    };
+
+    return rootComments.map(c => renderNode(c));
+  };
+
+
+
+  return (
+    <div class="max-w-7xl mx-auto h-[calc(100vh-4rem)] flex flex-col space-y-6">
+      <PageHeader
+        title="Comments"
+        description="Manage all incoming comments"
+        action={
+          <div class="relative">
+            <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input 
+              type="text" 
+              placeholder="Search comments..." 
+              value={searchQuery.value} 
+              onInput={(e) => searchQuery.value = (e.target as HTMLInputElement).value} 
+              class="pl-10 pr-10 py-2.5 bg-white border border-gray-100 rounded-xl text-sm w-full md:w-72 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-gray-900 shadow-sm" 
+            />
+            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 border border-gray-100 px-1.5 py-0.5 rounded-md bg-gray-50 font-medium hidden sm:inline-block">⌘K</span>
+          </div>
+        }
+      />
+
+      {/* Main Content Area */}
+      <Card noPadding class="flex flex-col flex-1 min-h-0 border-gray-100">
+          {/* Mobile Tabs Dropdown */}
+          <div class="md:hidden p-4 border-b border-gray-100 bg-gray-50/50">
+            <div class="relative">
+              <select
+                class="w-full appearance-none border border-gray-200 rounded-xl px-4 py-3 pr-10 bg-white font-semibold text-gray-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all cursor-pointer"
+                value={activeTab.value}
+                onChange={(e) => activeTab.value = (e.target as HTMLSelectElement).value}
+              >
+                {tabs.map(tab => (
+                  <option key={tab.id} value={tab.id}>
+                    {tab.name} ({tab.count()})
+                  </option>
+                ))}
+              </select>
+              <div class="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                <ChevronDown class="w-5 h-5" />
+              </div>
+            </div>
+          </div>
+
+          {/* Desktop Tabs */}
+          <div class="hidden md:flex border-b border-gray-100 px-2 overflow-x-auto pt-2">
+            {tabs.map(tab => (
+              <button 
+                key={tab.id}
+                onClick={() => activeTab.value = tab.id}
+                class={`px-4 py-3.5 text-sm font-semibold flex items-center gap-2 border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
+                  activeTab.value === tab.id 
+                    ? 'border-blue-600 text-blue-600' 
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                }`}
+              >
+                {tab.name} 
+                <span class={`text-xs px-2.5 py-0.5 rounded-full font-bold ${
+                  activeTab.value === tab.id ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-500'
+                }`}>{tab.count()}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Table Actions */}
+          <div class="px-4 py-4 flex items-center justify-between border-b border-gray-100">
+            <div class="flex items-center gap-4">
+              <input type="checkbox" onChange={toggleSelectAll} checked={selectedIds.value.length === comments.value.length && comments.value.length > 0} class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
+              <select class="border border-gray-200 rounded-lg text-sm px-3 py-2 bg-white outline-none font-medium text-gray-700 shadow-sm cursor-pointer" value={bulkAction.value} onChange={(e) => { bulkAction.value = (e.target as HTMLSelectElement).value; handleBulkAction(); }}>
+                <option value="">Bulk Actions</option>
+                <option value="approved">Approve</option>
+                <option value="pending">Mark Pending</option>
+                <option value="spam">Mark Spam</option>
+                {activeTab.value !== 'trash' && <option value="trash">Move to Trash</option>}
+                {activeTab.value === 'trash' && <option value="delete">Delete Permanently</option>}
+              </select>
+            </div>
+            <div class="flex items-center gap-3 text-sm text-gray-500 font-medium">
+              <span>{comments.value.length} items</span>
+              <div class="flex items-center gap-1">
+                <button class="p-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 cursor-pointer"><ChevronLeft class="w-4 h-4" /></button>
+                <button class="p-1.5 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 cursor-pointer"><ChevronRight class="w-4 h-4" /></button>
+              </div>
+            </div>
+          </div>
+
+          {/* Comment Items */}
+          <div class="flex-1 overflow-y-auto px-2 pb-4">
+            {loading.value ? (
+              <div class="text-center py-10 text-gray-400">Loading comments...</div>
+            ) : comments.value.length === 0 ? (
+              <div class="text-center py-10 text-gray-400">No comments found.</div>
+            ) : (
+              <div class="flex flex-col">
+                {renderComments()}
+              </div>
+            )}
+          </div>
+      </Card>
+    </div>
+  );
+}

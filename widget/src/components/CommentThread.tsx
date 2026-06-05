@@ -1,0 +1,135 @@
+import { useSignal } from '@preact/signals';
+import { useEffect } from 'preact/hooks';
+import { CommentForm } from './CommentForm';
+import { Comment } from './DiskusWidget';
+import { widgetUser } from '../lib/auth';
+
+
+interface Props {
+  comment: Comment;
+  repliesMap: Map<string, Comment[]>;
+  onReply: (content: string, name: string, email: string, parentId?: string) => Promise<void>;
+  onLike: (id: string, isUnlike: boolean) => Promise<void>;
+  apiUrl: string;
+  depth?: number;
+  onDelete: (id: string) => Promise<void>;
+  requireLogin?: boolean;
+}
+
+export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, depth = 0, onDelete, requireLogin }: Props) {
+  const showReplyForm = useSignal(false);
+  const showMenu = useSignal(false);
+  const replies = repliesMap.get(comment.id) || [];
+  
+  // Local state for liking
+  const hasLiked = useSignal(false);
+  const localLikesCount = useSignal(comment.likesCount);
+
+  useEffect(() => {
+    const likedComments = JSON.parse(localStorage.getItem('diskus_liked_comments') || '[]');
+    if (likedComments.includes(comment.id)) {
+      hasLiked.value = true;
+    }
+  }, [comment.id]);
+
+  const handleLikeClick = () => {
+    const likedComments = JSON.parse(localStorage.getItem('diskus_liked_comments') || '[]');
+    
+    if (hasLiked.value) {
+      hasLiked.value = false;
+      localLikesCount.value = Math.max(0, localLikesCount.value - 1);
+      onLike(comment.id, true);
+      const newLiked = likedComments.filter((id: string) => id !== comment.id);
+      localStorage.setItem('diskus_liked_comments', JSON.stringify(newLiked));
+    } else {
+      hasLiked.value = true;
+      localLikesCount.value++;
+      onLike(comment.id, false);
+      localStorage.setItem('diskus_liked_comments', JSON.stringify([...likedComments, comment.id]));
+    }
+  };
+
+  const timeAgo = (ts: string) => {
+    const diff = Date.now() - new Date(ts).getTime();
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const mins = Math.floor(diff / (1000 * 60));
+    if (mins < 1) return 'just now';
+    if (hours < 1) return `${mins}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    return `${Math.floor(hours / 24)}d ago`;
+  };
+
+  const isAuthor = comment.authorEmail.includes('admin') || comment.authorName.toLowerCase().includes('admin');
+  const dicebearUrl = `https://api.dicebear.com/10.x/thumbs/svg?seed=${encodeURIComponent(comment.authorEmail.trim().toLowerCase())}`;
+
+  return (
+    <div class={`relative ${depth > 0 ? 'mt-6' : ''}`}>
+      <div class="flex gap-4">
+        {/* Avatar */}
+        <div class="w-10 h-10 rounded-full shrink-0 overflow-hidden bg-gray-100 dark:bg-gray-800 mt-1 border border-gray-200 dark:border-gray-700 relative z-10">
+           <img src={dicebearUrl} alt={comment.authorName} class="w-full h-full object-cover opacity-90 dark:opacity-80" />
+        </div>
+        
+        {/* Content */}
+        <div class="flex-1 min-w-0 relative">
+          <div class="mb-2 pr-6">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100 truncate block">{comment.authorName}</span>
+              {isAuthor && <span class="bg-[#10b981] dark:bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0 shadow-sm">MODERATOR</span>}
+            </div>
+            <div class="text-[13px] text-gray-400 dark:text-gray-500 mt-0.5 whitespace-nowrap">{timeAgo(comment.createdAt)}</div>
+          </div>
+          
+          {widgetUser.value && (widgetUser.value.email === comment.authorEmail || widgetUser.value.name === 'Admin') && (
+            <div class="absolute right-0 top-0">
+              <button onClick={() => showMenu.value = !showMenu.value} class="text-gray-400 hover:text-gray-600 outline-none">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path></svg>
+              </button>
+              {showMenu.value && (
+                <div class="absolute right-0 mt-1 w-32 bg-white dark:bg-[#222] border border-gray-200 dark:border-gray-700 shadow-lg rounded-lg py-1 z-20 text-sm">
+                  <button onClick={() => { showMenu.value = false; onDelete(comment.id); }} class="w-full text-left px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 font-medium transition-colors">Delete</button>
+                </div>
+              )}
+            </div>
+          )}
+          
+          <div class="diskus-prose text-[15px] leading-relaxed text-gray-800 dark:text-gray-200 break-words" dangerouslySetInnerHTML={{ __html: comment.htmlContent }} />
+          
+          {/* Actions */}
+          <div class="flex items-center gap-4 mt-3">
+            <button onClick={handleLikeClick} class={`flex items-center gap-1.5 text-[14px] ${hasLiked.value ? 'text-red-500 dark:text-red-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'} transition-colors`}>
+              <svg class="w-[18px] h-[18px]" fill={hasLiked.value ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path></svg>
+              <span class={hasLiked.value ? 'font-medium' : ''}>{localLikesCount.value}</span>
+            </button>
+            {depth < 2 && (
+              <>
+                <div class="w-px h-[14px] bg-gray-200 dark:bg-gray-700"></div>
+                <button onClick={() => showReplyForm.value = !showReplyForm.value} class="text-[14px] text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors">
+                  Reply
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {showReplyForm.value && (
+        <div class="mt-4 mb-2 md:ml-14">
+          <CommentForm onSubmit={onReply} parentId={comment.id} onCancel={() => showReplyForm.value = false} apiUrl={apiUrl} requireLogin={requireLogin} />
+        </div>
+      )}
+
+      {replies.length > 0 && depth < 2 && (
+        <div class="mt-6 ml-5 pl-4 md:pl-6 border-l-2 border-gray-200 dark:border-gray-800 relative pb-2 transition-colors duration-300">
+          <div class="space-y-6">
+            {replies.map((reply) => (
+              <div key={reply.id} class="relative">
+                <CommentThread comment={reply} repliesMap={repliesMap} onReply={onReply} onLike={onLike} onDelete={onDelete} apiUrl={apiUrl} depth={depth + 1} requireLogin={requireLogin} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

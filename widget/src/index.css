@@ -1,0 +1,18 @@
+@import "tailwindcss";
+
+/* Reset some default styles just in case it is embedded in a highly styled website */
+#diskus-thread {
+  all: initial;
+  font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+#diskus-thread * {
+  box-sizing: border-box;
+}
+
+.diskus-prose p {
+  margin-bottom: 0.5rem;
+}
+.diskus-prose p:last-child {
+  margin-bottom: 0;
+}
