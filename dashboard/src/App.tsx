@@ -4,6 +4,7 @@ import { Moderation } from './pages/Moderation';
 import { Websites } from './pages/Websites';
 import { Login } from './pages/Login';
 import { Settings } from './pages/Settings';
+import { Users } from './pages/Users';
 import { authState } from './lib/auth';
 import { TopHeader } from './components/layout/TopHeader';
 import { Sidebar } from './components/layout/Sidebar';
@@ -37,7 +38,7 @@ export default function App() {
       <main class={`flex-1 flex flex-col min-h-[calc(100vh-3.5rem)] mt-14 mb-[4.5rem] md:mb-0 w-full transition-all duration-300 ${isCollapsed.value ? 'md:ml-16' : 'md:ml-64'}`}>
         <div class="p-4 md:p-8 flex-1 overflow-y-auto">
           <div class="max-w-6xl mx-auto h-full">
-            {activePage.value === 'comments' ? <Moderation /> : activePage.value === 'websites' ? <Websites /> : <Settings />}
+            {activePage.value === 'comments' ? <Moderation /> : activePage.value === 'websites' ? <Websites /> : activePage.value === 'users' ? <Users /> : <Settings />}
           </div>
         </div>
       </main>

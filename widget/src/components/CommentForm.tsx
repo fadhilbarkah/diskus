@@ -66,7 +66,7 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
           const res = await fetch(`${apiUrl}/widget/auth/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: email.value, name: name.value, password: password.value })
+            body: JSON.stringify({ email: email.value, name: name.value, password: password.value, _diskus_trap: trap.value })
           });
           const data = await res.json();
           if (!res.ok) throw new Error(data.error);

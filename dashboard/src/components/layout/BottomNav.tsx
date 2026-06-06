@@ -1,11 +1,12 @@
 import type { Signal } from '@preact/signals';
-import { MessageSquare, Globe, Settings as SettingsIcon, LogOut } from 'lucide-preact';
+import { MessageSquare, Globe, Settings as SettingsIcon, LogOut, Users } from 'lucide-preact';
 import { logout } from '../../lib/auth';
 
 export function BottomNav({ activePage }: { activePage: Signal<string> }) {
   const items = [
     { id: 'comments', label: 'Comments', icon: MessageSquare },
     { id: 'websites', label: 'Websites', icon: Globe },
+    { id: 'users', label: 'Users', icon: Users },
     { id: 'settings', label: 'Settings', icon: SettingsIcon },
   ];
 

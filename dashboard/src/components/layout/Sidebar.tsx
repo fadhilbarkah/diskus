@@ -1,5 +1,5 @@
 import type { Signal } from '@preact/signals';
-import { ChevronRight, ChevronLeft, MessageSquare, Globe, LogOut } from 'lucide-preact';
+import { ChevronRight, ChevronLeft, MessageSquare, Globe, LogOut, Users } from 'lucide-preact';
 import { authState, logout } from '../../lib/auth';
 
 export function Sidebar({ activePage, isCollapsed }: { activePage: Signal<string>, isCollapsed: Signal<boolean> }) {
@@ -62,6 +62,19 @@ export function Sidebar({ activePage, isCollapsed }: { activePage: Signal<string
           >
             <Globe class={`shrink-0 ${isCollapsed.value ? 'w-6 h-6' : 'w-5 h-5'} ${activePage.value === 'websites' ? 'text-blue-600' : ''}`} /> 
             {!isCollapsed.value && <span>Websites</span>}
+          </button>
+
+          <button
+            onClick={() => activePage.value = 'users'}
+            class={`flex items-center transition-colors cursor-pointer ${
+              isCollapsed.value 
+                ? `w-12 h-12 rounded-2xl justify-center shrink-0 ${activePage.value === 'users' ? 'bg-[#F0F5FF] text-blue-600' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`
+                : `w-full px-3 py-2.5 gap-3 rounded-xl text-sm font-medium ${activePage.value === 'users' ? 'bg-blue-50 text-blue-600' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'}`
+            }`}
+            title={isCollapsed.value ? "Users" : ""}
+          >
+            <Users class={`shrink-0 ${isCollapsed.value ? 'w-6 h-6' : 'w-5 h-5'} ${activePage.value === 'users' ? 'text-blue-600' : ''}`} /> 
+            {!isCollapsed.value && <span>Users</span>}
           </button>
         </nav>
         

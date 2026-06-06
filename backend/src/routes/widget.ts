@@ -3,15 +3,18 @@ import { z } from 'zod';
 import { zValidator } from '@hono/zod-validator';
 import { WidgetController } from '../controllers/widget.controller';
 import { authMiddleware, optionalAuthMiddleware, AuthVariables } from '../middlewares/auth';
+import { rateLimitMiddleware } from '../middlewares/ratelimit';
 
 const widgetRoutes = new Hono<{ Variables: AuthVariables }>();
 
 widgetRoutes.post(
   '/auth/register',
+  rateLimitMiddleware(5, 60 * 60 * 1000), // Max 5 registrations per IP per hour
   zValidator('json', z.object({
     email: z.string().email(),
     name: z.string().min(2),
     password: z.string().min(6),
+    _diskus_trap: z.string().optional(),
   })),
   WidgetController.register
 );

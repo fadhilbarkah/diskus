@@ -61,5 +61,7 @@ export const api = {
 
   // Data Management
   exportComments: (siteId: string) => fetchWithAuth(`/admin/export/${siteId}`),
-  importComments: (siteId: string, data: any) => fetchWithAuth(`/admin/import/${siteId}`, { method: 'POST', body: JSON.stringify(data) })
+  importComments: (siteId: string, data: any) => fetchWithAuth(`/admin/import/${siteId}`, { method: 'POST', body: JSON.stringify(data) }),
+
+  getUsers: () => fetchWithAuth('/admin/users'),
 };

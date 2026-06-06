@@ -117,4 +117,9 @@ export class AdminController {
     if (!success) return c.json({ error: 'Failed to import' }, 400);
     return c.json({ success: true });
   }
+
+  static async getWidgetUsers(c: Context<{ Variables: AuthVariables }>) {
+    const users = await AdminService.getWidgetUsers();
+    return c.json({ users });
+  }
 }

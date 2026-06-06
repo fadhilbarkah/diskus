@@ -1,6 +1,7 @@
 import { db } from '../db';
 import { users, comments, sites, threads } from '../db/schema';
 import { eq, inArray, desc, and } from 'drizzle-orm';
+import { widgetUsers } from '../db/schema';
 import crypto from 'crypto';
 
 export class AdminService {
@@ -204,5 +205,14 @@ export class AdminService {
       }
     }
     return true;
+  }
+
+  static async getWidgetUsers() {
+    return await db.select({
+      id: widgetUsers.id,
+      name: widgetUsers.name,
+      email: widgetUsers.email,
+      createdAt: widgetUsers.createdAt
+    }).from(widgetUsers).orderBy(desc(widgetUsers.createdAt)).all();
   }
 }

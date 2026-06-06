@@ -5,7 +5,13 @@ import { AuthVariables } from '../middlewares/auth';
 
 export class WidgetController {
   static async register(c: Context) {
-    const { email, name, password } = (c.req as any).valid('json');
+    const data = (c.req as any).valid('json');
+    if (data._diskus_trap) {
+      // Honeypot triggered, silently pretend it was successful to trick bots
+      return c.json({ token: 'dummy_token_for_bots', user: { id: 'dummy', email: data.email, name: data.name } });
+    }
+
+    const { email, name, password } = data;
     const existing = await WidgetService.findWidgetUser(email);
     if (existing) return c.json({ error: 'Email already registered' }, 400);
     
