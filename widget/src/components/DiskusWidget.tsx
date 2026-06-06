@@ -230,16 +230,16 @@ export function DiskusWidget({ apiKey, threadKey, apiUrl }: { apiKey: string, th
       </div>
 
       {hasMore.value && (
-        <div class="mt-8 text-center pt-2">
+        <div class="mt-4 text-center">
           <button 
             onClick={() => { page.value += 1; fetchComments(true); }} 
             disabled={loading.value}
-            class="w-full text-[14px] font-semibold text-gray-800 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center justify-center gap-2 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 px-6 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 transition-colors disabled:opacity-50 cursor-pointer"
+            class="w-full text-[14px] font-medium text-gray-500 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 flex items-center justify-center gap-1.5 py-4 transition-colors disabled:opacity-50 cursor-pointer"
           >
             {loading.value ? (
-              <div class="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
+              <div class="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
             ) : (
-              <>Load More Comments <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg></>
+              <>Load more comments <svg class="w-3.5 h-3.5 opacity-70" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg></>
             )}
           </button>
         </div>
