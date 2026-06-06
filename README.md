@@ -1,113 +1,95 @@
-<div align="center">
-  <h1>Diskus 💬</h1>
-  <p><strong>An ultra-lightweight, privacy-first, and self-hosted Comment-System-as-a-Service.</strong></p>
-  <p>The perfect open-source alternative to Disqus.</p>
-</div>
+# Diskus
 
----
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Bun](https://img.shields.io/badge/Bun-%23000000.svg?logo=bun&logoColor=white)](https://bun.sh)
+[![Preact](https://img.shields.io/badge/Preact-673AB8?logo=preact&logoColor=white)](https://preactjs.com/)
 
-## 🌟 Why Diskus?
+A lightweight, self-hosted comments system built for modern web applications. Diskus is designed to be a fast, privacy-respecting alternative to Disqus and other bloated third-party commenting services.
 
-Diskus is designed to be embedded into any website with just a single line of script. It prioritizes speed, bundle size, and security, making sure your website's performance (Core Web Vitals) remains uncompromised.
+## Features
 
-- ⚡️ **Ultra-lightweight**: The drop-in widget is only **~18kB** (gzipped).
-- 🛡️ **Security-First**: Strict CORS policies, JWT-based authentication, and server-side XSS sanitization (`isomorphic-dompurify`).
-- 🏢 **Multi-Tenant**: Manage multiple websites/domains from a single dashboard.
-- 🎨 **Modern UI/UX**: Premium, responsive dashboard and widget built with Preact and Tailwind CSS.
-- 🌙 **Dark Mode Support**: The widget automatically adapts to your website's theme.
+- **Ultra-lightweight Widget:** The embed script is under 20kB (gzipped), ensuring zero impact on your Core Web Vitals.
+- **Multi-tenant Architecture:** Manage comments across multiple domains and websites from a single centralized dashboard.
+- **Built-in Anti-Spam:** Native rate-limiting and invisible honeypot traps to prevent automated bot registrations without requiring intrusive CAPTCHAs.
+- **Server-side Sanitization:** Strict HTML sanitization (`isomorphic-dompurify`) and Markdown parsing are offloaded to the server to maintain a minimal client bundle.
+- **Data Portability:** Full JSON-based import and export capabilities for threads and comments.
+- **Modern Stack:** Built on Bun, Hono, Preact, and Drizzle ORM for maximum performance and type safety.
 
-## 🏗️ Architecture & Tech Stack
+## Architecture
 
-Diskus is structured as a modern monorepo, strictly adhering to industry standards like the **Controller-Service pattern** for the backend.
+Diskus operates as a monorepo containing three core packages:
 
-| Component | Technology | Description |
-| :--- | :--- | :--- |
-| **Backend API** | [Bun](https://bun.sh/) + [Hono](https://hono.dev/) | Ultra-fast REST API with minimal memory overhead. |
-| **Database** | [SQLite](https://sqlite.org/) + [Drizzle ORM](https://orm.drizzle.team/) | Lightweight, scalable, and fully typed database interaction. |
-| **Dashboard** | [Preact](https://preactjs.com/) + [Tailwind CSS](https://tailwindcss.com/) | Snappy SPA for tenant management and comment moderation. |
-| **Widget** | [Preact](https://preactjs.com/) + [Vite](https://vitejs.dev/) | Isolated, lightweight embed script without heavy dependencies. |
+1. **Backend (`/backend`)**: A REST API built with Hono and running on Bun. Uses SQLite via Drizzle ORM for data persistence.
+2. **Dashboard (`/dashboard`)**: A Preact-based Single Page Application (SPA) for administrators to manage sites, moderate comments, and view users.
+3. **Widget (`/widget`)**: A highly optimized Preact component bundled via Vite as an IIFE script, designed to be injected into host websites.
 
-*Note: Heavy operations like Markdown parsing (`marked`) and HTML sanitization (`dompurify`) are intentionally offloaded to the **Backend** to keep the widget bundle as small as possible.*
-
----
-
-## 🚀 Getting Started
+## Quick Start
 
 ### Prerequisites
-Make sure you have [Bun](https://bun.sh/) installed on your machine.
+
+- [Bun](https://bun.sh/) (v1.0.0 or higher)
+- Node.js (v18+ recommended for some tooling)
 
 ### Installation
 
-1. **Clone the repository**
+1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/diskus.git
+   git clone https://github.com/fadhilbarkah/diskus.git
    cd diskus
    ```
 
-2. **Install dependencies**
+2. Install dependencies:
    ```bash
    bun install
    ```
 
-3. **Database Migration**
-   Setup the SQLite database schemas using Drizzle:
+3. Setup environment variables:
+   Copy `.env.example` to `.env` in all three workspace directories (`backend`, `dashboard`, `widget`) and configure the required values, especially the `JWT_SECRET`.
+
+4. Initialize the database schema:
    ```bash
    cd backend
    bun run db:push
    ```
 
-4. **Environment Variables**
-   Create a `.env` file in the `backend`, `dashboard`, and `widget` directories based on their respective `.env.example` configurations. Make sure to set `JWT_SECRET`.
-
-5. **Start the Development Server**
-   Run the monorepo concurrently:
+5. Start the development server (runs backend, dashboard, and widget concurrently):
    ```bash
    # From the project root
    bun dev
    ```
-   - Backend API runs on `http://localhost:3000`
-   - Dashboard runs on `http://localhost:5173`
-   - Widget dev server runs on `http://localhost:5174`
 
----
+## Usage
 
-## 💻 Usage
+### 1. Register a Website
+Open the Dashboard (`http://localhost:5173`), navigate to **Websites**, and register a new domain. You will receive a Public API Key.
 
-### Embedding the Widget
-To embed Diskus into your website (e.g., your blog, documentation, or portfolio), copy and paste the following snippet into your HTML:
+### 2. Embed the Widget
+Paste the following HTML snippet into your target website, replacing the data attributes with your specific keys:
 
 ```html
+<!-- Diskus Embed -->
 <div id="diskus-thread" 
      data-api-key="YOUR_PUBLIC_API_KEY" 
-     data-thread-key="unique-article-slug"
-     data-api-url="https://api.yourdomain.com/v1">
+     data-thread-key="your-unique-page-identifier"
+     data-api-url="http://localhost:3000/api/v1">
 </div>
-<script src="https://widget.yourdomain.com/embed.js" async></script>
+<script src="http://localhost:3000/widget/dist/embed.js" async defer></script>
 ```
-*You can get your `YOUR_PUBLIC_API_KEY` by registering your website in the Diskus Dashboard.*
 
-### Dashboard Management
-Access your Diskus Dashboard to:
-- Register new websites and domains.
-- Approve, delete, or mark comments as spam.
-- View basic analytics regarding user interactions.
-- Manage user authentication requirements.
+> **Note:** The `data-thread-key` should be unique per page (e.g., the article slug or ID) so that comments remain tied to their specific content.
 
----
+## Security & Moderation
 
-## 🗺️ Roadmap
+- **Role-based Access Control (RBAC):** Distinct roles for Administrators and Commenters.
+- **Honeypot Traps:** The widget form includes an invisible field to catch spam bots automatically.
+- **Moderation Tools:** Administrators can approve, delete, or mark comments as spam directly from the dashboard.
 
-- [ ] **Email Notifications**: Integration with Resend/AWS SES to notify users of replies.
-- [ ] **Spam Detection**: Automated AI-based spam filtering (Akismet integration).
-- [ ] **OAuth Login**: Allow guest users to log in via Google/GitHub to comment.
-- [ ] **PostgreSQL Support**: Expand database compatibility for larger deployments.
+## Contributing
 
----
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. 
 
-## 📜 License
+Please make sure to update tests as appropriate.
 
-Diskus is open-sourced software licensed under the [MIT license](LICENSE).
+## License
 
-<div align="center">
-  <i>Built with ❤️ for a faster, cleaner web.</i>
-</div>
+[MIT](LICENSE)
