@@ -184,8 +184,8 @@ export function Settings() {
           description="Manage your preferences and profile details" 
         />
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 items-start">
-        <Card>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <Card class="flex flex-col h-full">
           <CardHeader 
             title="Profile Information" 
             description="Update your account's profile information and email address."
@@ -202,7 +202,7 @@ export function Settings() {
             </div>
           </div>
 
-          <form onSubmit={handleUpdateProfile} class="space-y-4">
+          <form onSubmit={handleUpdateProfile} class="space-y-4 flex flex-col flex-1">
             <Input
               label="Name"
               type="text"
@@ -219,7 +219,7 @@ export function Settings() {
               onInput={(e) => email.value = (e.target as HTMLInputElement).value}
             />
 
-            <div class="pt-4">
+            <div class="pt-4 mt-auto">
               <Button type="submit" disabled={savingProfile.value} fullWidth>
                 {savingProfile.value ? 'Saving...' : 'Save Profile'}
               </Button>
@@ -227,14 +227,14 @@ export function Settings() {
           </form>
         </Card>
 
-        <Card>
+        <Card class="flex flex-col h-full">
           <CardHeader 
             title="Change Password" 
             description="Ensure your account is using a long, random password."
             icon={<Lock class="w-5 h-5" />}
           />
           
-          <form onSubmit={handleUpdatePassword} class="space-y-4">
+          <form onSubmit={handleUpdatePassword} class="space-y-4 flex flex-col flex-1">
             <Input
               label="Current Password"
               type="password"
@@ -261,7 +261,7 @@ export function Settings() {
               onInput={(e) => confirmPassword.value = (e.target as HTMLInputElement).value}
             />
 
-            <div class="pt-4">
+            <div class="pt-4 mt-auto">
               <Button type="submit" disabled={savingPassword.value} fullWidth>
                 {savingPassword.value ? 'Saving...' : 'Update Password'}
               </Button>
@@ -270,15 +270,15 @@ export function Settings() {
         </Card>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 items-start">
-          <Card>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <Card class="flex flex-col h-full">
             <CardHeader 
               title="Integrations" 
               description="Connect external services to power features like email notifications."
               icon={<Mail class="w-5 h-5" />}
             />
             
-            <form onSubmit={handleUpdateIntegrations} class="space-y-4">
+            <form onSubmit={handleUpdateIntegrations} class="space-y-4 flex flex-col flex-1">
               <Input
                 label="Resend API Key"
                 type="password"
@@ -288,7 +288,7 @@ export function Settings() {
               />
               <p class="text-xs text-gray-500 mt-2">Required if you want to enable Email Notifications in your Web Settings. Get it from <a href="https://resend.com" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">resend.com</a></p>
 
-              <div class="pt-4">
+              <div class="pt-4 mt-auto">
                 <Button type="submit" disabled={savingIntegrations.value} fullWidth>
                   {savingIntegrations.value ? 'Saving...' : 'Save Integrations'}
                 </Button>
@@ -296,18 +296,18 @@ export function Settings() {
             </form>
           </Card>
 
-          <Card>
+          <Card class="flex flex-col h-full">
           <CardHeader 
             title="Data Management" 
             description="Export or Import comments for the currently selected website."
             icon={<Database class="w-5 h-5" />}
           />
-          <div class="space-y-6">
+          <div class="space-y-6 flex flex-col flex-1">
             <div class={`p-4 border rounded-xl text-sm ${selectedSiteId.value ? 'bg-blue-50 border-blue-100 text-blue-800' : 'bg-orange-50 border-orange-100 text-orange-800'}`}>
               {selectedSiteId.value ? "These actions will only apply to the currently selected website." : "Please select a website from the top header to enable data management."}
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-auto pt-4">
               <Button onClick={handleExport} disabled={!selectedSiteId.value || exporting.value} type="button" fullWidth style={{ backgroundColor: 'transparent', color: '#4b5563', border: '1px solid #e5e7eb' }}>
                 {exporting.value ? 'Exporting...' : 'Export Data (JSON)'}
               </Button>
