@@ -29,6 +29,13 @@
       "when": 1780725589401,
       "tag": "0003_kind_rictor",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1780761405431,
+      "tag": "0004_exotic_red_skull",
+      "breakpoints": true
     }
   ]
 }

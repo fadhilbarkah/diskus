@@ -67,6 +67,28 @@ Diskus operates as a monorepo containing three core packages:
 > **Email:** `admin@blog.com`  
 > **Password:** `password123`
 
+## Production Deployment (Docker)
+
+Diskus is fully containerized for easy production deployment using Docker Compose.
+
+1. Configure your `.env` variables at the project root:
+   ```bash
+   export JWT_SECRET="your-strong-random-secret"
+   # Set to your actual public backend URL if different
+   export VITE_API_URL="http://localhost:3000/api/v1"
+   ```
+
+2. Build and start the services:
+   ```bash
+   docker-compose up -d --build
+   ```
+
+3. The services will be available at:
+   - **Frontend (Dashboard & Widget Embed)**: `http://localhost:8080`
+   - **Backend API**: `http://localhost:3000`
+
+> **Note:** The database uses a Docker Volume (`diskus-data`), so your comments will persist even if you restart the containers.
+
 ## Usage
 
 ### 1. Register a Website
