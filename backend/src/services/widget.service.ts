@@ -42,20 +42,46 @@ export class WidgetService {
       thread = newThread;
     }
 
-    const rootComments = await db.select().from(comments)
-      .where(and(eq(comments.threadId, thread.id), eq(comments.status, 'approved'), isNull(comments.parentId)))
-      .orderBy(desc(comments.createdAt))
-      .limit(limit)
-      .offset(offset)
+    const allComments = await db.select().from(comments)
+      .where(and(eq(comments.threadId, thread.id), eq(comments.status, 'approved')))
       .all();
 
-    const childComments = await db.select().from(comments)
-      .where(and(eq(comments.threadId, thread.id), eq(comments.status, 'approved'), isNotNull(comments.parentId)))
-      .all();
+    const roots = allComments.filter(c => !c.parentId);
+    const repliesMap = new Map<string, typeof allComments>();
+    
+    for (const c of allComments) {
+      if (c.parentId) {
+        if (!repliesMap.has(c.parentId)) repliesMap.set(c.parentId, []);
+        repliesMap.get(c.parentId)!.push(c);
+      }
+    }
+
+    roots.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    repliesMap.forEach(replies => {
+      replies.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    });
+
+    const flattened: typeof allComments = [];
+    const traverse = (comment: typeof allComments[0]) => {
+      flattened.push(comment);
+      const replies = repliesMap.get(comment.id);
+      if (replies) {
+        for (const reply of replies) {
+          traverse(reply);
+        }
+      }
+    };
+
+    for (const root of roots) {
+      traverse(root);
+    }
+
+    const paginated = flattened.slice(offset, offset + limit);
 
     return {
-      comments: [...rootComments, ...childComments],
-      hasMore: rootComments.length === limit
+      comments: paginated,
+      hasMore: offset + limit < flattened.length
     };
   }
 
