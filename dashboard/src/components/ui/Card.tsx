@@ -9,7 +9,7 @@ export function Card({ children, noPadding = false, class: className, ...props }
   return (
     <div 
       class={`bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden ${
-        noPadding ? '' : 'p-6'
+        noPadding ? '' : 'p-5'
       } ${className || ''}`}
       {...props}
     >
@@ -28,7 +28,7 @@ interface CardHeaderProps {
 
 export function CardHeader({ title, description, icon, action, class: className }: CardHeaderProps) {
   return (
-    <div class={`flex items-start justify-between mb-6 ${className || ''}`}>
+    <div class={`flex items-start justify-between mb-4 ${className || ''}`}>
       <div class="flex items-center gap-3">
         {icon && (
           <div class="text-blue-500">

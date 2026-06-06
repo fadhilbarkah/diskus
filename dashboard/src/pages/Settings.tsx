@@ -184,7 +184,7 @@ export function Settings() {
           description="Manage your preferences and profile details" 
         />
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
         <Card class="flex flex-col h-full">
           <CardHeader 
             title="Profile Information" 
@@ -192,7 +192,7 @@ export function Settings() {
             icon={<User class="w-5 h-5" />}
           />
           
-          <div class="flex items-center gap-4 mb-6">
+          <div class="flex items-center gap-4 mb-4">
             <div class="w-16 h-16 rounded-full overflow-hidden shrink-0 select-none border border-gray-100 bg-gray-50 shadow-sm">
               <img src={`https://api.dicebear.com/10.x/thumbs/svg?seed=${encodeURIComponent(email.value || 'admin')}`} alt="Avatar" class="w-full h-full object-cover" />
             </div>
@@ -270,7 +270,7 @@ export function Settings() {
         </Card>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
           <Card class="flex flex-col h-full">
             <CardHeader 
               title="Integrations" 
