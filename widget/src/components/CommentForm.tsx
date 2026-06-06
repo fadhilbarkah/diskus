@@ -93,6 +93,16 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
     if (onCancel) onCancel();
   };
 
+  const handleCancel = () => {
+    content.value = '';
+    password.value = '';
+    isExpanded.value = false;
+    authError.value = '';
+    if (onCancel) onCancel();
+  };
+
+  const showCancel = !!onCancel || (!parentId && isExpanded.value);
+
   const getAvatarUrl = () => {
     if (widgetUser.value) {
       return `https://api.dicebear.com/10.x/thumbs/svg?seed=${encodeURIComponent(widgetUser.value.email.toLowerCase())}`;
@@ -158,9 +168,9 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
                     )}
 
                     <div class="flex justify-end items-center gap-3 mt-2">
-                      {onCancel && <button type="button" onClick={onCancel} class="text-[14px] font-medium text-gray-500 hover:text-gray-700 transition-colors">Cancel</button>}
+                      {showCancel && <button type="button" onClick={handleCancel} class="text-[14px] font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">Cancel</button>}
                       <button type="submit" disabled={submitting.value} class="px-6 py-2.5 bg-blue-600 text-white text-[14px] font-medium rounded-xl hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
-                        {submitting.value ? 'Sending...' : (authMode.value === 'login' ? 'Login' : authMode.value === 'register' ? 'Register' : 'Reply')}
+                        {submitting.value ? 'Sending...' : (authMode.value === 'login' ? 'Login' : authMode.value === 'register' ? 'Register' : (parentId ? 'Reply' : 'Comment'))}
                       </button>
                     </div>
                   </div>
@@ -174,9 +184,9 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
                     <button type="button" onClick={logoutWidget} class="text-[#ff4b4b] hover:text-red-600 transition-colors">Logout</button>
                   </div>
                   <div class="flex items-center gap-3 shrink-0">
-                    {onCancel && <button type="button" onClick={onCancel} class="text-[14px] font-medium text-gray-500 hover:text-gray-700 transition-colors">Cancel</button>}
+                    {showCancel && <button type="button" onClick={handleCancel} class="text-[14px] font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">Cancel</button>}
                     <button type="submit" disabled={submitting.value} class="px-6 py-2.5 bg-blue-600 text-white text-[14px] font-medium rounded-xl hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">
-                      {submitting.value ? 'Sending...' : 'Reply'}
+                      {submitting.value ? 'Sending...' : (parentId ? 'Reply' : 'Comment')}
                     </button>
                   </div>
                 </div>
