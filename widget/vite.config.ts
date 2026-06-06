@@ -21,18 +21,7 @@ export default defineConfig({
     },
     sourcemap: true,
     cssCodeSplit: false,
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true,
-        drop_debugger: true,
-        passes: 3,
-        unsafe: true,
-      },
-      format: {
-        comments: false,
-      },
-    },
+    minify: 'esbuild',
   },
   define: {
     'process.env.NODE_ENV': '"production"',

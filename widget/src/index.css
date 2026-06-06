@@ -1,4 +1,4 @@
-@import "tailwindcss/utilities";
+@import "tailwindcss";
 
 @variant dark (&:where(.dark, .dark *));
 
@@ -10,25 +10,6 @@
 
 #diskus-thread * {
   box-sizing: border-box;
-  border-width: 0;
-  border-style: solid;
-}
-
-#diskus-thread button, 
-#diskus-thread input, 
-#diskus-thread select, 
-#diskus-thread textarea {
-  font-family: inherit;
-  font-size: 100%;
-  margin: 0;
-  padding: 0;
-  background: transparent;
-  color: inherit;
-  outline: none;
-}
-
-#diskus-thread button {
-  cursor: pointer;
 }
 
 .diskus-prose p {
