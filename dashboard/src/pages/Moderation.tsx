@@ -156,11 +156,11 @@ export function Moderation() {
       };
 
       return (
-        <div key={c.id} class={`relative ${depth === 0 ? 'border-b border-gray-100 last:border-0' : ''}`}>
+        <div key={c.id} class={`relative ${depth === 0 ? 'border-b border-gray-100 last:border-0' : ''} ${openMenuId.value === c.id ? 'z-50' : 'z-0'}`}>
           {replies.length > 0 && (
             <div class="absolute w-px bg-gray-200 z-0" style={{ left: `${depth * 32 + 68}px`, top: '36px', bottom: '24px' }}></div>
           )}
-          <div class={`flex items-start gap-4 p-4 hover:bg-gray-50/50 group relative`}>
+          <div class={`flex items-start gap-4 p-4 hover:bg-gray-50/50 group relative ${openMenuId.value === c.id ? 'z-50' : 'z-0'}`}>
             <div class="pt-1 shrink-0 z-10 bg-white">
               <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(c.id)} class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
             </div>
@@ -171,7 +171,7 @@ export function Moderation() {
               <div class={`w-10 h-10 rounded-full overflow-hidden shrink-0 flex items-center justify-center text-white relative z-10 ${depth > 0 ? 'bg-cyan-100' : 'bg-blue-900'}`}>
                 <img src={`https://api.dicebear.com/10.x/thumbs/svg?seed=${encodeURIComponent(c.authorEmail.trim().toLowerCase())}`} alt={c.authorName} class="w-full h-full object-cover" />
               </div>
-              <div class="flex-1 min-w-0 z-10 relative">
+              <div class={`flex-1 min-w-0 relative ${openMenuId.value === c.id ? 'z-50' : 'z-10'}`}>
                 <div class="flex items-start justify-between mb-1 gap-2">
                   <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                     <div class="flex items-center gap-2 flex-wrap">
