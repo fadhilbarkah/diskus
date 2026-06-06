@@ -50,6 +50,13 @@ widgetRoutes.post(
 
 widgetRoutes.delete('/comments/:id', authMiddleware, WidgetController.deleteComment);
 
+widgetRoutes.patch(
+  '/comments/:id/pin', 
+  authMiddleware, 
+  zValidator('json', z.object({ isPinned: z.boolean() })),
+  WidgetController.togglePinComment
+);
+
 widgetRoutes.post('/comments/:id/like', WidgetController.likeComment);
 
 widgetRoutes.post('/comments/:id/unlike', WidgetController.unlikeComment);

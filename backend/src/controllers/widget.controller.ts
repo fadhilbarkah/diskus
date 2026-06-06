@@ -21,7 +21,7 @@ export class WidgetController {
     const newUser = await WidgetService.registerWidgetUser(email, name, passwordHash);
     
     const token = await signToken({ userId: newUser.id, email: newUser.email, name: newUser.name, role: 'commenter' });
-    return c.json({ token, user: { id: newUser.id, email: newUser.email, name: newUser.name } });
+    return c.json({ token, user: { id: newUser.id, email: newUser.email, name: newUser.name, role: 'commenter' } });
   }
 
   static async login(c: Context) {
@@ -30,13 +30,13 @@ export class WidgetController {
     const dashboardUser = await WidgetService.findDashboardUser(email);
     if (dashboardUser && await WidgetService.verifyPassword(password, dashboardUser.passwordHash)) {
       const token = await signToken({ userId: dashboardUser.id, email: dashboardUser.email, name: dashboardUser.name || 'Admin', role: dashboardUser.role });
-      return c.json({ token, user: { id: dashboardUser.id, email: dashboardUser.email, name: dashboardUser.name || 'Admin' } });
+      return c.json({ token, user: { id: dashboardUser.id, email: dashboardUser.email, name: dashboardUser.name || 'Admin', role: dashboardUser.role } });
     }
 
     const user = await WidgetService.findWidgetUser(email);
     if (user && await WidgetService.verifyPassword(password, user.passwordHash)) {
       const token = await signToken({ userId: user.id, email: user.email, name: user.name, role: 'commenter' });
-      return c.json({ token, user: { id: user.id, email: user.email, name: user.name } });
+      return c.json({ token, user: { id: user.id, email: user.email, name: user.name, role: 'commenter' } });
     }
     
     return c.json({ error: 'Invalid email or password' }, 401);
@@ -167,6 +167,22 @@ export class WidgetController {
 
     if (user.role === 'commenter') {
       await WidgetService.deleteComment(id, user.email);
+      return c.json({ success: true });
+    }
+
+    return c.json({ error: 'Unauthorized' }, 403);
+  }
+
+  static async togglePinComment(c: Context<{ Variables: AuthVariables }>) {
+    const id = c.req.param('id') as string;
+    const user = c.get('user');
+    const { isPinned } = (c.req as any).valid('json');
+    
+    if (!user) return c.json({ error: 'Unauthorized' }, 401);
+
+    if (user.role === 'admin' || user.role === 'user') {
+      const AdminService = require('../services/admin.service').AdminService;
+      await AdminService.togglePinComment(id, isPinned);
       return c.json({ success: true });
     }
 

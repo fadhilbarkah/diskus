@@ -13,10 +13,11 @@ interface Props {
   apiUrl: string;
   depth?: number;
   onDelete: (id: string) => Promise<void>;
+  onPin?: (id: string, isPinned: boolean) => Promise<void>;
   requireLogin?: boolean;
 }
 
-export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, depth = 0, onDelete, requireLogin }: Props) {
+export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, depth = 0, onDelete, onPin, requireLogin }: Props) {
   const showReplyForm = useSignal(false);
   const showMenu = useSignal(false);
   const replies = repliesMap.get(comment.id) || [];
@@ -86,13 +87,18 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
             <div class="text-[13px] text-gray-400 dark:text-gray-500 mt-0.5 whitespace-nowrap">{timeAgo(comment.createdAt)}</div>
           </div>
           
-          {widgetUser.value && (widgetUser.value.email === comment.authorEmail || widgetUser.value.name === 'Admin') && (
+          {widgetUser.value && (widgetUser.value.email === comment.authorEmail || widgetUser.value.name === 'Admin' || widgetUser.value.role === 'admin' || widgetUser.value.role === 'user') && (
             <div class="absolute right-0 top-0">
               <button onClick={() => showMenu.value = !showMenu.value} class="text-gray-400 hover:text-gray-600 outline-none">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path></svg>
               </button>
               {showMenu.value && (
                 <div class="absolute right-0 mt-1 w-32 bg-white dark:bg-[#222] border border-gray-200 dark:border-gray-700 shadow-lg rounded-lg py-1 z-20 text-sm">
+                  {(widgetUser.value.name === 'Admin' || widgetUser.value.role === 'admin' || widgetUser.value.role === 'user') && depth === 0 && onPin && (
+                    <button onClick={() => { showMenu.value = false; onPin(comment.id, !comment.isPinned); }} class="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium transition-colors">
+                      {comment.isPinned ? 'Unpin' : 'Pin to top'}
+                    </button>
+                  )}
                   <button onClick={() => { showMenu.value = false; onDelete(comment.id); }} class="w-full text-left px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 font-medium transition-colors">Delete</button>
                 </div>
               )}

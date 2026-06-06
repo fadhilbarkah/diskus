@@ -145,6 +145,27 @@ export function DiskusWidget({ apiKey, threadKey, apiUrl }: { apiKey: string, th
     }
   };
 
+  const togglePin = async (id: string, isPinned: boolean) => {
+    try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (widgetToken.value) {
+        headers['Authorization'] = `Bearer ${widgetToken.value}`;
+      }
+      const res = await fetch(`${apiUrl}/widget/comments/${id}/pin`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({ isPinned })
+      });
+      if (res.ok) {
+        fetchComments();
+      } else {
+        showNotification('Gagal menyematkan komentar.', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   if (loading.value) return <div class="p-4 text-gray-500">Loading comments...</div>;
   if (error.value) return <div class="p-4 text-red-500">{error.value}</div>;
 
@@ -218,7 +239,7 @@ export function DiskusWidget({ apiKey, threadKey, apiUrl }: { apiKey: string, th
       
       <div class="space-y-6">
         {visibleTopLevelComments.map(c => (
-          <CommentThread key={c.id} comment={c} repliesMap={repliesMap} onReply={addComment} onLike={handleLike} onDelete={deleteComment} apiUrl={apiUrl} requireLogin={requireLogin.value} />
+          <CommentThread key={c.id} comment={c} repliesMap={repliesMap} onReply={addComment} onLike={handleLike} onDelete={deleteComment} onPin={togglePin} apiUrl={apiUrl} requireLogin={requireLogin.value} />
         ))}
         {!loading.value && comments.value.length === 0 && (
           <div class="text-center py-12 bg-gray-50 dark:bg-gray-800/20 rounded-xl border border-dashed border-gray-200 dark:border-gray-800">

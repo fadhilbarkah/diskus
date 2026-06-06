@@ -4,6 +4,7 @@ interface WidgetUser {
   id: string;
   email: string;
   name: string;
+  role?: string;
 }
 
 const storedToken = localStorage.getItem('diskus_widget_token');
