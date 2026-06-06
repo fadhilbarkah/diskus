@@ -7,7 +7,7 @@ ARG VITE_API_URL
 
 # Build Dashboard
 WORKDIR /app/dashboard
-COPY dashboard/package.json dashboard/bun.lock* ./
+COPY dashboard/package.json ./
 RUN bun install
 COPY dashboard/ ./
 ENV VITE_API_URL=$VITE_API_URL
@@ -15,7 +15,7 @@ RUN bun run build
 
 # Build Widget
 WORKDIR /app/widget
-COPY widget/package.json widget/bun.lock* ./
+COPY widget/package.json ./
 RUN bun install
 COPY widget/ ./
 ENV VITE_API_URL=$VITE_API_URL
