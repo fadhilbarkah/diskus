@@ -169,7 +169,7 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
 
                     <div class="flex justify-end items-center gap-3 mt-2">
                       {showCancel && <button type="button" onClick={handleCancel} class="text-[14px] font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">Cancel</button>}
-                      <button type="submit" disabled={submitting.value} class="px-6 py-2.5 bg-blue-600 text-white text-[14px] font-medium rounded-xl hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                      <button type="submit" disabled={submitting.value} class="px-4 py-2 bg-blue-600 text-white text-[14px] font-medium rounded-xl hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed">
                         {submitting.value ? 'Sending...' : (authMode.value === 'login' ? 'Login' : authMode.value === 'register' ? 'Register' : (parentId ? 'Reply' : 'Comment'))}
                       </button>
                     </div>
@@ -185,7 +185,7 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
                   </div>
                   <div class="flex items-center gap-3 shrink-0">
                     {showCancel && <button type="button" onClick={handleCancel} class="text-[14px] font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">Cancel</button>}
-                    <button type="submit" disabled={submitting.value} class="px-6 py-2.5 bg-blue-600 text-white text-[14px] font-medium rounded-xl hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">
+                    <button type="submit" disabled={submitting.value} class="px-4 py-2 bg-blue-600 text-white text-[14px] font-medium rounded-xl hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">
                       {submitting.value ? 'Sending...' : (parentId ? 'Reply' : 'Comment')}
                     </button>
                   </div>
