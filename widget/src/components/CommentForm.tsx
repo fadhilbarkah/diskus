@@ -12,9 +12,16 @@ interface Props {
 }
 
 export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin }: Props) {
+  const getStored = (key: string) => {
+    try { return localStorage.getItem(key) || ''; } catch { return ''; }
+  };
+  const setStored = (key: string, val: string) => {
+    try { localStorage.setItem(key, val); } catch {}
+  };
+
   const content = useSignal('');
-  const name = useSignal('');
-  const email = useSignal('');
+  const name = useSignal(getStored('diskus_guest_name'));
+  const email = useSignal(getStored('diskus_guest_email'));
   const password = useSignal('');
   const submitting = useSignal(false);
   const isExpanded = useSignal(!!parentId);
@@ -39,6 +46,8 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
       if (authMode.value === 'guest') {
         if (!content.value || !name.value || !email.value) return;
         submitting.value = true;
+        setStored('diskus_guest_name', name.value);
+        setStored('diskus_guest_email', email.value);
         await onSubmit(content.value, name.value, email.value, parentId, trap.value);
       } else if (authMode.value === 'login') {
         if (!email.value || !password.value) return;
