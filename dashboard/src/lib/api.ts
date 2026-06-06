@@ -64,4 +64,5 @@ export const api = {
   importComments: (siteId: string, data: any) => fetchWithAuth(`/admin/import/${siteId}`, { method: 'POST', body: JSON.stringify(data) }),
 
   getUsers: () => fetchWithAuth('/admin/users'),
+  deleteUser: (id: string) => fetchWithAuth(`/admin/users/${id}`, { method: 'DELETE' }),
 };

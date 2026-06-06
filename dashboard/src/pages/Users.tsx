@@ -1,6 +1,6 @@
 import { useSignal } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
-import { Users as UsersIcon, Loader2, RefreshCw } from 'lucide-preact';
+import { Users as UsersIcon, Loader2, RefreshCw, Trash2, AlertTriangle } from 'lucide-preact';
 import { api } from '../lib/api';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Card } from '../components/ui/Card';
@@ -10,6 +10,24 @@ export function Users() {
   const users = useSignal<any[]>([]);
   const loading = useSignal(true);
   const error = useSignal<string | null>(null);
+
+  const userToDelete = useSignal<{id: string, name: string} | null>(null);
+  const deleteLoading = useSignal(false);
+
+  const confirmDeleteUser = async () => {
+    if (!userToDelete.value) return;
+    deleteLoading.value = true;
+    try {
+      await api.deleteUser(userToDelete.value.id);
+      userToDelete.value = null;
+      await fetchUsers();
+    } catch (err: any) {
+      console.error(err);
+      alert(err.message || 'Failed to delete user');
+    } finally {
+      deleteLoading.value = false;
+    }
+  };
 
   const fetchUsers = async () => {
     loading.value = true;
@@ -67,6 +85,7 @@ export function Users() {
                 <tr>
                   <th class="px-6 py-4">User</th>
                   <th class="px-6 py-4">Joined</th>
+                  <th class="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-100">
@@ -86,6 +105,15 @@ export function Users() {
                     <td class="px-6 py-4 whitespace-nowrap text-gray-500 font-medium">
                       {new Date(user.createdAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
                     </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                      <button 
+                        onClick={() => userToDelete.value = { id: user.id, name: user.name }}
+                        class="text-gray-400 hover:text-red-600 p-2 rounded-xl hover:bg-red-50 transition-colors cursor-pointer"
+                        title="Delete User"
+                      >
+                        <Trash2 class="w-4 h-4" />
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -93,6 +121,41 @@ export function Users() {
           </div>
         )}
       </Card>
+
+      {userToDelete.value && (
+        <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-all duration-300">
+          <Card class="max-w-md w-full shadow-2xl animate-in fade-in zoom-in-95 duration-200" noPadding>
+            <div class="p-8 text-center">
+              <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-5 ring-8 ring-red-50/50">
+                <AlertTriangle class="w-8 h-8" strokeWidth={2.5} />
+              </div>
+              <h3 class="text-xl font-bold text-gray-900 mb-3">Delete User?</h3>
+              <p class="text-gray-500 text-sm mb-8 leading-relaxed">
+                Are you sure you want to delete the user <span class="font-bold text-gray-800">{userToDelete.value.name}</span>? 
+                This action is <b>permanent</b> and cannot be undone.
+              </p>
+              
+              <div class="flex gap-3 justify-center w-full">
+                <Button 
+                  variant="secondary"
+                  class="flex-1"
+                  onClick={() => userToDelete.value = null}
+                  disabled={deleteLoading.value}
+                >
+                  Cancel
+                </Button>
+                <button 
+                  onClick={confirmDeleteUser}
+                  disabled={deleteLoading.value}
+                  class="flex-1 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 focus:ring-4 focus:ring-red-100 transition-all disabled:opacity-50 cursor-pointer"
+                >
+                  {deleteLoading.value ? 'Deleting...' : 'Yes, Delete'}
+                </button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

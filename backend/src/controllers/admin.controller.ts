@@ -122,4 +122,17 @@ export class AdminController {
     const users = await AdminService.getWidgetUsers();
     return c.json({ users });
   }
+
+  static async deleteWidgetUser(c: Context<{ Variables: AuthVariables }>) {
+    const user = c.get('user')!;
+    if (user.role !== 'admin') {
+      return c.json({ error: 'Unauthorized. Only admins can delete users.' }, 403);
+    }
+    
+    const id = c.req.param('id');
+    if (!id) return c.json({ error: 'User ID is required' }, 400);
+
+    await AdminService.deleteWidgetUser(id);
+    return c.json({ success: true });
+  }
 }

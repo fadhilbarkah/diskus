@@ -26,5 +26,6 @@ adminRoutes.get('/export/:siteId', AdminController.exportData);
 adminRoutes.post('/import/:siteId', zValidator('json', z.object({ threads: z.array(z.any()).optional(), comments: z.array(z.any()).optional() })), AdminController.importData);
 
 adminRoutes.get('/users', AdminController.getWidgetUsers);
+adminRoutes.delete('/users/:id', AdminController.deleteWidgetUser);
 
 export default adminRoutes;

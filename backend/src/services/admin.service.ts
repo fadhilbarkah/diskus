@@ -215,4 +215,8 @@ export class AdminService {
       createdAt: widgetUsers.createdAt
     }).from(widgetUsers).orderBy(desc(widgetUsers.createdAt)).all();
   }
+
+  static async deleteWidgetUser(id: string) {
+    await db.delete(widgetUsers).where(eq(widgetUsers.id, id));
+  }
 }
