@@ -45,7 +45,9 @@ Diskus operates as a monorepo containing three core packages:
    ```
 
 3. Setup environment variables:
-   Copy `.env.example` to `.env` in all three workspace directories (`backend`, `dashboard`, `widget`) and configure the required values, especially the `JWT_SECRET`.
+   Copy `.env.example` to `.env` in all three workspace directories (`backend`, `dashboard`, `widget`). 
+   - **Backend (`/backend`)**: Configure the required `JWT_SECRET`. You can also configure `DASHBOARD_ORIGIN` (for CORS restrictions) and `DATABASE_PATH` (custom SQLite path).
+   - **Dashboard & Widget**: Configure `VITE_API_URL` to point to your backend API URL.
 
 4. Initialize the database schema and optionally seed initial data:
    ```bash
