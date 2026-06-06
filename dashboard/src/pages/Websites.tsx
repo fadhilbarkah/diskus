@@ -235,7 +235,7 @@ export function Websites() {
                       requireLoginSetting.value = site.requireLogin;
                       enableEmailSetting.value = site.enableEmail;
                       commentsLimitSetting.value = site.commentsLimit || 10;
-                      requireModerationSetting.value = site.requireModeration || false;
+                      requireModerationSetting.value = site.requireModeration ?? true;
                     }}
                   >
                     <SettingsIcon class="w-4 h-4 mr-2" /> Settings
