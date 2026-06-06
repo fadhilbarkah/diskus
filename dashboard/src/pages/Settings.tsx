@@ -33,6 +33,26 @@ export function Settings() {
     setTimeout(() => { notification.value = null; }, 4000);
   };
 
+  const avatarSeed = useSignal('admin');
+
+  useEffect(() => {
+    const generateHash = async () => {
+      if (email.value) {
+        try {
+          const msgUint8 = new TextEncoder().encode(email.value.trim().toLowerCase());
+          const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+          const hashArray = Array.from(new Uint8Array(hashBuffer));
+          avatarSeed.value = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+        } catch (err) {
+          avatarSeed.value = 'admin';
+        }
+      } else {
+        avatarSeed.value = 'admin';
+      }
+    };
+    generateHash();
+  }, [email.value]);
+
   useEffect(() => {
     loadAccount();
   }, []);
@@ -196,7 +216,7 @@ export function Settings() {
 
             <div class="flex items-center gap-4 mb-4">
               <div class="w-16 h-16 rounded-full overflow-hidden shrink-0 select-none border border-gray-100 bg-gray-50 shadow-sm">
-                <img src={`https://api.dicebear.com/10.x/thumbs/svg?seed=${encodeURIComponent(email.value || 'admin')}`} alt="Avatar" class="w-full h-full object-cover" />
+                <img src={`https://api.dicebear.com/10.x/thumbs/svg?seed=${avatarSeed.value}`} alt="Avatar" class="w-full h-full object-cover" />
               </div>
               <div>
                 <h3 class="font-medium text-gray-900 text-sm">Avatar</h3>

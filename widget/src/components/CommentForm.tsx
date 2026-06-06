@@ -115,14 +115,40 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
 
   const showCancel = !!onCancel || (!parentId && isExpanded.value);
 
+  const avatarSeedPreview = useSignal('guest');
+
+  useEffect(() => {
+    const generateHash = async () => {
+      let rawEmail = '';
+      if (widgetUser.value) {
+        if (widgetUser.value.avatarSeed) {
+          avatarSeedPreview.value = widgetUser.value.avatarSeed;
+          return;
+        }
+        rawEmail = widgetUser.value.email;
+      } else if (email.value) {
+        rawEmail = email.value;
+      }
+
+      if (rawEmail) {
+        try {
+          const msgUint8 = new TextEncoder().encode(rawEmail.trim().toLowerCase());
+          const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+          const hashArray = Array.from(new Uint8Array(hashBuffer));
+          const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+          avatarSeedPreview.value = hashHex;
+        } catch (e) {
+          avatarSeedPreview.value = 'guest';
+        }
+      } else {
+        avatarSeedPreview.value = 'guest';
+      }
+    };
+    generateHash();
+  }, [email.value, widgetUser.value]);
+
   const getAvatarUrl = () => {
-    if (widgetUser.value) {
-      return `https://api.dicebear.com/10.x/thumbs/svg?seed=${encodeURIComponent(widgetUser.value.email.toLowerCase())}`;
-    }
-    if (email.value) {
-      return `https://api.dicebear.com/10.x/thumbs/svg?seed=${encodeURIComponent(email.value.toLowerCase())}`;
-    }
-    return `https://api.dicebear.com/10.x/thumbs/svg?seed=guest`;
+    return `https://api.dicebear.com/10.x/thumbs/svg?seed=${avatarSeedPreview.value}`;
   };
 
   return (

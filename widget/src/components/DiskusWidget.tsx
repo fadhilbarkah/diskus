@@ -8,7 +8,7 @@ export interface Comment {
   id: string;
   parentId: string | null;
   authorName: string;
-  authorEmail: string;
+  avatarSeed: string;
   content: string;
   htmlContent: string;
   status: string;

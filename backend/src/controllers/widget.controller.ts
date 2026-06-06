@@ -5,6 +5,7 @@ import { AuthVariables } from '../middlewares/auth';
 import { AdminService } from '../services/admin.service';
 import { Resend } from 'resend';
 import { escapeHtmlEntities } from '../utils/html';
+import { hashEmail } from '../utils/hash';
 
 export class WidgetController {
   static async register(c: Context) {
@@ -22,7 +23,7 @@ export class WidgetController {
     const newUser = await WidgetService.registerWidgetUser(email, name, passwordHash);
     
     const token = await signToken({ userId: newUser.id, email: newUser.email, name: newUser.name, role: 'commenter' });
-    return c.json({ token, user: { id: newUser.id, email: newUser.email, name: newUser.name, role: 'commenter' } });
+    return c.json({ token, user: { id: newUser.id, email: newUser.email, name: newUser.name, role: 'commenter', avatarSeed: hashEmail(newUser.email) } });
   }
 
   static async login(c: Context) {
@@ -31,13 +32,13 @@ export class WidgetController {
     const dashboardUser = await WidgetService.findDashboardUser(email);
     if (dashboardUser && await WidgetService.verifyPassword(password, dashboardUser.passwordHash)) {
       const token = await signToken({ userId: dashboardUser.id, email: dashboardUser.email, name: dashboardUser.name || 'Admin', role: dashboardUser.role });
-      return c.json({ token, user: { id: dashboardUser.id, email: dashboardUser.email, name: dashboardUser.name || 'Admin', role: dashboardUser.role } });
+      return c.json({ token, user: { id: dashboardUser.id, email: dashboardUser.email, name: dashboardUser.name || 'Admin', role: dashboardUser.role, avatarSeed: hashEmail(dashboardUser.email) } });
     }
 
     const user = await WidgetService.findWidgetUser(email);
     if (user && await WidgetService.verifyPassword(password, user.passwordHash)) {
       const token = await signToken({ userId: user.id, email: user.email, name: user.name, role: 'commenter' });
-      return c.json({ token, user: { id: user.id, email: user.email, name: user.name, role: 'commenter' } });
+      return c.json({ token, user: { id: user.id, email: user.email, name: user.name, role: 'commenter', avatarSeed: hashEmail(user.email) } });
     }
     
     return c.json({ error: 'Invalid email or password' }, 401);
@@ -62,10 +63,12 @@ export class WidgetController {
     const owner = await AdminService.getUserAccount(site.userId);
     const { comments, hasMore } = await WidgetService.getComments(site.id, threadKey, limit, offset, title);
     
-    const enrichedComments = comments.map(comment => ({
-      ...comment,
-      isAuthor: owner ? comment.authorEmail === owner.email : false
-    }));
+    const enrichedComments = comments.map(comment => {
+      const isAuthor = owner ? comment.authorEmail === owner.email : false;
+      const avatarSeed = hashEmail(comment.authorEmail);
+      const { authorEmail, ...safeComment } = comment as any;
+      return { ...safeComment, isAuthor, avatarSeed };
+    });
 
     return c.json({ comments: enrichedComments, hasMore, config: { requireLogin: site.requireLogin } });
   }
@@ -123,8 +126,10 @@ export class WidgetController {
 
     const returnedComment = {
       ...newComment,
-      isAuthor: owner ? newComment.authorEmail === owner.email : false
+      isAuthor: owner ? newComment.authorEmail === owner.email : false,
+      avatarSeed: hashEmail(newComment.authorEmail)
     };
+    delete (returnedComment as any).authorEmail;
 
     if (site.enableEmail) {
       Promise.resolve().then(async () => {
