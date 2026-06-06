@@ -46,6 +46,8 @@ export const api = {
   getComments: (status: string, siteId?: string | null) => fetchWithAuth(`/admin/comments?status=${status}${siteId ? `&siteId=${siteId}` : ''}`),
   bulkUpdateComments: (ids: string[], status: string) => 
     fetchWithAuth('/admin/comments/bulk', { method: 'PATCH', body: JSON.stringify({ ids, status }) }),
+  togglePinComment: (id: string, isPinned: boolean) =>
+    fetchWithAuth(`/admin/comments/${id}/pin`, { method: 'PATCH', body: JSON.stringify({ isPinned }) }),
   deleteComments: (ids: string[]) => 
     fetchWithAuth('/admin/comments/bulk', { method: 'DELETE', body: JSON.stringify({ ids }) }),
   getSites: () => fetchWithAuth('/admin/sites'),

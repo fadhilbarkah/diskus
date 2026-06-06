@@ -45,6 +45,7 @@ export const comments = sqliteTable('comments', {
   authorEmail: text('author_email').notNull(),
   content: text('content').notNull(),
   htmlContent: text('html_content').notNull(),
+  isPinned: integer('is_pinned', { mode: 'boolean' }).default(false).notNull(),
   status: text('status', { enum: ['pending', 'approved', 'spam', 'trash'] }).default('pending').notNull(),
   likesCount: integer('likes_count').default(0).notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),

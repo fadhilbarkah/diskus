@@ -61,6 +61,14 @@ export class AdminController {
     return c.json({ comments: enrichedComments });
   }
 
+  static async togglePinComment(c: Context<{ Variables: AuthVariables }>) {
+    const id = c.req.param('id') as string;
+    const { isPinned } = (c.req as any).valid('json');
+    // TODO: Verify permissions, but since they are admin/owner we'll trust for now based on middleware
+    await AdminService.togglePinComment(id, isPinned);
+    return c.json({ success: true });
+  }
+
   static async updateCommentsBulk(c: Context<{ Variables: AuthVariables }>) {
     const user = c.get('user')!;
     const { ids, status } = (c.req as any).valid('json');

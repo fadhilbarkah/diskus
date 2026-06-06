@@ -1,4 +1,4 @@
-import { Search, ChevronLeft, ChevronRight, MoreHorizontal, ChevronDown } from 'lucide-preact';
+import { Search, ChevronLeft, ChevronRight, MoreHorizontal, ChevronDown, Pin, PinOff } from 'lucide-preact';
 import { useSignal } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
 import { api } from '../lib/api';
@@ -87,6 +87,15 @@ export function Moderation() {
       fetchData();
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleTogglePin = async (id: string, isPinned: boolean) => {
+    try {
+      await api.togglePinComment(id, isPinned);
+      comments.value = comments.value.map(c => c.id === id ? { ...c, isPinned } : c);
+    } catch (err) {
+      alert('Failed to update pin status');
     }
   };
 
@@ -182,8 +191,15 @@ export function Moderation() {
                   </div>
                   <div class="flex items-center gap-1 sm:gap-2 shrink-0">
                     <span class={`border text-[10px] sm:text-xs px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full font-medium capitalize ${statusColors[c.status] || 'bg-gray-50 text-gray-600 border-gray-200'}`}>{c.status}</span>
-                    <div class="relative">
-                      <button onClick={() => openMenuId.value = openMenuId.value === c.id ? null : c.id} class="text-gray-400 hover:text-gray-900 p-1 rounded-md hover:bg-gray-100 transition-colors cursor-pointer"><MoreHorizontal class="w-4 h-4" /></button>
+                    <div class="relative flex items-center">
+                      <button 
+                        onClick={() => handleTogglePin(c.id, !c.isPinned)} 
+                        class={`p-1.5 rounded-md transition-colors cursor-pointer mr-1 ${c.isPinned ? 'text-blue-600 bg-blue-50 hover:bg-blue-100' : 'text-gray-400 hover:text-gray-900 hover:bg-gray-100'}`}
+                        title={c.isPinned ? "Unpin Comment" : "Pin Comment"}
+                      >
+                        {c.isPinned ? <PinOff class="w-4 h-4" /> : <Pin class="w-4 h-4" />}
+                      </button>
+                      <button onClick={() => openMenuId.value = openMenuId.value === c.id ? null : c.id} class="text-gray-400 hover:text-gray-900 p-1.5 rounded-md hover:bg-gray-100 transition-colors cursor-pointer"><MoreHorizontal class="w-4 h-4" /></button>
                       {openMenuId.value === c.id && (
                         <div class="absolute right-0 top-full mt-1 w-36 bg-white border border-gray-200 shadow-lg rounded-xl py-1 z-20 text-sm">
                           {c.status !== 'approved' && c.status !== 'trash' && <button onClick={() => handleSingleAction(c.id, 'approved')} class="w-full text-left px-4 py-2 hover:bg-gray-50 text-green-600 font-medium cursor-pointer">Approve</button>}

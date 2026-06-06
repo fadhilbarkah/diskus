@@ -22,6 +22,7 @@ adminRoutes.get('/analytics/summary', AdminController.getAnalyticsSummary);
 adminRoutes.get('/comments', AdminController.getComments);
 
 adminRoutes.patch('/comments/bulk', zValidator('json', z.object({ ids: z.array(z.string()), status: z.enum(['approved', 'pending', 'spam', 'trash']) })), AdminController.updateCommentsBulk);
+adminRoutes.patch('/comments/:id/pin', zValidator('json', z.object({ isPinned: z.boolean() })), AdminController.togglePinComment);
 adminRoutes.delete('/comments/bulk', zValidator('json', z.object({ ids: z.array(z.string()) })), AdminController.deleteCommentsBulk);
 
 adminRoutes.get('/account', AdminController.getAccount);

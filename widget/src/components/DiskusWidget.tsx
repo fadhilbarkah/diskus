@@ -14,6 +14,7 @@ export interface Comment {
   status: string;
   likesCount: number;
   createdAt: string; // ISO String from backend
+  isPinned?: boolean;
   isAuthor?: boolean;
 }
 

@@ -231,6 +231,12 @@ export class AdminService {
     return true;
   }
 
+  static async togglePinComment(id: string, isPinned: boolean) {
+    await db.update(comments)
+      .set({ isPinned })
+      .where(eq(comments.id, id));
+  }
+
   static async getWidgetUsers() {
     return await db.select({
       id: widgetUsers.id,
