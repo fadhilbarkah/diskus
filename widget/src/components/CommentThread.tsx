@@ -75,7 +75,7 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
           <div class="mb-2 pr-6">
             <div class="flex items-center gap-2 min-w-0">
               <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100 truncate block">{comment.authorName}</span>
-              {isAuthor && <span class="bg-[#10b981] dark:bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0 shadow-sm">MODERATOR</span>}
+              {isAuthor && <span class="bg-[#10b981] dark:bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0 shadow-sm">AUTHOR</span>}
             </div>
             <div class="text-[13px] text-gray-400 dark:text-gray-500 mt-0.5 whitespace-nowrap">{timeAgo(comment.createdAt)}</div>
           </div>
