@@ -17,6 +17,7 @@ async function seed() {
   const adminId = crypto.randomUUID();
   await db.insert(users).values({
     id: adminId,
+    name: 'Admin',
     email: 'admin@blog.com',
     passwordHash: await hashPassword('password123'),
     role: 'admin',
