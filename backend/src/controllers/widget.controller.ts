@@ -2,6 +2,8 @@ import { Context } from 'hono';
 import { WidgetService } from '../services/widget.service';
 import { signToken } from '../utils/jwt';
 import { AuthVariables } from '../middlewares/auth';
+import { AdminService } from '../services/admin.service';
+import { Resend } from 'resend';
 
 export class WidgetController {
   static async register(c: Context) {
@@ -100,6 +102,33 @@ export class WidgetController {
       parentId: data.parentId,
       status: initialStatus,
     });
+
+    if (site.enableEmail && site.resendApiKey) {
+      Promise.resolve().then(async () => {
+        try {
+          const owner = await AdminService.getUserAccount(site.userId);
+          if (owner) {
+            const resend = new Resend(site.resendApiKey!);
+            const senderEmail = process.env.RESEND_SENDER_EMAIL || 'onboarding@resend.dev';
+            
+            await resend.emails.send({
+              from: `Diskus <${senderEmail}>`,
+              to: owner.email,
+              subject: `New comment on ${thread.title}`,
+              html: `
+                <h2>New Comment from ${authorName}</h2>
+                <p><strong>Thread:</strong> ${thread.title}</p>
+                <p><strong>Email:</strong> ${authorEmail}</p>
+                <br />
+                <div>${newComment.htmlContent}</div>
+              `,
+            });
+          }
+        } catch (err) {
+          console.error('Failed to send email notification:', err);
+        }
+      });
+    }
 
     return c.json({ comment: newComment }, 201);
   }

@@ -23,6 +23,8 @@ export function Websites() {
 
   const selectedSiteForSettings = useSignal<any | null>(null);
   const requireLoginSetting = useSignal(false);
+  const enableEmailSetting = useSignal(false);
+  const resendApiKeySetting = useSignal('');
   const settingsLoading = useSignal(false);
   
   const siteToDelete = useSignal<{id: string, domain: string} | null>(null);
@@ -34,7 +36,9 @@ export function Websites() {
     settingsLoading.value = true;
     try {
       await api.updateSite(selectedSiteForSettings.value.id, {
-        requireLogin: requireLoginSetting.value
+        requireLogin: requireLoginSetting.value,
+        enableEmail: enableEmailSetting.value,
+        resendApiKey: resendApiKeySetting.value
       });
       selectedSiteForSettings.value = null;
       await fetchSites();
@@ -203,6 +207,8 @@ export function Websites() {
                     onClick={() => {
                       selectedSiteForSettings.value = site;
                       requireLoginSetting.value = site.requireLogin;
+                      enableEmailSetting.value = site.enableEmail;
+                      resendApiKeySetting.value = site.resendApiKey || '';
                     }}
                   >
                     <SettingsIcon class="w-4 h-4 mr-2" /> Settings
@@ -393,6 +399,40 @@ export function Websites() {
                   </label>
                 </div>
               </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-3">Email Notifications</label>
+                <div class="space-y-4">
+                  <label class={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${enableEmailSetting.value ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white hover:bg-gray-50'}`}>
+                    <div class="pt-0.5">
+                      <input 
+                        type="checkbox" 
+                        checked={enableEmailSetting.value} 
+                        onChange={(e) => enableEmailSetting.value = (e.target as HTMLInputElement).checked} 
+                        class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer" 
+                      />
+                    </div>
+                    <div>
+                      <div class={`font-medium text-sm ${enableEmailSetting.value ? 'text-blue-900' : 'text-gray-900'}`}>Notify on New Comments</div>
+                      <div class={`text-xs mt-1 ${enableEmailSetting.value ? 'text-blue-700' : 'text-gray-500'}`}>Receive an email whenever someone posts a new comment.</div>
+                    </div>
+                  </label>
+
+                  {enableEmailSetting.value && (
+                    <div class="animate-in fade-in slide-in-from-top-2 duration-200">
+                      <Input 
+                        label="Resend API Key"
+                        type="password" 
+                        placeholder="re_..." 
+                        value={resendApiKeySetting.value}
+                        onInput={(e) => resendApiKeySetting.value = (e.target as HTMLInputElement).value}
+                      />
+                      <p class="text-xs text-gray-500 mt-2">Required to send emails. Get your API key from <a href="https://resend.com" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">resend.com</a></p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
               <div class="flex gap-3 justify-end pt-4 border-t border-gray-100">
                 <Button 
                   type="button" 

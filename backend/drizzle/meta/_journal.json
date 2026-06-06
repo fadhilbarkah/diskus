@@ -8,6 +8,13 @@
       "when": 1780660950123,
       "tag": "0000_lively_titania",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1780723332175,
+      "tag": "0001_shallow_mad_thinker",
+      "breakpoints": true
     }
   ]
 }
