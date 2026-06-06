@@ -69,6 +69,8 @@ export class WidgetController {
     const thread = await WidgetService.getThread(site.id, data.thread_key);
     if (!thread) return c.json({ error: 'Thread not found' }, 404);
 
+    const owner = await AdminService.getUserAccount(site.userId);
+
     let authorName = data.authorName || 'Anonymous';
     let authorEmail = data.authorEmail || 'anonymous@example.com';
     let initialStatus = 'pending';
@@ -80,7 +82,8 @@ export class WidgetController {
       authorName = user.name || 'Admin';
       authorEmail = user.email;
       isAuthed = true;
-      if (user.role === 'admin' || user.role === 'user') {
+      // Auto-approve if they are admin, or if their email matches the site owner's email
+      if (user.role === 'admin' || user.role === 'user' || (owner && user.email === owner.email)) {
         initialStatus = 'approved';
       }
     }
@@ -106,7 +109,6 @@ export class WidgetController {
     if (site.enableEmail) {
       Promise.resolve().then(async () => {
         try {
-          const owner = await AdminService.getUserAccount(site.userId);
           if (owner && owner.resendApiKey) {
             const resend = new Resend(owner.resendApiKey);
             const senderEmail = owner.resendSenderEmail || process.env.RESEND_SENDER_EMAIL || 'onboarding@resend.dev';
