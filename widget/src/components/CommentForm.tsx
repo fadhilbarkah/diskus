@@ -104,27 +104,28 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
   };
 
   return (
-    <div class={`flex gap-4 w-full ${parentId ? 'mt-4' : ''}`}>
-      <div class="w-10 h-10 rounded-full bg-gray-100 dark:bg-gray-800 shrink-0 overflow-hidden flex items-center justify-center border border-gray-200 dark:border-gray-700 mt-1">
-         <img src={getAvatarUrl()} alt="Avatar" class="w-full h-full object-cover opacity-90 dark:opacity-80" />
-      </div>
-
-      <form onSubmit={handleSubmit} class="flex-1">
+    <div class={`w-full ${parentId ? 'mt-4' : ''}`}>
+      <form onSubmit={handleSubmit} class="w-full">
         <input type="text" name="_diskus_trap" value={trap.value} onInput={(e) => trap.value = (e.target as HTMLInputElement).value} style={{ display: 'none', position: 'absolute', opacity: 0 }} tabIndex={-1} autoComplete="off" />
         <div class="border border-gray-200 dark:border-gray-700 overflow-hidden focus-within:border-gray-300 dark:focus-within:border-gray-600 transition-all duration-300 ease-in-out bg-white dark:bg-[#181818] rounded-2xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
-          <textarea
-            class="w-full px-5 py-4 text-[14px] text-gray-900 dark:text-gray-100 resize-none outline-none placeholder-gray-400 dark:placeholder-gray-500 bg-transparent transition-all duration-300 ease-in-out"
-            placeholder="Write a comment..."
-            value={content.value}
-            onFocus={() => isExpanded.value = true}
-            onInput={(e) => {
-              content.value = (e.target as HTMLTextAreaElement).value;
-              (e.target as HTMLTextAreaElement).style.height = 'auto';
-              (e.target as HTMLTextAreaElement).style.height = (e.target as HTMLTextAreaElement).scrollHeight + 'px';
-            }}
-            required={!!widgetUser.value || authMode.value === 'guest'}
-            style={{ minHeight: isExpanded.value ? '80px' : '44px' }}
-          />
+          <div class="flex gap-3.5 px-4 pt-4 pb-3 items-start">
+            <div class="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 shrink-0 overflow-hidden flex items-center justify-center border border-gray-200 dark:border-gray-700 mt-0.5">
+               <img src={getAvatarUrl()} alt="Avatar" class="w-full h-full object-cover opacity-90 dark:opacity-80" />
+            </div>
+            <textarea
+              class="flex-1 py-1.5 px-0 text-[14px] text-gray-900 dark:text-gray-100 resize-none outline-none placeholder-gray-400 dark:placeholder-gray-500 bg-transparent transition-all duration-300 ease-in-out"
+              placeholder="Write a comment..."
+              value={content.value}
+              onFocus={() => isExpanded.value = true}
+              onInput={(e) => {
+                content.value = (e.target as HTMLTextAreaElement).value;
+                (e.target as HTMLTextAreaElement).style.height = 'auto';
+                (e.target as HTMLTextAreaElement).style.height = (e.target as HTMLTextAreaElement).scrollHeight + 'px';
+              }}
+              required={!!widgetUser.value || authMode.value === 'guest'}
+              style={{ minHeight: isExpanded.value ? '80px' : '28px' }}
+            />
+          </div>
           
           <div class={`grid transition-all duration-300 ease-in-out ${isExpanded.value ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
             <div class="overflow-hidden">
