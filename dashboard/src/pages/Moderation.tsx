@@ -294,7 +294,7 @@ export function Moderation() {
           </div>
 
           {/* Comment Items */}
-          <div class="flex-1 overflow-y-auto px-2 pb-4">
+          <div class="flex-1 overflow-y-auto pb-4">
             {loading.value ? (
               <div class="text-center py-10 text-gray-400">Loading comments...</div>
             ) : comments.value.length === 0 ? (
