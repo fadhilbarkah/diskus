@@ -56,7 +56,10 @@ export const api = {
   deleteSite: (id: string) => 
     fetchWithAuth(`/admin/sites/${id}`, { method: 'DELETE' }),
 
-  // Account
   getAccount: () => fetchWithAuth('/admin/account'),
-  updateAccount: (data: any) => fetchWithAuth('/admin/account', { method: 'PUT', body: JSON.stringify(data) })
+  updateAccount: (data: any) => fetchWithAuth('/admin/account', { method: 'PUT', body: JSON.stringify(data) }),
+
+  // Data Management
+  exportComments: (siteId: string) => fetchWithAuth(`/admin/export/${siteId}`),
+  importComments: (siteId: string, data: any) => fetchWithAuth(`/admin/import/${siteId}`, { method: 'POST', body: JSON.stringify(data) })
 };

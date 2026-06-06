@@ -4,7 +4,7 @@ import { useEffect } from 'preact/hooks';
 import { widgetToken, widgetUser, setWidgetAuth, logoutWidget } from '../lib/auth';
 
 interface Props {
-  onSubmit: (content: string, name: string, email: string, parentId?: string) => Promise<void>;
+  onSubmit: (content: string, name: string, email: string, parentId?: string, trap?: string) => Promise<void>;
   parentId?: string;
   onCancel?: () => void;
   apiUrl: string;
@@ -18,6 +18,7 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
   const password = useSignal('');
   const submitting = useSignal(false);
   const isExpanded = useSignal(!!parentId);
+  const trap = useSignal('');
   
   const authMode = useSignal<'guest' | 'login' | 'register'>(requireLogin ? 'login' : 'guest');
   const authError = useSignal('');
@@ -37,7 +38,7 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
       if (authMode.value === 'guest') {
         if (!content.value || !name.value || !email.value) return;
         submitting.value = true;
-        await onSubmit(content.value, name.value, email.value, parentId);
+        await onSubmit(content.value, name.value, email.value, parentId, trap.value);
       } else if (authMode.value === 'login') {
         if (!email.value || !password.value) return;
         submitting.value = true;
@@ -51,7 +52,7 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
           if (!res.ok) throw new Error(data.error);
           setWidgetAuth(data.token, data.user);
           if (content.value) {
-            await onSubmit(content.value, data.user.name, data.user.email, parentId);
+            await onSubmit(content.value, data.user.name, data.user.email, parentId, trap.value);
           }
         } catch (err: any) {
           authError.value = err.message;
@@ -71,7 +72,7 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
           if (!res.ok) throw new Error(data.error);
           setWidgetAuth(data.token, data.user);
           if (content.value) {
-            await onSubmit(content.value, data.user.name, data.user.email, parentId);
+            await onSubmit(content.value, data.user.name, data.user.email, parentId, trap.value);
           }
         } catch (err: any) {
           authError.value = err.message;
@@ -82,7 +83,7 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
     } else {
       if (!content.value) return;
       submitting.value = true;
-      await onSubmit(content.value, widgetUser.value.name, widgetUser.value.email, parentId);
+      await onSubmit(content.value, widgetUser.value.name, widgetUser.value.email, parentId, trap.value);
     }
     
     content.value = '';
@@ -109,6 +110,7 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
       </div>
 
       <form onSubmit={handleSubmit} class="flex-1">
+        <input type="text" name="_diskus_trap" value={trap.value} onInput={(e) => trap.value = (e.target as HTMLInputElement).value} style={{ display: 'none', position: 'absolute', opacity: 0 }} tabIndex={-1} autoComplete="off" />
         <div class="border border-gray-200 dark:border-gray-700 overflow-hidden focus-within:border-gray-300 dark:focus-within:border-gray-600 transition-all duration-300 ease-in-out bg-white dark:bg-[#181818] rounded-2xl shadow-[0_2px_10px_-4px_rgba(0,0,0,0.05)]">
           <textarea
             class="w-full px-5 py-4 text-[14px] text-gray-900 dark:text-gray-100 resize-none outline-none placeholder-gray-400 dark:placeholder-gray-500 bg-transparent transition-all duration-300 ease-in-out"

@@ -39,6 +39,7 @@ widgetRoutes.post(
       authorEmail: z.string().email().optional(),
       content: z.string().min(1),
       parentId: z.string().optional().nullable(),
+      _diskus_trap: z.string().optional(),
     })
   ),
   WidgetController.postComment

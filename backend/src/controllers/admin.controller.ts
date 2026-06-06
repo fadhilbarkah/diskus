@@ -93,4 +93,28 @@ export class AdminController {
     await AdminService.updateUserAccount(user.userId, dbUser, updateData);
     return c.json({ success: true });
   }
+
+  static async exportData(c: Context<{ Variables: AuthVariables }>) {
+    const user = c.get('user')!;
+    const siteId = c.req.param('siteId');
+    if (!siteId) return c.json({ error: 'Site ID is required' }, 400);
+
+    const data = await AdminService.exportData(user.userId, user.role, siteId);
+    if (!data) return c.json({ error: 'Site not found' }, 404);
+    
+    c.header('Content-Type', 'application/json');
+    c.header('Content-Disposition', `attachment; filename="diskus-export-${siteId}.json"`);
+    return c.json(data);
+  }
+
+  static async importData(c: Context<{ Variables: AuthVariables }>) {
+    const user = c.get('user')!;
+    const siteId = c.req.param('siteId');
+    if (!siteId) return c.json({ error: 'Site ID is required' }, 400);
+
+    const data = (c.req as any).valid('json');
+    const success = await AdminService.importData(user.userId, user.role, siteId, data);
+    if (!success) return c.json({ error: 'Failed to import' }, 400);
+    return c.json({ success: true });
+  }
 }

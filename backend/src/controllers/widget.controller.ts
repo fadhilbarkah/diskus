@@ -49,6 +49,12 @@ export class WidgetController {
 
   static async postComment(c: Context<{ Variables: AuthVariables }>) {
     const data = (c.req as any).valid('json');
+
+    // Honeypot check
+    if (data._diskus_trap) {
+      return c.json({ comment: { id: crypto.randomUUID(), status: 'pending', content: data.content, authorName: data.authorName || 'Guest' } }, 201);
+    }
+
     const site = await WidgetService.verifyApiKey(data.api_key);
     if (!site) return c.json({ error: 'Invalid API Key' }, 403);
 

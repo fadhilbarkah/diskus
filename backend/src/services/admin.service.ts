@@ -145,4 +145,64 @@ export class AdminService {
       }
     }
   }
+
+  static async exportData(userId: string, role: string, siteId: string) {
+    if (role !== 'admin') {
+      const site = await db.select().from(sites).where(and(eq(sites.id, siteId), eq(sites.userId, userId))).get();
+      if (!site) return null;
+    }
+
+    const siteThreads = await db.select().from(threads).where(eq(threads.siteId, siteId)).all();
+    const threadIds = siteThreads.map(t => t.id);
+    
+    let siteComments: any[] = [];
+    if (threadIds.length > 0) {
+      siteComments = await db.select().from(comments).where(inArray(comments.threadId, threadIds)).all();
+    }
+
+    return { siteId, threads: siteThreads, comments: siteComments };
+  }
+
+  static async importData(userId: string, role: string, siteId: string, data: any) {
+    if (role !== 'admin') {
+      const site = await db.select().from(sites).where(and(eq(sites.id, siteId), eq(sites.userId, userId))).get();
+      if (!site) return false;
+    }
+
+    if (data.threads && data.threads.length > 0) {
+      for (const t of data.threads) {
+        const existing = await db.select().from(threads).where(and(eq(threads.siteId, siteId), eq(threads.threadKey, t.threadKey))).get();
+        if (!existing) {
+          await db.insert(threads).values({
+            id: t.id,
+            siteId: siteId,
+            threadKey: t.threadKey,
+            title: t.title,
+            createdAt: new Date(t.createdAt)
+          });
+        }
+      }
+    }
+
+    if (data.comments && data.comments.length > 0) {
+      for (const c of data.comments) {
+        const existing = await db.select().from(comments).where(eq(comments.id, c.id)).get();
+        if (!existing) {
+          await db.insert(comments).values({
+            id: c.id,
+            threadId: c.threadId,
+            parentId: c.parentId || null,
+            authorName: c.authorName,
+            authorEmail: c.authorEmail,
+            content: c.content,
+            htmlContent: c.htmlContent,
+            status: c.status || 'approved',
+            likesCount: c.likesCount || 0,
+            createdAt: new Date(c.createdAt)
+          });
+        }
+      }
+    }
+    return true;
+  }
 }

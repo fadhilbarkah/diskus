@@ -79,7 +79,7 @@ export function DiskusWidget({ apiKey, threadKey, apiUrl }: { apiKey: string, th
     };
   }, []);
 
-  const addComment = async (content: string, authorName: string, authorEmail: string, parentId?: string) => {
+  const addComment = async (content: string, authorName: string, authorEmail: string, parentId?: string, trap?: string) => {
     try {
       const headers: Record<string, string> = { 'Content-Type': 'application/json' };
       if (widgetToken.value) {
@@ -89,7 +89,7 @@ export function DiskusWidget({ apiKey, threadKey, apiUrl }: { apiKey: string, th
       const res = await fetch(`${apiUrl}/widget/comments`, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ api_key: apiKey, thread_key: threadKey, content, authorName, authorEmail, parentId })
+        body: JSON.stringify({ api_key: apiKey, thread_key: threadKey, content, authorName, authorEmail, parentId, _diskus_trap: trap })
       });
       if (res.ok) {
         const data = await res.json();

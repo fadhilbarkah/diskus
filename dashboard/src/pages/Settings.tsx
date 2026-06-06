@@ -1,7 +1,8 @@
 import { useEffect } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
-import { User, Lock } from 'lucide-preact';
+import { User, Lock, Database } from 'lucide-preact';
 import { api } from '../lib/api';
+import { selectedSiteId } from '../lib/store';
 import { authState, updateUser } from '../lib/auth';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -12,6 +13,8 @@ export function Settings() {
   const loading = useSignal(true);
   const savingProfile = useSignal(false);
   const savingPassword = useSignal(false);
+  const exporting = useSignal(false);
+  const importing = useSignal(false);
   
   const name = useSignal('');
   const email = useSignal('');
@@ -95,6 +98,45 @@ export function Settings() {
     }
   };
 
+  const handleExport = async () => {
+    if (!selectedSiteId.value) return;
+    exporting.value = true;
+    try {
+      const data = await api.exportComments(selectedSiteId.value);
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `diskus-export-${selectedSiteId.value}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showNotification('Export successful', 'success');
+    } catch (err: any) {
+      showNotification(err.message, 'error');
+    } finally {
+      exporting.value = false;
+    }
+  };
+
+  const handleImport = async (e: Event) => {
+    if (!selectedSiteId.value) return;
+    const file = (e.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+
+    importing.value = true;
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      await api.importComments(selectedSiteId.value, data);
+      showNotification('Import successful', 'success');
+    } catch (err: any) {
+      showNotification(err.message, 'error');
+    } finally {
+      importing.value = false;
+      (e.target as HTMLInputElement).value = '';
+    }
+  };
+
   if (loading.value) {
     return (
       <div class="h-full w-full flex items-center justify-center">
@@ -120,12 +162,13 @@ export function Settings() {
         </div>
       )}
 
-      <PageHeader 
-        title="Settings" 
-        description="Manage your preferences and profile details" 
-      />
+      <div class="max-w-5xl mx-auto">
+        <PageHeader 
+          title="Settings" 
+          description="Manage your preferences and profile details" 
+        />
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <Card>
           <CardHeader 
             title="Profile Information" 
@@ -208,6 +251,33 @@ export function Settings() {
               </Button>
             </div>
           </form>
+        </Card>
+      </div>
+
+      <Card>
+          <CardHeader 
+            title="Data Management" 
+            description="Export or Import comments for the currently selected website."
+            icon={<Database class="w-5 h-5" />}
+          />
+          <div class="space-y-6">
+            <div class={`p-4 border rounded-xl text-sm ${selectedSiteId.value ? 'bg-blue-50 border-blue-100 text-blue-800' : 'bg-orange-50 border-orange-100 text-orange-800'}`}>
+              {selectedSiteId.value ? "These actions will only apply to the currently selected website." : "Please select a website from the top header to enable data management."}
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Button onClick={handleExport} disabled={!selectedSiteId.value || exporting.value} type="button" fullWidth style={{ backgroundColor: 'transparent', color: '#4b5563', border: '1px solid #e5e7eb' }}>
+                {exporting.value ? 'Exporting...' : 'Export Data (JSON)'}
+              </Button>
+              
+              <div class="relative">
+                <input type="file" accept=".json" onChange={handleImport} disabled={!selectedSiteId.value || importing.value} class="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed" />
+                <Button type="button" disabled={!selectedSiteId.value || importing.value} fullWidth>
+                  {importing.value ? 'Importing...' : 'Import Data'}
+                </Button>
+              </div>
+            </div>
+          </div>
         </Card>
       </div>
     </div>

@@ -8,7 +8,7 @@ import { widgetUser } from '../lib/auth';
 interface Props {
   comment: Comment;
   repliesMap: Map<string, Comment[]>;
-  onReply: (content: string, name: string, email: string, parentId?: string) => Promise<void>;
+  onReply: (content: string, name: string, email: string, parentId?: string, trap?: string) => Promise<void>;
   onLike: (id: string, isUnlike: boolean) => Promise<void>;
   apiUrl: string;
   depth?: number;
