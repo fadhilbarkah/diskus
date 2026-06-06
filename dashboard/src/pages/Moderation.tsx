@@ -158,15 +158,15 @@ export function Moderation() {
       return (
         <div key={c.id} class={`relative ${depth === 0 ? 'border-b border-gray-100 last:border-0' : ''}`}>
           {replies.length > 0 && (
-            <div class="absolute w-px bg-gray-200 z-0" style={{ left: `${depth * 56 + 68}px`, top: '36px', bottom: '24px' }}></div>
+            <div class="absolute w-px bg-gray-200 z-0" style={{ left: `${depth * 32 + 68}px`, top: '36px', bottom: '24px' }}></div>
           )}
           <div class={`flex items-start gap-4 p-4 hover:bg-gray-50/50 group relative`}>
             <div class="pt-1 shrink-0 z-10 bg-white">
               <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(c.id)} class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
             </div>
             
-            <div class="flex flex-1 items-start gap-4 relative" style={{ marginLeft: `${depth * 56}px` }}>
-              {depth > 0 && <div class="absolute h-px bg-gray-200" style={{ left: '-36px', top: '20px', width: '36px' }}></div>}
+            <div class="flex flex-1 items-start gap-4 relative" style={{ marginLeft: `${depth * 32}px` }}>
+              {depth > 0 && <div class="absolute h-px bg-gray-200" style={{ left: '-12px', top: '20px', width: '12px' }}></div>}
               
               <div class={`w-10 h-10 rounded-full overflow-hidden shrink-0 flex items-center justify-center text-white relative z-10 ${depth > 0 ? 'bg-cyan-100' : 'bg-blue-900'}`}>
                 <img src={`https://api.dicebear.com/10.x/thumbs/svg?seed=${encodeURIComponent(c.authorEmail.trim().toLowerCase())}`} alt={c.authorName} class="w-full h-full object-cover" />
