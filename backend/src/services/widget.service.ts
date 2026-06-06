@@ -3,6 +3,15 @@ import { sites, threads, comments, widgetUsers, users } from '../db/schema';
 import { eq, and, desc, sql, isNull, isNotNull } from 'drizzle-orm';
 import { simpleMarkdownToHtml, sanitizeHtml } from '../utils/html';
 
+interface CreateCommentData {
+  threadId: string;
+  authorName: string;
+  authorEmail: string;
+  content: string;
+  parentId?: string | null;
+  status: 'pending' | 'approved' | 'spam' | 'trash';
+}
+
 export class WidgetService {
   static async verifyApiKey(apiKey: string) {
     const site = await db.select().from(sites).where(eq(sites.publicApiKey, apiKey)).get();
@@ -37,7 +46,7 @@ export class WidgetService {
         id: crypto.randomUUID(),
         siteId,
         threadKey,
-        title: title || threadKey,
+        title: (title || threadKey).substring(0, 500),
       }).returning();
       thread = newThread;
     }
@@ -88,7 +97,7 @@ export class WidgetService {
     };
   }
 
-  static async createComment(data: any) {
+  static async createComment(data: CreateCommentData) {
     const rawHtml = simpleMarkdownToHtml(data.content);
     const safeHtml = sanitizeHtml(rawHtml);
 
@@ -129,5 +138,15 @@ export class WidgetService {
     await db.update(comments)
       .set({ likesCount: sql`MAX(0, ${comments.likesCount} - 1)` }) // Prevent negative likes
       .where(eq(comments.id, id));
+  }
+
+  static async verifyCommentOwnership(commentId: string, userId: string): Promise<boolean> {
+    const result = await db.select({ id: comments.id })
+      .from(comments)
+      .innerJoin(threads, eq(comments.threadId, threads.id))
+      .innerJoin(sites, eq(threads.siteId, sites.id))
+      .where(and(eq(comments.id, commentId), eq(sites.userId, userId)))
+      .get();
+    return !!result;
   }
 }

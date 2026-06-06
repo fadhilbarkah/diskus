@@ -105,8 +105,9 @@ export class AdminController {
 
     if (newPassword) {
       if (!currentPassword) return c.json({ error: 'Current password is required to set a new password' }, 400);
-      if (dbUser.passwordHash !== currentPassword) return c.json({ error: 'Incorrect current password' }, 400);
-      updateData.passwordHash = newPassword;
+      const isPasswordValid = await Bun.password.verify(currentPassword, dbUser.passwordHash);
+      if (!isPasswordValid) return c.json({ error: 'Incorrect current password' }, 400);
+      updateData.passwordHash = await Bun.password.hash(newPassword);
     }
 
     await AdminService.updateUserAccount(user.userId, dbUser, updateData);

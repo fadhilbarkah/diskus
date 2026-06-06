@@ -13,3 +13,12 @@ export function simpleMarkdownToHtml(md: string): string {
   const rawHtml = marked.parse(md, { async: false }) as string;
   return sanitizeHtml(rawHtml);
 }
+
+export function escapeHtmlEntities(text: string): string {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}

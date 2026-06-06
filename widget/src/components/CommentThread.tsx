@@ -4,6 +4,15 @@ import { CommentForm } from './CommentForm';
 import { Comment } from './DiskusWidget';
 import { widgetUser } from '../lib/auth';
 
+// Hash email to create a privacy-safe avatar seed (prevents email PII leak in DOM/network)
+function hashEmail(email: string): string {
+  const normalized = email.trim().toLowerCase();
+  let hash = 5381;
+  for (let i = 0; i < normalized.length; i++) {
+    hash = ((hash << 5) + hash + normalized.charCodeAt(i)) | 0;
+  }
+  return Math.abs(hash).toString(36);
+}
 
 interface Props {
   comment: Comment;
@@ -61,7 +70,7 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
   };
 
   const isAuthor = comment.isAuthor;
-  const dicebearUrl = `https://api.dicebear.com/10.x/thumbs/svg?seed=${encodeURIComponent(comment.authorEmail.trim().toLowerCase())}`;
+  const dicebearUrl = `https://api.dicebear.com/10.x/thumbs/svg?seed=${hashEmail(comment.authorEmail)}`;
 
   return (
     <div class={`relative ${depth > 0 ? 'mt-6' : ''}`}>
@@ -87,14 +96,14 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
             <div class="text-[13px] text-gray-400 dark:text-gray-500 mt-0.5 whitespace-nowrap">{timeAgo(comment.createdAt)}</div>
           </div>
           
-          {widgetUser.value && (widgetUser.value.email === comment.authorEmail || widgetUser.value.name === 'Admin' || widgetUser.value.role === 'admin' || widgetUser.value.role === 'user') && (
+          {widgetUser.value && (widgetUser.value.email === comment.authorEmail || widgetUser.value.role === 'admin' || widgetUser.value.role === 'user') && (
             <div class="absolute right-0 top-0">
               <button onClick={() => showMenu.value = !showMenu.value} class="text-gray-400 hover:text-gray-600 outline-none">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path></svg>
               </button>
               {showMenu.value && (
                 <div class="absolute right-0 mt-1 w-32 bg-white dark:bg-[#222] border border-gray-200 dark:border-gray-700 shadow-lg rounded-lg py-1 z-20 text-sm">
-                  {(widgetUser.value.name === 'Admin' || widgetUser.value.role === 'admin' || widgetUser.value.role === 'user') && depth === 0 && onPin && comment.status === 'approved' && (
+                  {(widgetUser.value.role === 'admin' || widgetUser.value.role === 'user') && depth === 0 && onPin && comment.status === 'approved' && (
                     <button onClick={() => { showMenu.value = false; onPin(comment.id, !comment.isPinned); }} class="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium transition-colors">
                       {comment.isPinned ? 'Unpin' : 'Pin to top'}
                     </button>

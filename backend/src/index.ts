@@ -1,16 +1,26 @@
 import { Hono } from 'hono';
-import { cors } from 'hono/cors';
 import authRoutes from './routes/auth';
 import widgetRoutes from './routes/widget';
 import adminRoutes from './routes/admin';
-
-import { securityHeadersMiddleware, corsMiddleware } from './middlewares/security';
+import { securityHeadersMiddleware, widgetCorsMiddleware, adminCorsMiddleware } from './middlewares/security';
 
 const app = new Hono();
 
-// Global middlewares
+// Global security headers
 app.use('*', securityHeadersMiddleware);
-app.use('*', corsMiddleware);
+
+// Route-specific CORS policies
+// Widget routes: open CORS required since the widget is embedded on third-party sites
+app.use('/api/v1/widget/*', widgetCorsMiddleware);
+// Admin & auth routes: restricted to dashboard origin (configurable via DASHBOARD_ORIGIN env var)
+app.use('/api/v1/admin/*', adminCorsMiddleware);
+app.use('/api/v1/auth/*', adminCorsMiddleware);
+
+// Global error handler — prevents stack trace leaks in production
+app.onError((err, c) => {
+  console.error(`[Error] ${c.req.method} ${c.req.url}:`, err.message);
+  return c.json({ error: 'Internal Server Error' }, 500);
+});
 
 // Mount routes
 app.route('/api/v1/auth', authRoutes);

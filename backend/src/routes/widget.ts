@@ -11,19 +11,20 @@ widgetRoutes.post(
   '/auth/register',
   rateLimitMiddleware(5, 60 * 60 * 1000), // Max 5 registrations per IP per hour
   zValidator('json', z.object({
-    email: z.string().email(),
-    name: z.string().min(2),
-    password: z.string().min(6),
-    _diskus_trap: z.string().optional(),
+    email: z.string().email().max(255),
+    name: z.string().min(2).max(100),
+    password: z.string().min(6).max(128),
+    _diskus_trap: z.string().max(500).optional(),
   })),
   WidgetController.register
 );
 
 widgetRoutes.post(
   '/auth/login',
+  rateLimitMiddleware(10, 15 * 60 * 1000), // Max 10 login attempts per IP per 15 minutes
   zValidator('json', z.object({
-    email: z.string().email(),
-    password: z.string(),
+    email: z.string().email().max(255),
+    password: z.string().max(128),
   })),
   WidgetController.login
 );
@@ -36,13 +37,13 @@ widgetRoutes.post(
   zValidator(
     'json',
     z.object({
-      api_key: z.string(),
-      thread_key: z.string(),
-      authorName: z.string().optional(),
-      authorEmail: z.string().email().optional(),
-      content: z.string().min(1),
-      parentId: z.string().optional().nullable(),
-      _diskus_trap: z.string().optional(),
+      api_key: z.string().max(100),
+      thread_key: z.string().max(500),
+      authorName: z.string().max(100).optional(),
+      authorEmail: z.string().email().max(255).optional(),
+      content: z.string().min(1).max(10000),
+      parentId: z.string().max(100).optional().nullable(),
+      _diskus_trap: z.string().max(500).optional(),
     })
   ),
   WidgetController.postComment
@@ -57,8 +58,8 @@ widgetRoutes.patch(
   WidgetController.togglePinComment
 );
 
-widgetRoutes.post('/comments/:id/like', WidgetController.likeComment);
+widgetRoutes.post('/comments/:id/like', rateLimitMiddleware(30, 60 * 1000), WidgetController.likeComment);
 
-widgetRoutes.post('/comments/:id/unlike', WidgetController.unlikeComment);
+widgetRoutes.post('/comments/:id/unlike', rateLimitMiddleware(30, 60 * 1000), WidgetController.unlikeComment);
 
 export default widgetRoutes;

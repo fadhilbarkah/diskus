@@ -2,10 +2,19 @@ import { Context, Next } from 'hono';
 
 const rateLimits = new Map<string, { count: number; resetAt: number }>();
 
+// Periodic cleanup every 5 minutes to prevent memory leaks
+setInterval(() => {
+  const now = Date.now();
+  for (const [key, val] of rateLimits.entries()) {
+    if (val.resetAt < now) rateLimits.delete(key);
+  }
+}, 5 * 60 * 1000);
+
 export const rateLimitMiddleware = (limit: number, windowMs: number) => {
   return async (c: Context, next: Next) => {
-    // Get IP or a fallback string
-    const ip = c.req.header('x-forwarded-for') || c.req.header('x-real-ip') || 'unknown-ip';
+    // NOTE: x-forwarded-for can be spoofed. In production behind a reverse proxy,
+    // configure the proxy to set a trusted client IP header.
+    const ip = c.req.header('x-forwarded-for')?.split(',')[0]?.trim() || c.req.header('x-real-ip') || 'unknown-ip';
     const now = Date.now();
     
     let record = rateLimits.get(ip);
@@ -20,14 +29,6 @@ export const rateLimitMiddleware = (limit: number, windowMs: number) => {
     
     record.count++;
     rateLimits.set(ip, record);
-    
-    // Optional: cleanup old entries to prevent memory leaks in a real production env
-    // (In a real app, you'd use Redis or a similar persistent store)
-    if (Math.random() < 0.01) {
-      for (const [key, val] of rateLimits.entries()) {
-        if (val.resetAt < now) rateLimits.delete(key);
-      }
-    }
     
     await next();
   };

@@ -1,6 +1,10 @@
 import { SignJWT, jwtVerify } from 'jose';
 
-const JWT_SECRET = new TextEncoder().encode(Bun.env.JWT_SECRET || 'super-secret-key-for-diskus-dev');
+const jwtSecret = Bun.env.JWT_SECRET;
+if (!jwtSecret) {
+  throw new Error('JWT_SECRET environment variable is required. Set it in your .env file.');
+}
+const JWT_SECRET = new TextEncoder().encode(jwtSecret);
 
 export async function signToken(payload: { userId: string; email: string; role: string; name?: string }) {
   return new SignJWT(payload)

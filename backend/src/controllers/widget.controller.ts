@@ -4,6 +4,7 @@ import { signToken } from '../utils/jwt';
 import { AuthVariables } from '../middlewares/auth';
 import { AdminService } from '../services/admin.service';
 import { Resend } from 'resend';
+import { escapeHtmlEntities } from '../utils/html';
 
 export class WidgetController {
   static async register(c: Context) {
@@ -87,7 +88,7 @@ export class WidgetController {
 
     let authorName = data.authorName || 'Anonymous';
     let authorEmail = data.authorEmail || 'anonymous@example.com';
-    let initialStatus = site.requireModeration ? 'pending' : 'approved';
+    let initialStatus: 'pending' | 'approved' | 'spam' | 'trash' = site.requireModeration ? 'pending' : 'approved';
 
     const user = c.get('user');
     let isAuthed = false;
@@ -137,9 +138,9 @@ export class WidgetController {
               to: owner.email,
               subject: `New comment on ${thread.title}`,
               html: `
-                <h2>New Comment from ${authorName}</h2>
-                <p><strong>Thread:</strong> ${thread.title}</p>
-                <p><strong>Email:</strong> ${authorEmail}</p>
+                <h2>New Comment from ${escapeHtmlEntities(authorName)}</h2>
+                <p><strong>Thread:</strong> ${escapeHtmlEntities(thread.title)}</p>
+                <p><strong>Email:</strong> ${escapeHtmlEntities(authorEmail)}</p>
                 <br />
                 <div>${newComment.htmlContent}</div>
               `,
@@ -160,7 +161,14 @@ export class WidgetController {
     
     if (!user) return c.json({ error: 'Unauthorized' }, 401);
 
-    if (user.role === 'admin' || user.role === 'user') {
+    if (user.role === 'admin') {
+      await WidgetService.deleteComment(id);
+      return c.json({ success: true });
+    }
+
+    if (user.role === 'user') {
+      const isOwner = await WidgetService.verifyCommentOwnership(id, user.userId);
+      if (!isOwner) return c.json({ error: 'Unauthorized' }, 403);
       await WidgetService.deleteComment(id);
       return c.json({ success: true });
     }
@@ -180,8 +188,14 @@ export class WidgetController {
     
     if (!user) return c.json({ error: 'Unauthorized' }, 401);
 
-    if (user.role === 'admin' || user.role === 'user') {
-      const AdminService = require('../services/admin.service').AdminService;
+    if (user.role === 'admin') {
+      await AdminService.togglePinComment(id, isPinned);
+      return c.json({ success: true });
+    }
+
+    if (user.role === 'user') {
+      const isOwner = await WidgetService.verifyCommentOwnership(id, user.userId);
+      if (!isOwner) return c.json({ error: 'Unauthorized' }, 403);
       await AdminService.togglePinComment(id, isPinned);
       return c.json({ success: true });
     }
