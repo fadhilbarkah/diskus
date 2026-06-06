@@ -94,7 +94,7 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
               </button>
               {showMenu.value && (
                 <div class="absolute right-0 mt-1 w-32 bg-white dark:bg-[#222] border border-gray-200 dark:border-gray-700 shadow-lg rounded-lg py-1 z-20 text-sm">
-                  {(widgetUser.value.name === 'Admin' || widgetUser.value.role === 'admin' || widgetUser.value.role === 'user') && depth === 0 && onPin && (
+                  {(widgetUser.value.name === 'Admin' || widgetUser.value.role === 'admin' || widgetUser.value.role === 'user') && depth === 0 && onPin && comment.status === 'approved' && (
                     <button onClick={() => { showMenu.value = false; onPin(comment.id, !comment.isPinned); }} class="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium transition-colors">
                       {comment.isPinned ? 'Unpin' : 'Pin to top'}
                     </button>
