@@ -2,7 +2,7 @@ import { h } from 'preact';
 import type { JSX } from 'preact';
 
 interface ButtonProps extends JSX.HTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
+  variant?: 'primary' | 'secondary' | 'danger' | 'destructive' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   children: preact.ComponentChildren;
   fullWidth?: boolean;
@@ -18,6 +18,7 @@ export function Button({ variant = 'primary', size = 'md', fullWidth = false, ch
     primary: "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-600 border border-transparent",
     secondary: "bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300",
     danger: "bg-red-50 text-red-600 hover:bg-red-100 border border-red-100",
+    destructive: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-600 border border-transparent",
     ghost: "bg-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900 focus:ring-gray-500"
   };
 

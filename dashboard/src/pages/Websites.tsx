@@ -435,13 +435,14 @@ export function Websites() {
                 >
                   Cancel
                 </Button>
-                <button 
+                <Button 
+                  variant="destructive"
+                  class="flex-1"
                   onClick={confirmDeleteSite}
                   disabled={deleteLoading.value}
-                  class="flex-1 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 focus:ring-4 focus:ring-red-100 transition-all disabled:opacity-50"
                 >
                   {deleteLoading.value ? 'Deleting...' : 'Yes, Delete'}
-                </button>
+                </Button>
               </div>
             </div>
           </Card>
