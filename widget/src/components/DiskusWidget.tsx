@@ -171,6 +171,7 @@ export function DiskusWidget({ apiKey, threadKey, apiUrl }: { apiKey: string, th
 
   const topLevelComments = comments.value.filter(c => !c.parentId);
   topLevelComments.sort((a, b) => {
+    if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
     const ta = new Date(a.createdAt).getTime();
     const tb = new Date(b.createdAt).getTime();
     return sortBy.value === 'newest' ? tb - ta : ta - tb;
