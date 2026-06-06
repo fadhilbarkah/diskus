@@ -52,8 +52,11 @@ export class WidgetController {
     const site = await WidgetService.verifyApiKey(apiKey);
     if (!site) return c.json({ error: 'Invalid API Key' }, 403);
 
-    const limit = site.commentsLimit || 10;
-    const offset = (page - 1) * limit;
+    const initialLimit = site.commentsLimit || 10;
+    const loadMoreLimit = 10;
+    
+    const limit = page === 1 ? initialLimit : loadMoreLimit;
+    const offset = page === 1 ? 0 : initialLimit + (page - 2) * loadMoreLimit;
 
     const owner = await AdminService.getUserAccount(site.userId);
     const { comments, hasMore } = await WidgetService.getComments(site.id, threadKey, limit, offset, title);
