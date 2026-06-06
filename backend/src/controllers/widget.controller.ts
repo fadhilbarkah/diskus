@@ -109,7 +109,7 @@ export class WidgetController {
           const owner = await AdminService.getUserAccount(site.userId);
           if (owner && owner.resendApiKey) {
             const resend = new Resend(owner.resendApiKey);
-            const senderEmail = process.env.RESEND_SENDER_EMAIL || 'onboarding@resend.dev';
+            const senderEmail = owner.resendSenderEmail || process.env.RESEND_SENDER_EMAIL || 'onboarding@resend.dev';
             
             await resend.emails.send({
               from: `Diskus <${senderEmail}>`,

@@ -8,6 +8,7 @@ export const users = sqliteTable('users', {
   passwordHash: text('password_hash').notNull(),
   role: text('role', { enum: ['admin', 'user'] }).default('user').notNull(),
   resendApiKey: text('resend_api_key'),
+  resendSenderEmail: text('resend_sender_email'),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
 });
 

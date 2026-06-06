@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `resend_sender_email` text;

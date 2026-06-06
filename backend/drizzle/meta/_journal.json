@@ -22,6 +22,13 @@
       "when": 1780723995925,
       "tag": "0002_smooth_secret_warriors",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1780725589401,
+      "tag": "0003_kind_rictor",
+      "breakpoints": true
     }
   ]
 }
