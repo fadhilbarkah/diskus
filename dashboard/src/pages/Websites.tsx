@@ -11,6 +11,12 @@ import { PageHeader } from '../components/ui/PageHeader';
 export function Websites() {
   const sites = useSignal<any[]>([]);
   const loading = useSignal(true);
+  const notification = useSignal<{message: string, type: 'success'|'error'} | null>(null);
+
+  const showNotification = (message: string, type: 'success' | 'error') => {
+    notification.value = { message, type };
+    setTimeout(() => { notification.value = null; }, 4000);
+  };
   
   // Modals / Dialogs state
   const isAddModalOpen = useSignal(false);
@@ -40,9 +46,10 @@ export function Websites() {
       });
       selectedSiteForSettings.value = null;
       await fetchSites();
-    } catch (err) {
+      showNotification('Settings updated successfully', 'success');
+    } catch (err: any) {
       console.error(err);
-      alert('Failed to update website settings');
+      showNotification(err.message || 'Failed to update website settings', 'error');
     } finally {
       settingsLoading.value = false;
     }
@@ -79,9 +86,10 @@ export function Websites() {
       newDomain.value = '';
       isAddModalOpen.value = false;
       await fetchSites();
-    } catch (err) {
+      showNotification('Website added successfully', 'success');
+    } catch (err: any) {
       console.error(err);
-      alert(err instanceof Error ? err.message : 'Failed to add website');
+      showNotification(err.message || 'Failed to add website', 'error');
     } finally {
       addLoading.value = false;
     }
@@ -101,9 +109,10 @@ export function Websites() {
       }
       siteToDelete.value = null;
       await fetchSites();
-    } catch (err) {
+      showNotification('Website deleted successfully', 'success');
+    } catch (err: any) {
       console.error(err);
-      alert('Failed to delete website');
+      showNotification(err.message || 'Failed to delete website', 'error');
     } finally {
       deleteLoading.value = false;
     }
@@ -126,7 +135,22 @@ export function Websites() {
   };
 
   return (
-    <div class="max-w-7xl mx-auto space-y-8">
+    <div class="max-w-7xl mx-auto space-y-8 relative">
+      {notification.value && (
+        <div class={`fixed top-6 right-6 z-[100] flex items-center gap-3 px-5 py-3 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border transition-all duration-300 transform translate-y-0 opacity-100 ${notification.value.type === 'success' ? 'bg-white border-green-100 text-gray-800' : 'bg-red-50 border-red-100 text-red-800'}`}>
+          {notification.value.type === 'success' ? (
+            <div class="w-8 h-8 rounded-full bg-green-50 text-green-500 flex items-center justify-center shrink-0">
+              <Check class="w-4 h-4" strokeWidth={3} />
+            </div>
+          ) : (
+            <div class="w-8 h-8 rounded-full bg-red-100/50 text-red-500 flex items-center justify-center shrink-0">
+              <AlertTriangle class="w-4 h-4" strokeWidth={3} />
+            </div>
+          )}
+          <span class="text-sm font-medium">{notification.value.message}</span>
+        </div>
+      )}
+
       <PageHeader 
         title="Websites" 
         description="List of websites using your Diskus comment widget"

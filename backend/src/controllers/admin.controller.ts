@@ -26,10 +26,11 @@ export class AdminController {
   static async updateSite(c: Context<{ Variables: AuthVariables }>) {
     const user = c.get('user')!;
     const id = c.req.param('id') as string;
-    const { requireLogin } = (c.req as any).valid('json');
+    const { requireLogin, enableEmail } = (c.req as any).valid('json');
     
     const updateData: any = {};
     if (requireLogin !== undefined) updateData.requireLogin = requireLogin;
+    if (enableEmail !== undefined) updateData.enableEmail = enableEmail;
 
     await AdminService.updateSite(id, user.userId, updateData);
     return c.json({ success: true });
