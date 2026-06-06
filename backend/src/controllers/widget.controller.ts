@@ -51,8 +51,15 @@ export class WidgetController {
     const site = await WidgetService.verifyApiKey(apiKey);
     if (!site) return c.json({ error: 'Invalid API Key' }, 403);
 
+    const owner = await AdminService.getUserAccount(site.userId);
     const commentsList = await WidgetService.getComments(site.id, threadKey, title);
-    return c.json({ comments: commentsList, config: { requireLogin: site.requireLogin } });
+    
+    const enrichedComments = commentsList.map(comment => ({
+      ...comment,
+      isAuthor: owner ? comment.authorEmail === owner.email : false
+    }));
+
+    return c.json({ comments: enrichedComments, config: { requireLogin: site.requireLogin } });
   }
 
   static async postComment(c: Context<{ Variables: AuthVariables }>) {
@@ -106,6 +113,11 @@ export class WidgetController {
       status: initialStatus,
     });
 
+    const returnedComment = {
+      ...newComment,
+      isAuthor: owner ? newComment.authorEmail === owner.email : false
+    };
+
     if (site.enableEmail) {
       Promise.resolve().then(async () => {
         try {
@@ -132,7 +144,7 @@ export class WidgetController {
       });
     }
 
-    return c.json({ comment: newComment }, 201);
+    return c.json({ comment: returnedComment }, 201);
   }
 
   static async deleteComment(c: Context<{ Variables: AuthVariables }>) {

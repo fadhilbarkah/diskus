@@ -14,6 +14,7 @@ export interface Comment {
   status: string;
   likesCount: number;
   createdAt: string; // ISO String from backend
+  isAuthor?: boolean;
 }
 
 export function DiskusWidget({ apiKey, threadKey, apiUrl }: { apiKey: string, threadKey: string, apiUrl: string }) {

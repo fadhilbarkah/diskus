@@ -59,7 +59,7 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
     return `${Math.floor(hours / 24)}d ago`;
   };
 
-  const isAuthor = comment.authorEmail.includes('admin') || comment.authorName.toLowerCase().includes('admin');
+  const isAuthor = comment.isAuthor;
   const dicebearUrl = `https://api.dicebear.com/10.x/thumbs/svg?seed=${encodeURIComponent(comment.authorEmail.trim().toLowerCase())}`;
 
   return (
