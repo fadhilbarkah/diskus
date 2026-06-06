@@ -69,13 +69,12 @@ export class AdminController {
     const user = c.get('user')!;
     const dbUser = await AdminService.getUserAccount(user.userId);
     if (!dbUser) return c.json({ error: 'User not found' }, 404);
-    
-    return c.json({ id: dbUser.id, name: dbUser.name || '', email: dbUser.email });
+    return c.json({ id: dbUser.id, name: dbUser.name || '', email: dbUser.email, resendApiKey: dbUser.resendApiKey || '' });
   }
 
   static async updateAccount(c: Context<{ Variables: AuthVariables }>) {
     const user = c.get('user')!;
-    const { name, email, currentPassword, newPassword } = (c.req as any).valid('json');
+    const { name, email, currentPassword, newPassword, resendApiKey } = (c.req as any).valid('json');
 
     const dbUser = await AdminService.getUserAccount(user.userId);
     if (!dbUser) return c.json({ error: 'User not found' }, 404);
@@ -83,6 +82,7 @@ export class AdminController {
     const updateData: any = {};
     if (name !== undefined) updateData.name = name;
     if (email !== undefined) updateData.email = email;
+    if (resendApiKey !== undefined) updateData.resendApiKey = resendApiKey;
 
     if (newPassword) {
       if (!currentPassword) return c.json({ error: 'Current password is required to set a new password' }, 400);

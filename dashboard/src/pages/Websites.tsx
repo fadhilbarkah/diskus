@@ -24,7 +24,6 @@ export function Websites() {
   const selectedSiteForSettings = useSignal<any | null>(null);
   const requireLoginSetting = useSignal(false);
   const enableEmailSetting = useSignal(false);
-  const resendApiKeySetting = useSignal('');
   const settingsLoading = useSignal(false);
   
   const siteToDelete = useSignal<{id: string, domain: string} | null>(null);
@@ -37,8 +36,7 @@ export function Websites() {
     try {
       await api.updateSite(selectedSiteForSettings.value.id, {
         requireLogin: requireLoginSetting.value,
-        enableEmail: enableEmailSetting.value,
-        resendApiKey: resendApiKeySetting.value
+        enableEmail: enableEmailSetting.value
       });
       selectedSiteForSettings.value = null;
       await fetchSites();
@@ -208,7 +206,6 @@ export function Websites() {
                       selectedSiteForSettings.value = site;
                       requireLoginSetting.value = site.requireLogin;
                       enableEmailSetting.value = site.enableEmail;
-                      resendApiKeySetting.value = site.resendApiKey || '';
                     }}
                   >
                     <SettingsIcon class="w-4 h-4 mr-2" /> Settings
@@ -417,19 +414,6 @@ export function Websites() {
                       <div class={`text-xs mt-1 ${enableEmailSetting.value ? 'text-blue-700' : 'text-gray-500'}`}>Receive an email whenever someone posts a new comment.</div>
                     </div>
                   </label>
-
-                  {enableEmailSetting.value && (
-                    <div class="animate-in fade-in slide-in-from-top-2 duration-200">
-                      <Input 
-                        label="Resend API Key"
-                        type="password" 
-                        placeholder="re_..." 
-                        value={resendApiKeySetting.value}
-                        onInput={(e) => resendApiKeySetting.value = (e.target as HTMLInputElement).value}
-                      />
-                      <p class="text-xs text-gray-500 mt-2">Required to send emails. Get your API key from <a href="https://resend.com" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">resend.com</a></p>
-                    </div>
-                  )}
                 </div>
               </div>
 

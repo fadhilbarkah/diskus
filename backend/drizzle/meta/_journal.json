@@ -15,6 +15,13 @@
       "when": 1780723332175,
       "tag": "0001_shallow_mad_thinker",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1780723995925,
+      "tag": "0002_smooth_secret_warriors",
+      "breakpoints": true
     }
   ]
 }

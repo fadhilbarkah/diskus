@@ -18,6 +18,7 @@ export function Settings() {
   
   const name = useSignal('');
   const email = useSignal('');
+  const resendApiKey = useSignal('');
   
   const currentPassword = useSignal('');
   const newPassword = useSignal('');
@@ -40,6 +41,7 @@ export function Settings() {
       const data = await api.getAccount();
       name.value = data.name || '';
       email.value = data.email || '';
+      resendApiKey.value = data.resendApiKey || '';
       
       // Update global auth state to reflect new name
       updateUser({ name: data.name, email: data.email });
@@ -58,7 +60,7 @@ export function Settings() {
 
     try {
       savingProfile.value = true;
-      await api.updateAccount({ name: name.value, email: email.value });
+      await api.updateAccount({ name: name.value, email: email.value, resendApiKey: resendApiKey.value });
       
       // Update global auth state and localStorage
       updateUser({ name: name.value, email: email.value });
@@ -202,6 +204,20 @@ export function Settings() {
               value={email.value}
               onInput={(e) => email.value = (e.target as HTMLInputElement).value}
             />
+
+            <div class="pt-4 border-t border-gray-100">
+              <h4 class="font-medium text-sm text-gray-900 mb-1">Integrations</h4>
+              <p class="text-xs text-gray-500 mb-4">Connect external services to your account.</p>
+              
+              <Input
+                label="Resend API Key"
+                type="password"
+                placeholder="re_..."
+                value={resendApiKey.value}
+                onInput={(e) => resendApiKey.value = (e.target as HTMLInputElement).value}
+              />
+              <p class="text-xs text-gray-500 mt-2">Required if you want to enable Email Notifications in your Web Settings. Get it from <a href="https://resend.com" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">resend.com</a></p>
+            </div>
 
             <div class="pt-4">
               <Button type="submit" disabled={savingProfile.value} fullWidth>

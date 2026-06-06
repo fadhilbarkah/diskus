@@ -2,8 +2,7 @@ import { db, sqlite } from './index';
 import { users, sites, threads, comments } from './schema';
 import crypto from 'crypto';
 
-// Simple mock hashing just for seed
-const hashPassword = async (password: string) => password; 
+const hashPassword = async (password: string) => await Bun.password.hash(password);
 
 async function seed() {
   console.log('Seeding database...');

@@ -103,12 +103,12 @@ export class WidgetController {
       status: initialStatus,
     });
 
-    if (site.enableEmail && site.resendApiKey) {
+    if (site.enableEmail) {
       Promise.resolve().then(async () => {
         try {
           const owner = await AdminService.getUserAccount(site.userId);
-          if (owner) {
-            const resend = new Resend(site.resendApiKey!);
+          if (owner && owner.resendApiKey) {
+            const resend = new Resend(owner.resendApiKey);
             const senderEmail = process.env.RESEND_SENDER_EMAIL || 'onboarding@resend.dev';
             
             await resend.emails.send({
