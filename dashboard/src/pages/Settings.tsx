@@ -1,6 +1,6 @@
 import { useEffect } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
-import { User, Lock, Database } from 'lucide-preact';
+import { User, Lock, Database, Mail } from 'lucide-preact';
 import { api } from '../lib/api';
 import { selectedSiteId } from '../lib/store';
 import { authState, updateUser } from '../lib/auth';
@@ -13,6 +13,7 @@ export function Settings() {
   const loading = useSignal(true);
   const savingProfile = useSignal(false);
   const savingPassword = useSignal(false);
+  const savingIntegrations = useSignal(false);
   const exporting = useSignal(false);
   const importing = useSignal(false);
   
@@ -60,7 +61,7 @@ export function Settings() {
 
     try {
       savingProfile.value = true;
-      await api.updateAccount({ name: name.value, email: email.value, resendApiKey: resendApiKey.value });
+      await api.updateAccount({ name: name.value, email: email.value });
       
       // Update global auth state and localStorage
       updateUser({ name: name.value, email: email.value });
@@ -70,6 +71,19 @@ export function Settings() {
       showNotification(err.message, 'error');
     } finally {
       savingProfile.value = false;
+    }
+  };
+
+  const handleUpdateIntegrations = async (e: Event) => {
+    e.preventDefault();
+    try {
+      savingIntegrations.value = true;
+      await api.updateAccount({ resendApiKey: resendApiKey.value });
+      showNotification('Integrations updated successfully', 'success');
+    } catch (err: any) {
+      showNotification(err.message, 'error');
+    } finally {
+      savingIntegrations.value = false;
     }
   };
 
@@ -170,7 +184,7 @@ export function Settings() {
           description="Manage your preferences and profile details" 
         />
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 items-start">
         <Card>
           <CardHeader 
             title="Profile Information" 
@@ -204,20 +218,6 @@ export function Settings() {
               value={email.value}
               onInput={(e) => email.value = (e.target as HTMLInputElement).value}
             />
-
-            <div class="pt-4 border-t border-gray-100">
-              <h4 class="font-medium text-sm text-gray-900 mb-1">Integrations</h4>
-              <p class="text-xs text-gray-500 mb-4">Connect external services to your account.</p>
-              
-              <Input
-                label="Resend API Key"
-                type="password"
-                placeholder="re_..."
-                value={resendApiKey.value}
-                onInput={(e) => resendApiKey.value = (e.target as HTMLInputElement).value}
-              />
-              <p class="text-xs text-gray-500 mt-2">Required if you want to enable Email Notifications in your Web Settings. Get it from <a href="https://resend.com" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">resend.com</a></p>
-            </div>
 
             <div class="pt-4">
               <Button type="submit" disabled={savingProfile.value} fullWidth>
@@ -268,9 +268,35 @@ export function Settings() {
             </div>
           </form>
         </Card>
-      </div>
+        </div>
 
-      <Card>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 items-start">
+          <Card>
+            <CardHeader 
+              title="Integrations" 
+              description="Connect external services to power features like email notifications."
+              icon={<Mail class="w-5 h-5" />}
+            />
+            
+            <form onSubmit={handleUpdateIntegrations} class="space-y-4">
+              <Input
+                label="Resend API Key"
+                type="password"
+                placeholder="re_..."
+                value={resendApiKey.value}
+                onInput={(e) => resendApiKey.value = (e.target as HTMLInputElement).value}
+              />
+              <p class="text-xs text-gray-500 mt-2">Required if you want to enable Email Notifications in your Web Settings. Get it from <a href="https://resend.com" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">resend.com</a></p>
+
+              <div class="pt-4">
+                <Button type="submit" disabled={savingIntegrations.value} fullWidth>
+                  {savingIntegrations.value ? 'Saving...' : 'Save Integrations'}
+                </Button>
+              </div>
+            </form>
+          </Card>
+
+          <Card>
           <CardHeader 
             title="Data Management" 
             description="Export or Import comments for the currently selected website."
@@ -295,6 +321,7 @@ export function Settings() {
             </div>
           </div>
         </Card>
+        </div>
       </div>
     </div>
   );
