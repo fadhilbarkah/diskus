@@ -170,29 +170,51 @@ export class AdminService {
       if (!site) return false;
     }
 
+    const threadIdMap: Record<string, string> = {};
+    const commentIdMap: Record<string, string> = {};
+
     if (data.threads && data.threads.length > 0) {
       for (const t of data.threads) {
         const existing = await db.select().from(threads).where(and(eq(threads.siteId, siteId), eq(threads.threadKey, t.threadKey))).get();
         if (!existing) {
+          const newThreadId = crypto.randomUUID();
           await db.insert(threads).values({
-            id: t.id,
+            id: newThreadId,
             siteId: siteId,
             threadKey: t.threadKey,
             title: t.title,
             createdAt: new Date(t.createdAt)
           });
+          threadIdMap[t.id] = newThreadId;
+        } else {
+          threadIdMap[t.id] = existing.id;
         }
       }
     }
 
     if (data.comments && data.comments.length > 0) {
-      for (const c of data.comments) {
-        const existing = await db.select().from(comments).where(eq(comments.id, c.id)).get();
+      // Sort comments by createdAt so parents are inserted before children
+      const sortedComments = [...data.comments].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      
+      for (const c of sortedComments) {
+        const targetThreadId = threadIdMap[c.threadId] || c.threadId;
+        
+        // Prevent duplicate imports of the same comment by checking threadId + authorEmail + content
+        const existing = await db.select().from(comments)
+          .where(and(
+            eq(comments.threadId, targetThreadId),
+            eq(comments.authorEmail, c.authorEmail),
+            eq(comments.content, c.content)
+          )).get();
+
         if (!existing) {
+          const newCommentId = crypto.randomUUID();
+          commentIdMap[c.id] = newCommentId;
+          
           await db.insert(comments).values({
-            id: c.id,
-            threadId: c.threadId,
-            parentId: c.parentId || null,
+            id: newCommentId,
+            threadId: targetThreadId,
+            parentId: c.parentId ? (commentIdMap[c.parentId] || c.parentId) : null,
             authorName: c.authorName,
             authorEmail: c.authorEmail,
             content: c.content,
@@ -201,6 +223,8 @@ export class AdminService {
             likesCount: c.likesCount || 0,
             createdAt: new Date(c.createdAt)
           });
+        } else {
+          commentIdMap[c.id] = existing.id;
         }
       }
     }
