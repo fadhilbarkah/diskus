@@ -27,9 +27,9 @@ export function Login() {
   };
 
   return (
-    <div class="min-h-screen bg-gray-50/50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans">
-      <div class="sm:mx-auto sm:w-full sm:max-w-[440px]">
-        <div class="bg-white py-12 px-8 border border-gray-100 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+    <div class="min-h-screen bg-gray-50/50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans">
+      <div class="w-full max-w-[440px] mx-auto">
+        <div class="bg-white py-10 px-6 sm:py-12 sm:px-8 border border-gray-100 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
           
           <div class="flex flex-col items-center mb-10">
             <div class="w-14 h-14 rounded-2xl bg-blue-50/80 border border-blue-100 flex items-center justify-center mb-5">
