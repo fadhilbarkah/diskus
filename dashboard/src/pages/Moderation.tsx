@@ -176,7 +176,7 @@ export function Moderation() {
                   <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                     <div class="flex items-center gap-2 flex-wrap">
                       <span class="font-bold text-sm text-gray-900">{c.authorName}</span>
-                      {c.authorEmail.includes('admin') && <span class="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">Author</span>}
+                      {c.isAuthor && <span class="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">Author</span>}
                     </div>
                     <span class="text-xs text-gray-400 font-medium">{timeStr}</span>
                   </div>

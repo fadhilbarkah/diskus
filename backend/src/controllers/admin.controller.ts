@@ -48,8 +48,15 @@ export class AdminController {
     const statusFilter = c.req.query('status');
     const siteId = c.req.query('siteId');
     
+    const dbUser = await AdminService.getUserAccount(user.userId);
     const commentsList = await AdminService.getComments(user.userId, user.role, statusFilter, siteId);
-    return c.json({ comments: commentsList });
+    
+    const enrichedComments = commentsList.map(comment => ({
+      ...comment,
+      isAuthor: dbUser ? comment.authorEmail === dbUser.email : false
+    }));
+
+    return c.json({ comments: enrichedComments });
   }
 
   static async updateCommentsBulk(c: Context<{ Variables: AuthVariables }>) {
