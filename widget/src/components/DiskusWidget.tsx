@@ -111,16 +111,16 @@ export function DiskusWidget({ apiKey, threadKey, apiUrl }: { apiKey: string, th
       if (res.ok) {
         const data = await res.json();
         if (data.comment && data.comment.status === 'approved') {
-          showNotification('Komentar berhasil ditambahkan.', 'success');
+          showNotification('Comment added successfully.', 'success');
         } else {
-          showNotification('Komentar Anda sedang menunggu persetujuan admin.', 'success');
+          showNotification('Your comment is awaiting moderation.', 'success');
         }
         fetchComments(); // Refresh the comment list immediately
       } else {
-        showNotification('Gagal mengirim komentar, silakan coba lagi.', 'error');
+        showNotification('Failed to add comment, please try again.', 'error');
       }
     } catch (err) {
-      showNotification('Terjadi kesalahan jaringan.', 'error');
+      showNotification('Network error occurred.', 'error');
     }
   };
 
@@ -135,10 +135,10 @@ export function DiskusWidget({ apiKey, threadKey, apiUrl }: { apiKey: string, th
         headers
       });
       if (res.ok) {
-        showNotification('Komentar dihapus.', 'success');
+        showNotification('Comment deleted.', 'success');
         fetchComments();
       } else {
-        showNotification('Gagal menghapus komentar.', 'error');
+        showNotification('Failed to delete comment.', 'error');
       }
     } catch (err) {
       console.error(err);
@@ -159,7 +159,7 @@ export function DiskusWidget({ apiKey, threadKey, apiUrl }: { apiKey: string, th
       if (res.ok) {
         fetchComments();
       } else {
-        showNotification('Gagal menyematkan komentar.', 'error');
+        showNotification('Failed to pin comment.', 'error');
       }
     } catch (err) {
       console.error(err);
