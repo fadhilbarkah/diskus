@@ -11,7 +11,7 @@ export class AdminService {
 
   static async createSite(userId: string, domain: string) {
     const id = crypto.randomUUID();
-    const publicApiKey = 'sk_test_' + crypto.randomBytes(16).toString('hex');
+    const publicApiKey = crypto.randomBytes(24).toString('hex');
     
     await db.insert(sites).values({
       id,

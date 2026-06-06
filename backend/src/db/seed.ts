@@ -25,7 +25,7 @@ async function seed() {
 
   // Create Site
   const siteId = crypto.randomUUID();
-  const apiKey = 'sk_test_' + crypto.randomBytes(16).toString('hex');
+  const apiKey = crypto.randomBytes(24).toString('hex');
   await db.insert(sites).values({
     id: siteId,
     userId: adminId,
