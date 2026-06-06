@@ -11,7 +11,12 @@ adminRoutes.use('*', authMiddleware);
 adminRoutes.get('/sites', AdminController.getSites);
 adminRoutes.post('/sites', zValidator('json', z.object({ domain: z.string().min(3) })), AdminController.createSite);
 adminRoutes.delete('/sites/:id', AdminController.deleteSite);
-adminRoutes.patch('/sites/:id', zValidator('json', z.object({ requireLogin: z.boolean().optional(), enableEmail: z.boolean().optional() })), AdminController.updateSite);
+adminRoutes.patch('/sites/:id', zValidator('json', z.object({ 
+  requireLogin: z.boolean().optional(), 
+  enableEmail: z.boolean().optional(),
+  commentsLimit: z.number().optional(),
+  requireModeration: z.boolean().optional()
+})), AdminController.updateSite);
 
 adminRoutes.get('/analytics/summary', AdminController.getAnalyticsSummary);
 adminRoutes.get('/comments', AdminController.getComments);
