@@ -1,5 +1,5 @@
 import { useSignal } from '@preact/signals';
-import { useEffect } from 'preact/hooks';
+import { useEffect, useRef } from 'preact/hooks';
 
 import { widgetToken, widgetUser, setWidgetAuth, logoutWidget } from '../lib/auth';
 
@@ -19,6 +19,7 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
   const submitting = useSignal(false);
   const isExpanded = useSignal(!!parentId);
   const trap = useSignal('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   
   const authMode = useSignal<'guest' | 'login' | 'register'>(requireLogin ? 'login' : 'guest');
   const authError = useSignal('');
@@ -90,6 +91,7 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
     password.value = '';
     submitting.value = false;
     isExpanded.value = false;
+    if (textareaRef.current) textareaRef.current.style.height = 'auto';
     if (onCancel) onCancel();
   };
 
@@ -98,6 +100,7 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
     password.value = '';
     isExpanded.value = false;
     authError.value = '';
+    if (textareaRef.current) textareaRef.current.style.height = 'auto';
     if (onCancel) onCancel();
   };
 
@@ -123,6 +126,7 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
                <img src={getAvatarUrl()} alt="Avatar" class="w-full h-full object-cover opacity-90 dark:opacity-80" />
             </div>
             <textarea
+              ref={textareaRef}
               class="flex-1 py-1.5 px-0 text-[14px] text-gray-900 dark:text-gray-100 resize-none outline-none placeholder-gray-400 dark:placeholder-gray-500 bg-transparent transition-all duration-300 ease-in-out"
               placeholder="Write a comment..."
               value={content.value}
