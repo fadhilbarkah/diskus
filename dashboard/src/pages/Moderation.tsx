@@ -143,7 +143,7 @@ export function Moderation() {
       });
     }
 
-    const renderNode = (c: any, isChild: boolean = false) => {
+    const renderNode = (c: any, depth: number = 0) => {
       const timeAgo = Math.floor((Date.now() - new Date(c.createdAt).getTime()) / 3600000);
       const timeStr = timeAgo === 0 ? 'Just now' : `${timeAgo} hours ago`;
       const replies = repliesMap.get(c.id) || [];
@@ -156,48 +156,54 @@ export function Moderation() {
       };
 
       return (
-        <div key={c.id} class={`relative ${!isChild ? 'border-b border-gray-100 last:border-0' : ''}`}>
-          <div class={`flex items-start gap-4 p-4 hover:bg-gray-50/50 group ${isChild ? 'ml-[60px] relative' : ''}`}>
-            {isChild && <div class="absolute -left-[28px] top-[26px] w-[28px] h-px bg-gray-200"></div>}
-            <div class="pt-1 shrink-0">
+        <div key={c.id} class={`relative ${depth === 0 ? 'border-b border-gray-100 last:border-0' : ''}`}>
+          {replies.length > 0 && (
+            <div class="absolute w-px bg-gray-200 z-0" style={{ left: `${depth * 56 + 68}px`, top: '36px', bottom: '24px' }}></div>
+          )}
+          <div class={`flex items-start gap-4 p-4 hover:bg-gray-50/50 group relative`}>
+            <div class="pt-1 shrink-0 z-10 bg-white">
               <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(c.id)} class="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer" />
             </div>
-            <div class={`w-10 h-10 rounded-full overflow-hidden shrink-0 ${isChild ? 'bg-cyan-100' : 'bg-blue-900'} flex items-center justify-center text-white`}>
-              <img src={`https://api.dicebear.com/10.x/thumbs/svg?seed=${encodeURIComponent(c.authorEmail.trim().toLowerCase())}`} alt={c.authorName} class="w-full h-full object-cover" />
-            </div>
-            <div class="flex-1 min-w-0">
-              <div class="flex items-start justify-between mb-1 gap-2">
-                <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                  <div class="flex items-center gap-2 flex-wrap">
-                    <span class="font-bold text-sm text-gray-900">{c.authorName}</span>
-                    {c.authorEmail.includes('admin') && <span class="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">Author</span>}
-                  </div>
-                  <span class="text-xs text-gray-400 font-medium">{timeStr}</span>
-                </div>
-                <div class="flex items-center gap-1 sm:gap-2 shrink-0">
-                  <span class={`border text-[10px] sm:text-xs px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full font-medium capitalize ${statusColors[c.status] || 'bg-gray-50 text-gray-600 border-gray-200'}`}>{c.status}</span>
-                  <div class="relative">
-                    <button onClick={() => openMenuId.value = openMenuId.value === c.id ? null : c.id} class="text-gray-400 hover:text-gray-900 p-1 rounded-md hover:bg-gray-100 transition-colors cursor-pointer"><MoreHorizontal class="w-4 h-4" /></button>
-                    {openMenuId.value === c.id && (
-                      <div class="absolute right-0 top-full mt-1 w-36 bg-white border border-gray-200 shadow-lg rounded-xl py-1 z-20 text-sm">
-                        {c.status !== 'approved' && c.status !== 'trash' && <button onClick={() => handleSingleAction(c.id, 'approved')} class="w-full text-left px-4 py-2 hover:bg-gray-50 text-green-600 font-medium cursor-pointer">Approve</button>}
-                        {c.status !== 'spam' && c.status !== 'trash' && <button onClick={() => handleSingleAction(c.id, 'spam')} class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 font-medium cursor-pointer">Mark as Spam</button>}
-                        {c.status === 'trash' && <button onClick={() => handleSingleAction(c.id, 'approved')} class="w-full text-left px-4 py-2 hover:bg-gray-50 text-blue-600 font-medium cursor-pointer">Restore</button>}
-                        {c.status !== 'trash' && <button onClick={() => handleSingleAction(c.id, 'trash')} class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 font-medium cursor-pointer">Move to Trash</button>}
-                        {c.status === 'trash' && <button onClick={() => handleSingleAction(c.id, 'delete')} class="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 font-bold border-t border-gray-100 mt-1 pt-2 cursor-pointer">Delete Forever</button>}
-                      </div>
-                    )}
-                  </div>
-                </div>
+            
+            <div class="flex flex-1 items-start gap-4 relative" style={{ marginLeft: `${depth * 56}px` }}>
+              {depth > 0 && <div class="absolute h-px bg-gray-200" style={{ left: '-36px', top: '20px', width: '36px' }}></div>}
+              
+              <div class={`w-10 h-10 rounded-full overflow-hidden shrink-0 flex items-center justify-center text-white relative z-10 ${depth > 0 ? 'bg-cyan-100' : 'bg-blue-900'}`}>
+                <img src={`https://api.dicebear.com/10.x/thumbs/svg?seed=${encodeURIComponent(c.authorEmail.trim().toLowerCase())}`} alt={c.authorName} class="w-full h-full object-cover" />
               </div>
-              <div class="diskus-prose text-sm text-gray-700 mt-1.5 leading-relaxed break-words" dangerouslySetInnerHTML={{ __html: c.htmlContent || c.content }} />
+              <div class="flex-1 min-w-0 z-10 relative">
+                <div class="flex items-start justify-between mb-1 gap-2">
+                  <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="font-bold text-sm text-gray-900">{c.authorName}</span>
+                      {c.authorEmail.includes('admin') && <span class="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">Author</span>}
+                    </div>
+                    <span class="text-xs text-gray-400 font-medium">{timeStr}</span>
+                  </div>
+                  <div class="flex items-center gap-1 sm:gap-2 shrink-0">
+                    <span class={`border text-[10px] sm:text-xs px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full font-medium capitalize ${statusColors[c.status] || 'bg-gray-50 text-gray-600 border-gray-200'}`}>{c.status}</span>
+                    <div class="relative">
+                      <button onClick={() => openMenuId.value = openMenuId.value === c.id ? null : c.id} class="text-gray-400 hover:text-gray-900 p-1 rounded-md hover:bg-gray-100 transition-colors cursor-pointer"><MoreHorizontal class="w-4 h-4" /></button>
+                      {openMenuId.value === c.id && (
+                        <div class="absolute right-0 top-full mt-1 w-36 bg-white border border-gray-200 shadow-lg rounded-xl py-1 z-20 text-sm">
+                          {c.status !== 'approved' && c.status !== 'trash' && <button onClick={() => handleSingleAction(c.id, 'approved')} class="w-full text-left px-4 py-2 hover:bg-gray-50 text-green-600 font-medium cursor-pointer">Approve</button>}
+                          {c.status !== 'spam' && c.status !== 'trash' && <button onClick={() => handleSingleAction(c.id, 'spam')} class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 font-medium cursor-pointer">Mark as Spam</button>}
+                          {c.status === 'trash' && <button onClick={() => handleSingleAction(c.id, 'approved')} class="w-full text-left px-4 py-2 hover:bg-gray-50 text-blue-600 font-medium cursor-pointer">Restore</button>}
+                          {c.status !== 'trash' && <button onClick={() => handleSingleAction(c.id, 'trash')} class="w-full text-left px-4 py-2 hover:bg-gray-50 text-gray-700 font-medium cursor-pointer">Move to Trash</button>}
+                          {c.status === 'trash' && <button onClick={() => handleSingleAction(c.id, 'delete')} class="w-full text-left px-4 py-2 hover:bg-red-50 text-red-600 font-bold border-t border-gray-100 mt-1 pt-2 cursor-pointer">Delete Forever</button>}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div class="diskus-prose text-sm text-gray-700 mt-1.5 leading-relaxed break-words" dangerouslySetInnerHTML={{ __html: c.htmlContent || c.content }} />
+              </div>
             </div>
           </div>
           
           {replies.length > 0 && (
             <div class="relative pb-2">
-              <div class="absolute left-[34px] top-[-20px] bottom-[30px] w-px bg-gray-200"></div>
-              {replies.map(reply => renderNode(reply, true))}
+              {replies.map(reply => renderNode(reply, depth + 1))}
             </div>
           )}
         </div>
