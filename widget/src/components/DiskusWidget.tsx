@@ -23,7 +23,8 @@ export function DiskusWidget({ apiKey, threadKey, apiUrl }: { apiKey: string, th
   const error = useSignal('');
   const sortBy = useSignal<'newest' | 'oldest'>('newest');
   const notification = useSignal<{message: string, type: 'success'|'error'} | null>(null);
-  const visibleCount = useSignal(5);
+  const page = useSignal(1);
+  const hasMore = useSignal(false);
   const isDark = useSignal(false);
   const requireLogin = useSignal(false);
 
@@ -32,12 +33,26 @@ export function DiskusWidget({ apiKey, threadKey, apiUrl }: { apiKey: string, th
     setTimeout(() => { notification.value = null; }, 4000);
   };
 
-  const fetchComments = async () => {
+  const fetchComments = async (isLoadMore = false) => {
     try {
-      const res = await fetch(`${apiUrl}/widget/comments?api_key=${apiKey}&thread_key=${threadKey}`);
+      loading.value = true;
+      if (!isLoadMore) page.value = 1;
+      
+      const res = await fetch(`${apiUrl}/widget/comments?api_key=${apiKey}&thread_key=${threadKey}&page=${page.value}`);
       if (!res.ok) throw new Error('Failed to load comments');
+      
       const data = await res.json();
-      comments.value = data.comments;
+      
+      if (isLoadMore) {
+        const newMap = new Map(comments.value.map(c => [c.id, c]));
+        data.comments.forEach((c: Comment) => newMap.set(c.id, c));
+        comments.value = Array.from(newMap.values());
+      } else {
+        comments.value = data.comments;
+      }
+      
+      hasMore.value = data.hasMore;
+
       if (data.config && data.config.requireLogin) {
         requireLogin.value = true;
       }
@@ -156,7 +171,7 @@ export function DiskusWidget({ apiKey, threadKey, apiUrl }: { apiKey: string, th
     }
   };
 
-  const visibleTopLevelComments = topLevelComments.slice(0, visibleCount.value);
+  const visibleTopLevelComments = topLevelComments;
 
   return (
     <div class={`${isDark.value ? 'dark' : ''}`}>
@@ -214,10 +229,18 @@ export function DiskusWidget({ apiKey, threadKey, apiUrl }: { apiKey: string, th
         )}
       </div>
 
-      {visibleCount.value < topLevelComments.length && (
-        <div class="mt-12 text-center border-t border-gray-100 dark:border-gray-800 pt-6">
-          <button onClick={() => visibleCount.value += 5} class="text-[14px] font-medium text-gray-800 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center justify-center gap-1.5 mx-auto bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 px-6 py-2.5 rounded-full border border-gray-200 dark:border-gray-700 transition-colors">
-            Load more replies <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+      {hasMore.value && (
+        <div class="mt-8 text-center pt-2">
+          <button 
+            onClick={() => { page.value += 1; fetchComments(true); }} 
+            disabled={loading.value}
+            class="w-full text-[14px] font-semibold text-gray-800 dark:text-gray-200 hover:text-black dark:hover:text-white flex items-center justify-center gap-2 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 px-6 py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 transition-colors disabled:opacity-50 cursor-pointer"
+          >
+            {loading.value ? (
+              <div class="w-5 h-5 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin"></div>
+            ) : (
+              <>Load More Comments <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg></>
+            )}
           </button>
         </div>
       )}

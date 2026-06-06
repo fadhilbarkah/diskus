@@ -1,6 +1,6 @@
 import { db } from '../db';
 import { sites, threads, comments, widgetUsers, users } from '../db/schema';
-import { eq, and, desc, sql } from 'drizzle-orm';
+import { eq, and, desc, sql, isNull, isNotNull } from 'drizzle-orm';
 import { simpleMarkdownToHtml, sanitizeHtml } from '../utils/html';
 
 export class WidgetService {
@@ -27,7 +27,7 @@ export class WidgetService {
     return newUser;
   }
 
-  static async getComments(siteId: string, threadKey: string, title?: string) {
+  static async getComments(siteId: string, threadKey: string, limit: number, offset: number, title?: string) {
     let thread = await db.select().from(threads)
       .where(and(eq(threads.siteId, siteId), eq(threads.threadKey, threadKey)))
       .get();
@@ -42,12 +42,21 @@ export class WidgetService {
       thread = newThread;
     }
 
-    const allComments = await db.select().from(comments)
-      .where(and(eq(comments.threadId, thread.id), eq(comments.status, 'approved')))
+    const rootComments = await db.select().from(comments)
+      .where(and(eq(comments.threadId, thread.id), eq(comments.status, 'approved'), isNull(comments.parentId)))
       .orderBy(desc(comments.createdAt))
+      .limit(limit)
+      .offset(offset)
       .all();
 
-    return allComments;
+    const childComments = await db.select().from(comments)
+      .where(and(eq(comments.threadId, thread.id), eq(comments.status, 'approved'), isNotNull(comments.parentId)))
+      .all();
+
+    return {
+      comments: [...rootComments, ...childComments],
+      hasMore: rootComments.length === limit
+    };
   }
 
   static async createComment(data: any) {

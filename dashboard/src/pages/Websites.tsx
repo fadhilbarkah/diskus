@@ -30,6 +30,8 @@ export function Websites() {
   const selectedSiteForSettings = useSignal<any | null>(null);
   const requireLoginSetting = useSignal(false);
   const enableEmailSetting = useSignal(false);
+  const commentsLimitSetting = useSignal(10);
+  const requireModerationSetting = useSignal(false);
   const settingsLoading = useSignal(false);
   
   const siteToDelete = useSignal<{id: string, domain: string} | null>(null);
@@ -42,7 +44,9 @@ export function Websites() {
     try {
       await api.updateSite(selectedSiteForSettings.value.id, {
         requireLogin: requireLoginSetting.value,
-        enableEmail: enableEmailSetting.value
+        enableEmail: enableEmailSetting.value,
+        commentsLimit: commentsLimitSetting.value,
+        requireModeration: requireModerationSetting.value
       });
       selectedSiteForSettings.value = null;
       await fetchSites();
@@ -230,6 +234,8 @@ export function Websites() {
                       selectedSiteForSettings.value = site;
                       requireLoginSetting.value = site.requireLogin;
                       enableEmailSetting.value = site.enableEmail;
+                      commentsLimitSetting.value = site.commentsLimit || 10;
+                      requireModerationSetting.value = site.requireModeration || false;
                     }}
                   >
                     <SettingsIcon class="w-4 h-4 mr-2" /> Settings
@@ -438,6 +444,40 @@ export function Websites() {
                       <div class={`text-xs mt-1 ${enableEmailSetting.value ? 'text-blue-700' : 'text-gray-500'}`}>Receive an email whenever someone posts a new comment.</div>
                     </div>
                   </label>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-3">Moderation Mode</label>
+                <div class="space-y-3">
+                  <label class={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${requireModerationSetting.value ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white hover:bg-gray-50'}`}>
+                    <div class="pt-0.5">
+                      <input 
+                        type="checkbox" 
+                        checked={requireModerationSetting.value} 
+                        onChange={(e) => requireModerationSetting.value = (e.target as HTMLInputElement).checked} 
+                        class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer" 
+                      />
+                    </div>
+                    <div>
+                      <div class={`font-medium text-sm ${requireModerationSetting.value ? 'text-blue-900' : 'text-gray-900'}`}>Require Moderation</div>
+                      <div class={`text-xs mt-1 ${requireModerationSetting.value ? 'text-blue-700' : 'text-gray-500'}`}>New comments from visitors will be pending until you approve them.</div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-sm font-medium text-gray-700 mb-3">Comments Limit</label>
+                <div class="space-y-3">
+                  <input 
+                    type="number" 
+                    min="1"
+                    value={commentsLimitSetting.value} 
+                    onInput={(e) => commentsLimitSetting.value = parseInt((e.target as HTMLInputElement).value, 10)} 
+                    class="block w-full py-2.5 px-3 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-colors" 
+                  />
+                  <div class="text-xs text-gray-500">Number of root comments to display initially before showing the "Load More" button.</div>
                 </div>
               </div>
 

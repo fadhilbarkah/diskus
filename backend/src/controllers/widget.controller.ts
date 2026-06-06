@@ -46,20 +46,24 @@ export class WidgetController {
     const apiKey = c.req.query('api_key');
     const threadKey = c.req.query('thread_key');
     const title = c.req.query('title');
+    const page = parseInt(c.req.query('page') || '1', 10);
 
     if (!apiKey || !threadKey) return c.json({ error: 'Missing parameters' }, 400);
     const site = await WidgetService.verifyApiKey(apiKey);
     if (!site) return c.json({ error: 'Invalid API Key' }, 403);
 
+    const limit = site.commentsLimit || 10;
+    const offset = (page - 1) * limit;
+
     const owner = await AdminService.getUserAccount(site.userId);
-    const commentsList = await WidgetService.getComments(site.id, threadKey, title);
+    const { comments, hasMore } = await WidgetService.getComments(site.id, threadKey, limit, offset, title);
     
-    const enrichedComments = commentsList.map(comment => ({
+    const enrichedComments = comments.map(comment => ({
       ...comment,
       isAuthor: owner ? comment.authorEmail === owner.email : false
     }));
 
-    return c.json({ comments: enrichedComments, config: { requireLogin: site.requireLogin } });
+    return c.json({ comments: enrichedComments, hasMore, config: { requireLogin: site.requireLogin } });
   }
 
   static async postComment(c: Context<{ Variables: AuthVariables }>) {
@@ -80,7 +84,7 @@ export class WidgetController {
 
     let authorName = data.authorName || 'Anonymous';
     let authorEmail = data.authorEmail || 'anonymous@example.com';
-    let initialStatus = 'pending';
+    let initialStatus = site.requireModeration ? 'pending' : 'approved';
 
     const user = c.get('user');
     let isAuthed = false;

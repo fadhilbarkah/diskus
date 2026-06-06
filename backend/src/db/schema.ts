@@ -19,6 +19,8 @@ export const sites = sqliteTable('sites', {
   publicApiKey: text('public_api_key').notNull().unique(),
   requireLogin: integer('require_login', { mode: 'boolean' }).default(false).notNull(),
   enableEmail: integer('enable_email', { mode: 'boolean' }).default(false).notNull(),
+  commentsLimit: integer('comments_limit').default(10).notNull(),
+  requireModeration: integer('require_moderation', { mode: 'boolean' }).default(false).notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
 }, (table) => ({
   userIdIdx: index('sites_user_id_idx').on(table.userId),
