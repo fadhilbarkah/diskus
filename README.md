@@ -76,11 +76,17 @@ Diskus is fully containerized for easy production deployment using Docker Compos
    export JWT_SECRET="your-strong-random-secret"
    # Set to your actual public backend URL if different
    export VITE_API_URL="http://localhost:3000/api/v1"
+   # Optional: Set to true to automatically seed the database on container startup
+   export SEED_DB=false
    ```
 
 2. Build and start the services:
    ```bash
+   # To start normally:
    docker-compose up -d --build
+
+   # To start and automatically seed the database (WARNING: overwrites existing data):
+   SEED_DB=true docker-compose up -d --build
    ```
 
 3. The services will be available at:
