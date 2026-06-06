@@ -58,11 +58,11 @@ export class WidgetService {
 
     roots.sort((a, b) => {
       if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      return new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime();
     });
 
     repliesMap.forEach(replies => {
-      replies.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      replies.sort((a, b) => new Date(a.createdAt!).getTime() - new Date(b.createdAt!).getTime());
     });
 
     const flattened: typeof allComments = [];
