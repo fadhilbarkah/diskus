@@ -380,7 +380,7 @@ export function Websites() {
 
       {selectedSiteForSettings.value && (
         <div class="fixed inset-0 bg-gray-900/50 z-50 flex items-center justify-center p-4">
-          <Card class="max-w-md w-full shadow-lg" noPadding>
+          <Card class="max-w-2xl w-full shadow-lg" noPadding>
             <div class="flex justify-between items-center p-6 border-b border-gray-100">
               <h3 class="font-bold text-gray-900 text-lg">Web Settings</h3>
               <button 
@@ -390,95 +390,105 @@ export function Websites() {
                 <X class="w-5 h-5" />
               </button>
             </div>
-            <form onSubmit={handleUpdateSite} class="p-6 space-y-6">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-3">Authentication Mode</label>
-                <div class="space-y-3">
-                  <label class={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${!requireLoginSetting.value ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white hover:bg-gray-50'}`}>
-                    <div class="pt-0.5">
-                      <input 
-                        type="radio" 
-                        name="auth_mode" 
-                        checked={!requireLoginSetting.value} 
-                        onChange={() => requireLoginSetting.value = false} 
-                        class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 cursor-pointer" 
-                      />
+            <form onSubmit={handleUpdateSite} class="p-6 flex flex-col gap-6">
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* Column 1 */}
+                <div class="space-y-6">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Authentication Mode</label>
+                    <div class="space-y-3">
+                      <label class={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${!requireLoginSetting.value ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white hover:bg-gray-50'}`}>
+                        <div class="pt-0.5">
+                          <input 
+                            type="radio" 
+                            name="auth_mode" 
+                            checked={!requireLoginSetting.value} 
+                            onChange={() => requireLoginSetting.value = false} 
+                            class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 cursor-pointer" 
+                          />
+                        </div>
+                        <div>
+                          <div class={`font-medium text-sm ${!requireLoginSetting.value ? 'text-blue-900' : 'text-gray-900'}`}>Guest & Login Allowed</div>
+                          <div class={`text-xs mt-1 ${!requireLoginSetting.value ? 'text-blue-700' : 'text-gray-500'}`}>Visitors can post comments as Guests without creating an account.</div>
+                        </div>
+                      </label>
+                      <label class={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${requireLoginSetting.value ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white hover:bg-gray-50'}`}>
+                        <div class="pt-0.5">
+                          <input 
+                            type="radio" 
+                            name="auth_mode" 
+                            checked={requireLoginSetting.value} 
+                            onChange={() => requireLoginSetting.value = true} 
+                            class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 cursor-pointer" 
+                          />
+                        </div>
+                        <div>
+                          <div class={`font-medium text-sm ${requireLoginSetting.value ? 'text-blue-900' : 'text-gray-900'}`}>Login Required</div>
+                          <div class={`text-xs mt-1 ${requireLoginSetting.value ? 'text-blue-700' : 'text-gray-500'}`}>Visitors must log in or register an account first to post comments.</div>
+                        </div>
+                      </label>
                     </div>
-                    <div>
-                      <div class={`font-medium text-sm ${!requireLoginSetting.value ? 'text-blue-900' : 'text-gray-900'}`}>Guest & Login Allowed</div>
-                      <div class={`text-xs mt-1 ${!requireLoginSetting.value ? 'text-blue-700' : 'text-gray-500'}`}>Visitors can post comments as Guests without creating an account.</div>
-                    </div>
-                  </label>
-                  <label class={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${requireLoginSetting.value ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white hover:bg-gray-50'}`}>
-                    <div class="pt-0.5">
-                      <input 
-                        type="radio" 
-                        name="auth_mode" 
-                        checked={requireLoginSetting.value} 
-                        onChange={() => requireLoginSetting.value = true} 
-                        class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 cursor-pointer" 
-                      />
-                    </div>
-                    <div>
-                      <div class={`font-medium text-sm ${requireLoginSetting.value ? 'text-blue-900' : 'text-gray-900'}`}>Login Required</div>
-                      <div class={`text-xs mt-1 ${requireLoginSetting.value ? 'text-blue-700' : 'text-gray-500'}`}>Visitors must log in or register an account first to post comments.</div>
-                    </div>
-                  </label>
-                </div>
-              </div>
+                  </div>
 
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-3">Email Notifications</label>
-                <div class="space-y-4">
-                  <label class={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${enableEmailSetting.value ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white hover:bg-gray-50'}`}>
-                    <div class="pt-0.5">
-                      <input 
-                        type="checkbox" 
-                        checked={enableEmailSetting.value} 
-                        onChange={(e) => enableEmailSetting.value = (e.target as HTMLInputElement).checked} 
-                        class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer" 
-                      />
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Email Notifications</label>
+                    <div class="space-y-4">
+                      <label class={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${enableEmailSetting.value ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white hover:bg-gray-50'}`}>
+                        <div class="pt-0.5">
+                          <input 
+                            type="checkbox" 
+                            checked={enableEmailSetting.value} 
+                            onChange={(e) => enableEmailSetting.value = (e.target as HTMLInputElement).checked} 
+                            class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer" 
+                          />
+                        </div>
+                        <div>
+                          <div class={`font-medium text-sm ${enableEmailSetting.value ? 'text-blue-900' : 'text-gray-900'}`}>Notify on New Comments</div>
+                          <div class={`text-xs mt-1 ${enableEmailSetting.value ? 'text-blue-700' : 'text-gray-500'}`}>Receive an email whenever someone posts a new comment.</div>
+                        </div>
+                      </label>
                     </div>
-                    <div>
-                      <div class={`font-medium text-sm ${enableEmailSetting.value ? 'text-blue-900' : 'text-gray-900'}`}>Notify on New Comments</div>
-                      <div class={`text-xs mt-1 ${enableEmailSetting.value ? 'text-blue-700' : 'text-gray-500'}`}>Receive an email whenever someone posts a new comment.</div>
-                    </div>
-                  </label>
+                  </div>
                 </div>
-              </div>
 
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-3">Moderation Mode</label>
-                <div class="space-y-3">
-                  <label class={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${requireModerationSetting.value ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white hover:bg-gray-50'}`}>
-                    <div class="pt-0.5">
-                      <input 
-                        type="checkbox" 
-                        checked={requireModerationSetting.value} 
-                        onChange={(e) => requireModerationSetting.value = (e.target as HTMLInputElement).checked} 
-                        class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer" 
-                      />
+                {/* Column 2 */}
+                <div class="space-y-6">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Moderation Mode</label>
+                    <div class="space-y-3">
+                      <label class={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${requireModerationSetting.value ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white hover:bg-gray-50'}`}>
+                        <div class="pt-0.5">
+                          <input 
+                            type="checkbox" 
+                            checked={requireModerationSetting.value} 
+                            onChange={(e) => requireModerationSetting.value = (e.target as HTMLInputElement).checked} 
+                            class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer" 
+                          />
+                        </div>
+                        <div>
+                          <div class={`font-medium text-sm ${requireModerationSetting.value ? 'text-blue-900' : 'text-gray-900'}`}>Require Moderation</div>
+                          <div class={`text-xs mt-1 ${requireModerationSetting.value ? 'text-blue-700' : 'text-gray-500'}`}>New comments from visitors will be pending until you approve them.</div>
+                        </div>
+                      </label>
                     </div>
-                    <div>
-                      <div class={`font-medium text-sm ${requireModerationSetting.value ? 'text-blue-900' : 'text-gray-900'}`}>Require Moderation</div>
-                      <div class={`text-xs mt-1 ${requireModerationSetting.value ? 'text-blue-700' : 'text-gray-500'}`}>New comments from visitors will be pending until you approve them.</div>
-                    </div>
-                  </label>
-                </div>
-              </div>
+                  </div>
 
-              <div>
-                <label class="block text-sm font-medium text-gray-700 mb-3">Comments Limit</label>
-                <div class="space-y-3">
-                  <input 
-                    type="number" 
-                    min="1"
-                    value={commentsLimitSetting.value} 
-                    onInput={(e) => commentsLimitSetting.value = parseInt((e.target as HTMLInputElement).value, 10)} 
-                    class="block w-full py-2.5 px-3 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-colors" 
-                  />
-                  <div class="text-xs text-gray-500">Number of root comments to display initially before showing the "Load More" button.</div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-3">Comments Limit</label>
+                    <div class="space-y-3">
+                      <input 
+                        type="number" 
+                        min="1"
+                        value={commentsLimitSetting.value} 
+                        onInput={(e) => commentsLimitSetting.value = parseInt((e.target as HTMLInputElement).value, 10)} 
+                        class="block w-full py-2.5 px-3 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-colors" 
+                      />
+                      <div class="text-xs text-gray-500">Number of root comments to display initially before showing the "Load More" button.</div>
+                    </div>
+                  </div>
                 </div>
+
               </div>
 
               <div class="flex gap-3 justify-end pt-4 border-t border-gray-100">
