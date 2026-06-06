@@ -13,6 +13,7 @@ A lightweight, self-hosted comments system built for modern web applications. Di
 - **Built-in Anti-Spam:** Native rate-limiting and invisible honeypot traps to prevent automated bot registrations without requiring intrusive CAPTCHAs.
 - **Server-side Sanitization:** Strict HTML sanitization (`isomorphic-dompurify`) and Markdown parsing are offloaded to the server to maintain a minimal client bundle.
 - **Data Portability:** Full JSON-based import and export capabilities for threads and comments.
+- **Email Notifications:** Configurable email alerts for new comments powered by Resend API integration.
 - **Modern Stack:** Built on Bun, Hono, Preact, and Drizzle ORM for maximum performance and type safety.
 
 ## Architecture
@@ -46,10 +47,12 @@ Diskus operates as a monorepo containing three core packages:
 3. Setup environment variables:
    Copy `.env.example` to `.env` in all three workspace directories (`backend`, `dashboard`, `widget`) and configure the required values, especially the `JWT_SECRET`.
 
-4. Initialize the database schema:
+4. Initialize the database schema and optionally seed initial data:
    ```bash
    cd backend
    bun run db:push
+   # Optional: populate the database with test data and a default admin account
+   bun run src/db/seed.ts
    ```
 
 5. Start the development server (runs backend, dashboard, and widget concurrently):
@@ -57,6 +60,10 @@ Diskus operates as a monorepo containing three core packages:
    # From the project root
    bun dev
    ```
+
+> **Note:** If you ran the seed script, you can log in to the Dashboard using the initial default credentials:  
+> **Email:** `admin@blog.com`  
+> **Password:** `password123`
 
 ## Usage
 
