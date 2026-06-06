@@ -1,5 +1,7 @@
 @import "tailwindcss";
 
+@variant dark (&:where(.dark, .dark *));
+
 /* Reset some default styles just in case it is embedded in a highly styled website */
 #diskus-thread {
   all: initial;
