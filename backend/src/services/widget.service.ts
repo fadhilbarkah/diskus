@@ -3,6 +3,8 @@ import { sites, threads, comments, widgetUsers, users, commentLikes } from '../d
 import { eq, and, desc, sql, isNull, isNotNull } from 'drizzle-orm';
 import { simpleMarkdownToHtml, sanitizeHtml } from '../utils/html';
 import { hashEmail } from '../utils/hash';
+import { extractHostnameFromOrigin, isHostnameAllowed, isOriginAllowedForSite } from '../utils/domain';
+import { signEmbedToken, verifyEmbedToken } from '../utils/embed-token';
 import crypto from 'crypto';
 import { Context } from 'hono';
 
@@ -18,7 +20,36 @@ interface CreateCommentData {
 export class WidgetService {
   static async verifyApiKey(apiKey: string, c?: Context) {
     const site = await db.select().from(sites).where(eq(sites.publicApiKey, apiKey)).get();
-    return site || null;
+    if (!site) return null;
+
+    if (!c) return site;
+
+    const embedToken = c.req.header('X-Diskus-Embed-Token');
+    if (!embedToken) return null;
+
+    const payload = await verifyEmbedToken(embedToken);
+    if (!payload || payload.apiKey !== apiKey || payload.siteId !== site.id) return null;
+    if (!isHostnameAllowed(payload.parentHost, site.domain)) return null;
+
+    return site;
+  }
+
+  static async issueEmbedToken(apiKey: string, origin: string | undefined) {
+    const site = await db.select().from(sites).where(eq(sites.publicApiKey, apiKey)).get();
+    if (!site) return { error: 'invalid_key' as const };
+
+    if (!isOriginAllowedForSite(origin, site.domain)) {
+      return { error: 'unauthorized_domain' as const };
+    }
+
+    const parentHost = origin ? (extractHostnameFromOrigin(origin) ?? 'localhost') : 'localhost';
+    const token = await signEmbedToken({
+      siteId: site.id,
+      apiKey,
+      parentHost,
+    });
+
+    return { token, site };
   }
 
   static async hashPassword(password: string) { return await Bun.password.hash(password); }

@@ -49,6 +49,21 @@ export class WidgetController {
     return c.json({ error: 'Invalid email or password' }, 401);
   }
 
+  static async getEmbedToken(c: Context) {
+    const apiKey = c.req.query('api_key');
+    if (!apiKey) return c.json({ error: 'Missing api_key' }, 400);
+
+    const origin = c.req.header('origin');
+    const result = await WidgetService.issueEmbedToken(apiKey, origin);
+
+    if ('error' in result) {
+      if (result.error === 'invalid_key') return c.json({ error: 'Invalid API Key' }, 403);
+      return c.json({ error: 'This domain is not authorized to use this widget' }, 403);
+    }
+
+    return c.json({ token: result.token });
+  }
+
   static async getComments(c: Context) {
     const apiKey = c.req.query('api_key');
     const threadKey = c.req.query('thread_key');
@@ -57,7 +72,7 @@ export class WidgetController {
 
     if (!apiKey || !threadKey) return c.json({ error: 'Missing parameters' }, 400);
     const site = await WidgetService.verifyApiKey(apiKey, c);
-    if (!site) return c.json({ error: 'Invalid API Key' }, 403);
+    if (!site) return c.json({ error: 'Invalid API Key or unauthorized domain' }, 403);
 
     const initialLimit = site.commentsLimit || 10;
     const loadMoreLimit = 10;
@@ -202,6 +217,11 @@ export class WidgetController {
   }
 
   static async likeComment(c: Context) {
+    const apiKey = c.req.query('api_key');
+    if (!apiKey) return c.json({ error: 'Missing api_key' }, 400);
+    const site = await WidgetService.verifyApiKey(apiKey, c);
+    if (!site) return c.json({ error: 'Invalid API Key or unauthorized domain' }, 403);
+
     const id = c.req.param('id') as string;
     const ipHash = getIpHash(c);
     const result = await WidgetService.likeComment(id, ipHash);
@@ -216,6 +236,11 @@ export class WidgetController {
   }
 
   static async unlikeComment(c: Context) {
+    const apiKey = c.req.query('api_key');
+    if (!apiKey) return c.json({ error: 'Missing api_key' }, 400);
+    const site = await WidgetService.verifyApiKey(apiKey, c);
+    if (!site) return c.json({ error: 'Invalid API Key or unauthorized domain' }, 403);
+
     const id = c.req.param('id') as string;
     const ipHash = getIpHash(c);
     const result = await WidgetService.unlikeComment(id, ipHash);

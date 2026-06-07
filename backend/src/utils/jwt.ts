@@ -14,7 +14,7 @@ if (Bun.env.NODE_ENV === 'production' && DANGEROUS_DEFAULTS.includes(jwtSecret))
   );
 }
 
-const JWT_SECRET = new TextEncoder().encode(jwtSecret);
+export const JWT_SECRET = new TextEncoder().encode(jwtSecret);
 
 export async function signToken(payload: { userId: string; email: string; role: string; name?: string; tokenVersion?: number }) {
   return new SignJWT(payload)

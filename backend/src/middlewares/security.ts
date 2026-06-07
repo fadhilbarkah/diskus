@@ -9,7 +9,7 @@ export const securityHeadersMiddleware = secureHeaders({
 export const widgetCorsMiddleware = cors({
   origin: '*',
   allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type', 'Authorization'],
+  allowHeaders: ['Content-Type', 'Authorization', 'X-Diskus-Embed-Token'],
 });
 
 // Admin/auth routes: restricted to dashboard origin when configured via DASHBOARD_ORIGIN env var

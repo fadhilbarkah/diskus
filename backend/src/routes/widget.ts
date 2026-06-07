@@ -29,6 +29,8 @@ widgetRoutes.post(
   WidgetController.login
 );
 
+widgetRoutes.get('/embed-token', WidgetController.getEmbedToken);
+
 widgetRoutes.get('/comments', WidgetController.getComments);
 
 widgetRoutes.post(
