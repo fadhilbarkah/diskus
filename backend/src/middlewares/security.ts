@@ -1,7 +1,9 @@
 import { secureHeaders } from 'hono/secure-headers';
 import { cors } from 'hono/cors';
 
-export const securityHeadersMiddleware = secureHeaders();
+export const securityHeadersMiddleware = secureHeaders({
+  crossOriginResourcePolicy: 'cross-origin',
+});
 
 // Widget routes: open CORS required since the widget is embedded on third-party sites
 export const widgetCorsMiddleware = cors({
