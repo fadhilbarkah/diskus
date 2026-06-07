@@ -24,6 +24,7 @@ if [ ! -f "$ENV_FILE" ]; then
 # Diskus Environment Variables (Auto-generated)
 JWT_SECRET=${SECRET}
 DASHBOARD_ORIGIN=*
+SEED_DB=true
 
 # Optional: Set these for email notifications via Resend
 # RESEND_API_KEY=
