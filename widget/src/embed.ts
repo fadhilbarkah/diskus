@@ -44,10 +44,14 @@
 
   const iframe = document.createElement('iframe');
   iframe.src = iframeUrl;
+  iframe.style.display = 'block';
   iframe.style.width = '100%';
   iframe.style.border = 'none';
   iframe.style.overflow = 'hidden';
   iframe.style.minHeight = '300px';
+  iframe.style.margin = '0';
+  iframe.style.padding = '0';
+  iframe.style.outline = 'none';
   iframe.setAttribute('allowtransparency', 'true');
   iframe.style.backgroundColor = 'transparent';
   iframe.className = 'diskus-iframe';

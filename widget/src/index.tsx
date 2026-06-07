@@ -25,17 +25,20 @@ function mount() {
     return;
   }
 
-  // Set up resize observer to communicate height back to parent window
-  const observer = new ResizeObserver((entries) => {
-    for (const entry of entries) {
-      if (entry.target === document.body) {
-        const height = entry.target.scrollHeight;
-        window.parent.postMessage({ type: 'diskus-resize', height }, '*');
-      }
-    }
-  });
-  
-  observer.observe(document.body);
+  // Set up observers to communicate height back to parent window
+  const updateHeight = () => {
+    // Use offsetHeight of document.documentElement or scrollHeight, whichever is larger, 
+    // and add a small buffer to prevent subpixel cropping.
+    const height = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
+    window.parent.postMessage({ type: 'diskus-resize', height }, '*');
+  };
+
+  const resizeObserver = new ResizeObserver(updateHeight);
+  resizeObserver.observe(document.body);
+  resizeObserver.observe(document.documentElement);
+
+  const mutationObserver = new MutationObserver(updateHeight);
+  mutationObserver.observe(document.body, { childList: true, subtree: true, attributes: true });
 
   // Listen for theme changes from parent
   window.addEventListener('message', (event) => {

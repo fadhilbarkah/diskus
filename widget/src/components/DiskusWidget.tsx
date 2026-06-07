@@ -65,7 +65,7 @@ export function DiskusWidget({ apiKey, threadKey, apiUrl }: { apiKey: string, th
 
   return (
     <div class={`${isDark.value ? 'dark' : ''}`}>
-      <div class="diskus-widget font-sans text-gray-900 dark:text-gray-100 bg-transparent p-4 md:px-0 max-w-3xl mx-auto transition-colors duration-300">
+      <div class="diskus-widget font-sans text-gray-900 dark:text-gray-100 bg-transparent p-4 md:px-0 pb-8 max-w-3xl mx-auto transition-colors duration-300">
         {notification.value && (
         <div class={`mb-4 px-4 py-3 rounded-lg flex items-center justify-between shadow-sm animate-fade-in-down ${notification.value.type === 'success' ? 'bg-[#f0fdf4] text-[#166534] border border-[#bbf7d0]' : 'bg-[#fef2f2] text-[#991b1b] border border-[#fecaca]'}`}>
           <div class="flex items-center gap-2">
