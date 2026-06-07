@@ -1,9 +1,8 @@
-(function() {
-  const rootElement = document.getElementById('diskus-thread');
-  if (!rootElement) {
-    console.error('Diskus Widget: Could not find element with id "diskus-thread".');
-    return;
-  }
+const initializedContainers = new WeakSet<HTMLElement>();
+
+function initDiskusWidget(rootElement: HTMLElement) {
+  if (initializedContainers.has(rootElement)) return;
+  initializedContainers.add(rootElement);
 
   const apiKey = rootElement.getAttribute('data-api-key');
   const threadKey = rootElement.getAttribute('data-thread-key');
@@ -43,7 +42,8 @@
   const finalTitle = providedTitle || document.title;
 
   const initialTheme = getHostTheme();
-  const iframeUrl = `${iframeBaseUrl}?api_key=${encodeURIComponent(apiKey)}&thread_key=${encodeURIComponent(threadKey)}&api_url=${encodeURIComponent(apiUrl)}&theme=${initialTheme}&title=${encodeURIComponent(finalTitle)}`;
+  // Adding cache buster here to ensure iframe.html is always fresh when loaded
+  const iframeUrl = `${iframeBaseUrl}?v=${Date.now()}&api_key=${encodeURIComponent(apiKey)}&thread_key=${encodeURIComponent(threadKey)}&api_url=${encodeURIComponent(apiUrl)}&theme=${initialTheme}&title=${encodeURIComponent(finalTitle)}`;
 
   const iframe = document.createElement('iframe');
   iframe.src = iframeUrl;
@@ -70,10 +70,8 @@
   themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-theme'] });
   themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class', 'data-theme'] });
 
-  
   // Listen for messages from the iframe to adjust height
   window.addEventListener('message', (event) => {
-    // Only accept messages from the iframe's origin (or any origin if we are flexible, but it's better to check)
     if (event.data && event.data.type === 'diskus-resize' && event.source === iframe.contentWindow) {
       const newHeight = event.data.height;
       if (newHeight) {
@@ -86,4 +84,44 @@
   // Clear rootElement contents and append the iframe
   rootElement.innerHTML = '';
   rootElement.appendChild(iframe);
-})();
+}
+
+// 1. Initialize any existing elements immediately
+function scanAndInit() {
+  const elements = document.querySelectorAll('#diskus-thread');
+  elements.forEach(el => initDiskusWidget(el as HTMLElement));
+}
+
+scanAndInit();
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', scanAndInit);
+}
+
+// 2. Universal SPA Support via MutationObserver
+// Watches the entire body for newly added nodes. If a framework (React, Astro, Vue)
+// injects the Diskus container during a client-side navigation, we catch it automatically!
+const spaObserver = new MutationObserver((mutations) => {
+  let shouldScan = false;
+  for (const mutation of mutations) {
+    if (mutation.addedNodes.length > 0) {
+      shouldScan = true;
+      break;
+    }
+  }
+  if (shouldScan) {
+    scanAndInit();
+  }
+});
+
+if (document.body) {
+  spaObserver.observe(document.body, { childList: true, subtree: true });
+} else {
+  document.addEventListener('DOMContentLoaded', () => {
+    spaObserver.observe(document.body, { childList: true, subtree: true });
+  });
+}
+
+// Export for manual invocation if needed
+(window as any).DiskusWidget = {
+  init: scanAndInit
+};
