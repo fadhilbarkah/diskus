@@ -48,7 +48,6 @@
   iframe.style.width = '100%';
   iframe.style.border = 'none';
   iframe.style.overflow = 'hidden';
-  iframe.style.minHeight = '300px';
   iframe.style.margin = '0';
   iframe.style.padding = '0';
   iframe.style.outline = 'none';
@@ -76,6 +75,7 @@
       const newHeight = event.data.height;
       if (newHeight) {
         iframe.style.height = `${newHeight}px`;
+        iframe.style.minHeight = 'auto';
       }
     }
   });
