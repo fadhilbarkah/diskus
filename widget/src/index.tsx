@@ -27,9 +27,9 @@ function mount() {
 
   // Set up observers to communicate height back to parent window
   const updateHeight = () => {
-    // Use offsetHeight of document.documentElement or scrollHeight, whichever is larger, 
-    // and add a small buffer to prevent subpixel cropping.
-    const height = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
+    // Measure the actual #app container, since document height won't shrink 
+    // if the iframe window is taller than the content.
+    const height = rootElement.scrollHeight;
     window.parent.postMessage({ type: 'diskus-resize', height }, '*');
   };
 
