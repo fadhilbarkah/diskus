@@ -22,6 +22,7 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
   const content = useSignal('');
   const name = useSignal(getStored('diskus_guest_name'));
   const email = useSignal(getStored('diskus_guest_email'));
+  const saveInfo = useSignal(true);
   const password = useSignal('');
   const submitting = useSignal(false);
   const isExpanded = useSignal(!!parentId);
@@ -46,8 +47,12 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
       if (authMode.value === 'guest') {
         if (!content.value || !name.value || !email.value) return;
         submitting.value = true;
-        setStored('diskus_guest_name', name.value);
-        setStored('diskus_guest_email', email.value);
+        if (saveInfo.value) {
+          setStored('diskus_guest_name', name.value);
+          setStored('diskus_guest_email', email.value);
+        } else {
+          try { localStorage.removeItem('diskus_guest_name'); localStorage.removeItem('diskus_guest_email'); } catch {}
+        }
         await onSubmit(content.value, name.value, email.value, parentId, trap.value);
       } else if (authMode.value === 'login') {
         if (!email.value || !password.value) return;
@@ -199,6 +204,12 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
                       <input type="email" placeholder="Email" class="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-[14px] text-gray-900 dark:text-gray-100 outline-none focus:border-gray-400 dark:focus:border-gray-500 bg-white dark:bg-[#222] transition-colors" value={email.value} onInput={(e) => email.value = (e.target as HTMLInputElement).value} required={isExpanded.value} />
                     </div>
+                    {authMode.value === 'guest' && (
+                      <label class="flex items-start gap-2 mt-1 cursor-pointer group">
+                        <input type="checkbox" checked={saveInfo.value} onChange={(e) => saveInfo.value = (e.target as HTMLInputElement).checked} class="mt-0.5 w-4 h-4 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-[#222] text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-900 cursor-pointer transition-colors" />
+                        <span class="text-[13px] leading-relaxed text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 select-none transition-colors">Save my name and email in this browser for the next time I comment.</span>
+                      </label>
+                    )}
                     {(authMode.value === 'login' || authMode.value === 'register') && (
                       <div class="relative">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>

@@ -3,6 +3,9 @@ import { AdminService } from '../services/admin.service';
 import { AuthService } from '../services/auth.service';
 import { AuthVariables } from '../middlewares/auth';
 import { signToken } from '../utils/jwt';
+import { db } from '../db';
+import { users } from '../db/schema';
+import { eq } from 'drizzle-orm';
 
 /** Mask sensitive API keys — show only last 4 characters */
 function maskApiKey(key: string | null): string {
@@ -36,6 +39,13 @@ export class AdminController {
     const id = c.req.param('id') as string;
     const { requireLogin, enableEmail, commentsLimit, requireModeration } = (c.req as any).valid('json');
     
+    if (enableEmail === true) {
+      const dbUser = await db.select().from(users).where(eq(users.id, user.userId)).get();
+      if (!dbUser?.resendApiKey || !dbUser?.resendSenderEmail) {
+        return c.json({ error: 'Please configure Resend API Key and Sender Email in Account Settings before enabling email notifications.' }, 400);
+      }
+    }
+
     const updateData: any = {};
     if (requireLogin !== undefined) updateData.requireLogin = requireLogin;
     if (enableEmail !== undefined) updateData.enableEmail = enableEmail;
