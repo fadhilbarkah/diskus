@@ -5,6 +5,7 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   plugins: [preact(), cssInjectedByJsPlugin(), tailwindcss()],
+  publicDir: false,
   build: {
     target: 'esnext',
     outDir: 'dist',

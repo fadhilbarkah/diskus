@@ -54,7 +54,7 @@ function mount() {
     applyHostTheme(theme as HostTheme);
   });
 
-  render(<DiskusWidget apiKey={apiKey} threadKey={threadKey} apiUrl={apiUrl} title={title} />, rootElement);
+  render(<DiskusWidget apiKey={apiKey} threadKey={threadKey} apiUrl={apiUrl} title={title} embedToken={token} />, rootElement);
 }
 
 // Auto-mount when the script loads

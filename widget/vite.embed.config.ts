@@ -1,6 +1,21 @@
 import { defineConfig } from 'vite';
+import { readFileSync, writeFileSync } from 'fs';
+import { resolve } from 'path';
 
 export default defineConfig({
+  publicDir: false,
+  plugins: [{
+    name: 'diskus-iframe-html',
+    closeBundle() {
+      const buildId = Date.now().toString(36);
+      const template = readFileSync(resolve(__dirname, 'public/iframe.html'), 'utf-8');
+      const html = template.replace(
+        '<script src="./app.js"></script>',
+        `<script src="./app.js?v=${buildId}"></script>`
+      );
+      writeFileSync(resolve(__dirname, 'dist/iframe.html'), html);
+    },
+  }],
   build: {
     target: 'esnext',
     outDir: 'dist',

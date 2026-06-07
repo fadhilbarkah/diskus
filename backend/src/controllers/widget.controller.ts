@@ -6,6 +6,19 @@ import { signToken } from '../utils/jwt';
 import { AuthVariables } from '../middlewares/auth';
 import { hashEmail } from '../utils/hash';
 
+function widgetAuthError(failure: string | null) {
+  switch (failure) {
+    case 'missing_embed_token':
+      return 'Missing embed token — please hard-refresh the page (Ctrl+Shift+R)';
+    case 'invalid_embed_token':
+      return 'Invalid or expired embed token — please refresh the page';
+    case 'domain_mismatch':
+      return 'Domain mismatch for embed token';
+    default:
+      return 'Invalid API Key or unauthorized domain';
+  }
+}
+
 /** Hash the client IP for privacy-preserving like tracking */
 function getIpHash(c: Context): string {
   const ip = c.req.header('x-forwarded-for')?.split(',')[0]?.trim() || c.req.header('x-real-ip') || 'unknown-ip';
@@ -74,8 +87,9 @@ export class WidgetController {
     const page = parseInt(c.req.query('page') || '1', 10);
 
     if (!apiKey || !threadKey) return c.json({ error: 'Missing parameters' }, 400);
-    const site = await WidgetService.verifyApiKey(apiKey, c);
-    if (!site) return c.json({ error: 'Invalid API Key or unauthorized domain' }, 403);
+    const auth = await WidgetService.verifyApiKey(apiKey, c);
+    if (!auth.site) return c.json({ error: widgetAuthError(auth.failure), reason: auth.failure }, 403);
+    const site = auth.site;
 
     const initialLimit = site.commentsLimit || 10;
     const loadMoreLimit = 10;
@@ -104,8 +118,9 @@ export class WidgetController {
       return c.json({ comment: { id: crypto.randomUUID(), status: 'pending', content: data.content, authorName: data.authorName || 'Guest' } }, 201);
     }
 
-    const site = await WidgetService.verifyApiKey(data.api_key, c);
-    if (!site) return c.json({ error: 'Invalid API Key or Unauthorized Domain' }, 403);
+    const auth = await WidgetService.verifyApiKey(data.api_key, c);
+    if (!auth.site) return c.json({ error: widgetAuthError(auth.failure), reason: auth.failure }, 403);
+    const site = auth.site;
 
     const thread = await WidgetService.getThread(site.id, data.thread_key);
     if (!thread) return c.json({ error: 'Thread not found' }, 404);
@@ -222,8 +237,8 @@ export class WidgetController {
   static async likeComment(c: Context) {
     const apiKey = c.req.query('api_key');
     if (!apiKey) return c.json({ error: 'Missing api_key' }, 400);
-    const site = await WidgetService.verifyApiKey(apiKey, c);
-    if (!site) return c.json({ error: 'Invalid API Key or unauthorized domain' }, 403);
+    const auth = await WidgetService.verifyApiKey(apiKey, c);
+    if (!auth.site) return c.json({ error: widgetAuthError(auth.failure), reason: auth.failure }, 403);
 
     const id = c.req.param('id') as string;
     const ipHash = getIpHash(c);
@@ -241,8 +256,8 @@ export class WidgetController {
   static async unlikeComment(c: Context) {
     const apiKey = c.req.query('api_key');
     if (!apiKey) return c.json({ error: 'Missing api_key' }, 400);
-    const site = await WidgetService.verifyApiKey(apiKey, c);
-    if (!site) return c.json({ error: 'Invalid API Key or unauthorized domain' }, 403);
+    const auth = await WidgetService.verifyApiKey(apiKey, c);
+    if (!auth.site) return c.json({ error: widgetAuthError(auth.failure), reason: auth.failure }, 403);
 
     const id = c.req.param('id') as string;
     const ipHash = getIpHash(c);

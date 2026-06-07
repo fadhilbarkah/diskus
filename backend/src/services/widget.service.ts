@@ -22,21 +22,31 @@ interface CreateCommentData {
   status: 'pending' | 'approved' | 'spam' | 'trash';
 }
 
+export type VerifyApiKeyFailure =
+  | 'invalid_key'
+  | 'missing_embed_token'
+  | 'invalid_embed_token'
+  | 'domain_mismatch';
+
 export class WidgetService {
   static async verifyApiKey(apiKey: string, c?: Context) {
     const site = await db.select().from(sites).where(eq(sites.publicApiKey, apiKey)).get();
-    if (!site) return null;
+    if (!site) return { site: null, failure: 'invalid_key' as const };
 
-    if (!c) return site;
+    if (!c) return { site, failure: null };
 
     const embedToken = getEmbedTokenFromRequest(c);
-    if (!embedToken) return null;
+    if (!embedToken) return { site: null, failure: 'missing_embed_token' as const };
 
     const payload = await verifyEmbedToken(embedToken);
-    if (!payload || payload.apiKey !== apiKey || payload.siteId !== site.id) return null;
-    if (!isHostnameAllowed(payload.parentHost, site.domain)) return null;
+    if (!payload || payload.apiKey !== apiKey || payload.siteId !== site.id) {
+      return { site: null, failure: 'invalid_embed_token' as const };
+    }
+    if (!isHostnameAllowed(payload.parentHost, site.domain)) {
+      return { site: null, failure: 'domain_mismatch' as const };
+    }
 
-    return site;
+    return { site, failure: null };
   }
 
   static async issueEmbedToken(apiKey: string, c: Context) {

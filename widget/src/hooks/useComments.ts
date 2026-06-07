@@ -3,19 +3,25 @@ import { Comment } from '../components/DiskusWidget';
 import { widgetToken } from '../lib/auth';
 import { embedToken } from '../lib/embed';
 
-function embedQueryParam(): string {
-  return embedToken.value ? `&embed_token=${encodeURIComponent(embedToken.value)}` : '';
+function resolveEmbedToken(explicit?: string | null): string | null {
+  return explicit || embedToken.value;
 }
 
-function embedHeaders(extra: Record<string, string> = {}): Record<string, string> {
+function embedQueryParam(token?: string | null): string {
+  const value = resolveEmbedToken(token);
+  return value ? `&embed_token=${encodeURIComponent(value)}` : '';
+}
+
+function embedHeaders(extra: Record<string, string> = {}, token?: string | null): Record<string, string> {
   const headers = { ...extra };
-  if (embedToken.value) {
-    headers['X-Diskus-Embed-Token'] = embedToken.value;
+  const value = resolveEmbedToken(token);
+  if (value) {
+    headers['X-Diskus-Embed-Token'] = value;
   }
   return headers;
 }
 
-export function useComments(apiUrl: string, apiKey: string, threadKey: string, title?: string) {
+export function useComments(apiUrl: string, apiKey: string, threadKey: string, title?: string, embedTokenStr?: string) {
   const comments = useSignal<Comment[]>([]);
   const loading = useSignal(true);
   const error = useSignal('');
@@ -35,7 +41,7 @@ export function useComments(apiUrl: string, apiKey: string, threadKey: string, t
       loading.value = true;
       if (!isLoadMore) page.value = 1;
       
-      const res = await fetch(`${apiUrl}/widget/comments?api_key=${apiKey}&thread_key=${threadKey}&page=${page.value}${title ? `&title=${encodeURIComponent(title)}` : ''}${embedQueryParam()}`);
+      const res = await fetch(`${apiUrl}/widget/comments?api_key=${apiKey}&thread_key=${threadKey}&page=${page.value}${title ? `&title=${encodeURIComponent(title)}` : ''}${embedQueryParam(embedTokenStr)}`);
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || 'Failed to load comments');
@@ -65,7 +71,7 @@ export function useComments(apiUrl: string, apiKey: string, threadKey: string, t
 
   const addComment = async (content: string, authorName: string, authorEmail: string, parentId?: string, trap?: string) => {
     try {
-      const headers = embedHeaders({ 'Content-Type': 'application/json' });
+      const headers = embedHeaders({ 'Content-Type': 'application/json' }, embedTokenStr);
       if (widgetToken.value) {
         headers['Authorization'] = `Bearer ${widgetToken.value}`;
       }
@@ -94,7 +100,7 @@ export function useComments(apiUrl: string, apiKey: string, threadKey: string, t
 
   const deleteComment = async (id: string) => {
     try {
-      const headers = embedHeaders();
+      const headers = embedHeaders({}, embedTokenStr);
       if (widgetToken.value) {
         headers['Authorization'] = `Bearer ${widgetToken.value}`;
       }
@@ -115,7 +121,7 @@ export function useComments(apiUrl: string, apiKey: string, threadKey: string, t
 
   const togglePin = async (id: string, isPinned: boolean) => {
     try {
-      const headers = embedHeaders({ 'Content-Type': 'application/json' });
+      const headers = embedHeaders({ 'Content-Type': 'application/json' }, embedTokenStr);
       if (widgetToken.value) {
         headers['Authorization'] = `Bearer ${widgetToken.value}`;
       }
@@ -136,9 +142,9 @@ export function useComments(apiUrl: string, apiKey: string, threadKey: string, t
 
   const handleLike = async (id: string, isUnlike: boolean) => {
     try {
-      await fetch(`${apiUrl}/widget/comments/${id}/${isUnlike ? 'unlike' : 'like'}?api_key=${encodeURIComponent(apiKey)}${embedQueryParam()}`, {
+      await fetch(`${apiUrl}/widget/comments/${id}/${isUnlike ? 'unlike' : 'like'}?api_key=${encodeURIComponent(apiKey)}${embedQueryParam(embedTokenStr)}`, {
         method: 'POST',
-        headers: embedHeaders(),
+        headers: embedHeaders({}, embedTokenStr),
       });
     } catch (err) {
       console.error(err);
