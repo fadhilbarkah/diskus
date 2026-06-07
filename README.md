@@ -1,6 +1,6 @@
 # Diskus
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Bun](https://img.shields.io/badge/Bun-%23000000.svg?logo=bun&logoColor=white)](https://bun.sh)
 [![Preact](https://img.shields.io/badge/Preact-673AB8?logo=preact&logoColor=white)](https://preactjs.com/)
 
@@ -119,4 +119,4 @@ Please make sure to update tests as appropriate.
 
 ## License
 
-[MIT](LICENSE)
+[GPL-3.0](LICENSE)
