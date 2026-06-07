@@ -69,27 +69,16 @@ Diskus operates as a monorepo containing three core packages:
 
 ## Production Deployment (Docker)
 
-Diskus is fully containerized for easy production deployment using Docker Compose.
+Diskus is fully containerized for easy production deployment using Docker Compose. We provide a one-click startup script that automatically handles secure secret generation.
 
-1. Configure your `.env` variables at the project root:
+1. Build and start the services:
    ```bash
-   export JWT_SECRET="your-strong-random-secret"
-   # Set to your actual public backend URL if different
-   export VITE_API_URL="http://localhost:3000/api/v1"
-   # Optional: Set to true to automatically seed the database on container startup
-   export SEED_DB=false
+   # Run the start script
+   ./start.sh
    ```
+   > **Note:** The script will automatically generate a secure `.env` file with a strong `JWT_SECRET` if one does not exist, and then run `docker-compose up -d --build`.
 
-2. Build and start the services:
-   ```bash
-   # To start normally:
-   docker-compose up -d --build
-
-   # To start and automatically seed the database (WARNING: overwrites existing data):
-   SEED_DB=true docker-compose up -d --build
-   ```
-
-3. The services will be available at:
+2. The services will be available at:
    - **Frontend (Dashboard & Widget Embed)**: `http://localhost:8080`
    - **Backend API**: `http://localhost:3000`
 
