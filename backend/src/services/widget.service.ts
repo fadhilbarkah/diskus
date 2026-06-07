@@ -51,8 +51,8 @@ export class WidgetService {
         title: (title || threadKey).substring(0, 500),
       }).returning();
       thread = newThread;
-    } else if (title && thread.title !== title && thread.title === thread.threadKey) {
-      // If we got a real title, and the current title is just the fallback slug, update it.
+    } else if (title && thread.title !== title) {
+      // Always sync the thread title to the latest page title if it has changed
       await db.update(threads).set({ title: title.substring(0, 500) }).where(eq(threads.id, thread.id));
       thread.title = title.substring(0, 500);
     }
