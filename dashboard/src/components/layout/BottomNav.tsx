@@ -11,7 +11,7 @@ export function BottomNav({ activePage }: { activePage: Signal<string> }) {
   ];
 
   return (
-    <nav class="md:hidden fixed bottom-0 left-0 right-0 h-[4.5rem] pb-2 bg-white border-t border-gray-100 z-50 flex items-center justify-around px-2 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 h-[4.5rem] pb-2 bg-white dark:bg-[#18181b] border-t border-gray-100 dark:border-gray-800 z-50 flex items-center justify-around px-2 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
       {items.map(item => {
         const Icon = item.icon;
         const isActive = activePage.value === item.id;

@@ -27,16 +27,16 @@ export function Login() {
   };
 
   return (
-    <div class="min-h-screen bg-gray-50/50 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans">
+    <div class="min-h-screen bg-gray-50/50 dark:bg-[#0f0f11] flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 font-sans">
       <div class="w-full max-w-[440px] mx-auto">
-        <div class="bg-white py-10 px-6 sm:py-12 sm:px-8 border border-gray-100 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
+        <div class="bg-white dark:bg-[#18181b] py-10 px-6 sm:py-12 sm:px-8 border border-gray-100 dark:border-gray-800 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
           
           <div class="flex flex-col items-center mb-10">
-            <div class="w-14 h-14 rounded-2xl bg-blue-50/80 border border-blue-100 flex items-center justify-center mb-5">
-              <span class="text-2xl font-bold text-blue-600">D</span>
+            <div class="w-14 h-14 rounded-2xl bg-blue-50/80 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-900/50 flex items-center justify-center mb-5">
+              <span class="text-2xl font-bold text-blue-600 dark:text-blue-400">D</span>
             </div>
-            <h2 class="text-center text-3xl font-extrabold text-gray-900 tracking-tight">Diskus</h2>
-            <p class="mt-2 text-center text-[15px] text-gray-500">
+            <h2 class="text-center text-3xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight">Diskus</h2>
+            <p class="mt-2 text-center text-[15px] text-gray-500 dark:text-gray-400">
               Welcome back! Sign in to continue
             </p>
           </div>
@@ -49,16 +49,16 @@ export function Login() {
             )}
             
             <div class="space-y-1.5">
-              <label for="email" class="block text-xs font-bold text-gray-500 tracking-wider uppercase">Email address</label>
+              <label for="email" class="block text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase">Email address</label>
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Mail class="h-5 w-5 text-gray-400" strokeWidth={2} />
+                  <Mail class="h-5 w-5 text-gray-400 dark:text-gray-500" strokeWidth={2} />
                 </div>
                 <input 
                   id="email" 
                   type="email" 
                   required 
-                  class="block w-full pl-11 pr-4 py-3.5 bg-gray-50/50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 focus:bg-white transition-all sm:text-sm font-medium"
+                  class="block w-full pl-11 pr-4 py-3.5 bg-gray-50/50 dark:bg-[#1f1f22] border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600/20 dark:focus:ring-blue-500/20 focus:border-blue-600 dark:focus:border-blue-500 focus:bg-white dark:focus:bg-[#18181b] transition-all sm:text-sm font-medium"
                   placeholder="name@example.com"
                   value={email.value} 
                   onInput={(e) => email.value = (e.target as HTMLInputElement).value} 
@@ -67,16 +67,16 @@ export function Login() {
             </div>
 
             <div class="space-y-1.5">
-              <label for="password" class="block text-xs font-bold text-gray-500 tracking-wider uppercase">Password</label>
+              <label for="password" class="block text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase">Password</label>
               <div class="relative">
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock class="h-5 w-5 text-gray-400" strokeWidth={2} />
+                  <Lock class="h-5 w-5 text-gray-400 dark:text-gray-500" strokeWidth={2} />
                 </div>
                 <input 
                   id="password" 
                   type="password" 
                   required 
-                  class="block w-full pl-11 pr-4 py-3.5 bg-gray-50/50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 focus:bg-white transition-all sm:text-sm font-medium"
+                  class="block w-full pl-11 pr-4 py-3.5 bg-gray-50/50 dark:bg-[#1f1f22] border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600/20 dark:focus:ring-blue-500/20 focus:border-blue-600 dark:focus:border-blue-500 focus:bg-white dark:focus:bg-[#18181b] transition-all sm:text-sm font-medium"
                   placeholder="••••••••"
                   value={password.value} 
                   onInput={(e) => password.value = (e.target as HTMLInputElement).value} 
@@ -89,7 +89,7 @@ export function Login() {
                 <div class="relative flex items-center justify-center w-5 h-5">
                   <input 
                     type="checkbox" 
-                    class="peer appearance-none w-5 h-5 border-2 border-gray-300 rounded-full checked:bg-blue-600 checked:border-blue-600 transition-colors cursor-pointer"
+                    class="peer appearance-none w-5 h-5 border-2 border-gray-300 dark:border-gray-600 rounded-full checked:bg-blue-600 checked:border-blue-600 transition-colors cursor-pointer"
                     checked={rememberMe.value}
                     onChange={(e) => rememberMe.value = (e.target as HTMLInputElement).checked}
                   />
@@ -97,7 +97,7 @@ export function Login() {
                     <path d="M3 8L6 11L11 3.5" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" stroke="currentColor"/>
                   </svg>
                 </div>
-                <span class="text-sm font-medium text-gray-600 group-hover:text-gray-900 transition-colors">Remember me</span>
+                <span class="text-sm font-medium text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200 transition-colors">Remember me</span>
               </label>
             </div>
 

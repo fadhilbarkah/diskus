@@ -8,7 +8,7 @@ interface CardProps extends h.JSX.HTMLAttributes<HTMLDivElement> {
 export function Card({ children, noPadding = false, class: className, ...props }: CardProps) {
   return (
     <div 
-      class={`bg-white border border-gray-200 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden ${
+      class={`bg-white dark:bg-[#18181b] border border-gray-200 dark:border-gray-800 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-200 overflow-hidden ${
         noPadding ? '' : 'p-5'
       } ${className || ''}`}
       {...props}
@@ -36,8 +36,8 @@ export function CardHeader({ title, description, icon, action, class: className 
           </div>
         )}
         <div>
-          <h2 class="text-lg font-semibold text-gray-900">{title}</h2>
-          {description && <p class="text-sm text-gray-500 mt-0.5">{description}</p>}
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">{title}</h2>
+          {description && <p class="text-sm text-gray-500 dark:text-gray-400 mt-0.5">{description}</p>}
         </div>
       </div>
       {action && (

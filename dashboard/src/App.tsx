@@ -30,7 +30,7 @@ export default function App() {
   }
 
   return (
-    <div class="flex min-h-screen font-sans bg-[#f8fafc]">
+    <div class="flex min-h-screen font-sans bg-[#f8fafc] dark:bg-[#0f0f11]">
       <Sidebar activePage={activePage} isCollapsed={isCollapsed} />
       <TopHeader activePage={activePage} isCollapsed={isCollapsed} />
       <BottomNav activePage={activePage} />

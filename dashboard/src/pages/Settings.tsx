@@ -1,8 +1,8 @@
 import { useEffect } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
-import { User, Lock, Database, Mail } from 'lucide-preact';
+import { User, Lock, Database, Mail, Palette, Moon, Sun, Monitor } from 'lucide-preact';
 import { api } from '../lib/api';
-import { selectedSiteId } from '../lib/store';
+import { selectedSiteId, theme, Theme } from '../lib/store';
 import { authState, updateUser } from '../lib/auth';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -186,13 +186,13 @@ export function Settings() {
   return (
     <div class="animate-in fade-in duration-300">
       {notification.value && (
-        <div class={`fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border transition-all duration-300 transform translate-y-0 opacity-100 ${notification.value.type === 'success' ? 'bg-white border-green-100 text-gray-800' : 'bg-red-50 border-red-100 text-red-800'}`}>
+        <div class={`fixed top-6 right-6 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border transition-all duration-300 transform translate-y-0 opacity-100 ${notification.value.type === 'success' ? 'bg-white dark:bg-[#18181b] border-green-100 dark:border-green-900/30 text-gray-800 dark:text-gray-100' : 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-900/30 text-red-800 dark:text-red-300'}`}>
           {notification.value.type === 'success' ? (
-            <div class="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center shrink-0">
+            <div class="w-6 h-6 rounded-full bg-green-100 dark:bg-green-900/40 text-green-600 dark:text-green-400 flex items-center justify-center shrink-0">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7"></path></svg>
             </div>
           ) : (
-            <div class="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center shrink-0">
+            <div class="w-6 h-6 rounded-full bg-red-100 dark:bg-red-900/40 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>
             </div>
           )}
@@ -200,14 +200,14 @@ export function Settings() {
         </div>
       )}
 
-      <div class="max-w-5xl mx-auto">
+      <div class="max-w-3xl mx-auto pb-12">
         <PageHeader
           title="Settings"
           description="Manage your preferences and profile details"
         />
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-          <Card class="flex flex-col h-full">
+        <div class="space-y-6">
+          <Card>
             <CardHeader
               title="Profile Information"
               description="Update your account's profile information and email address."
@@ -215,12 +215,12 @@ export function Settings() {
             />
 
             <div class="flex items-center gap-4 mb-4">
-              <div class="w-16 h-16 rounded-full overflow-hidden shrink-0 select-none border border-gray-100 bg-gray-50 shadow-sm">
+              <div class="w-16 h-16 rounded-full overflow-hidden shrink-0 select-none border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-[#27272a] shadow-sm">
                 <img src={`https://api.dicebear.com/10.x/thumbs/svg?seed=${avatarSeed.value}`} alt="Avatar" class="w-full h-full object-cover" />
               </div>
               <div>
-                <h3 class="font-medium text-gray-900 text-sm">Avatar</h3>
-                <p class="text-xs text-gray-500 mt-0.5">Your avatar is generated based on your email.</p>
+                <h3 class="font-medium text-gray-900 dark:text-gray-100 text-sm">Avatar</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Your avatar is generated based on your email.</p>
               </div>
             </div>
 
@@ -249,7 +249,7 @@ export function Settings() {
             </form>
           </Card>
 
-          <Card class="flex flex-col h-full">
+          <Card>
             <CardHeader
               title="Change Password"
               description="Ensure your account is using a long, random password."
@@ -290,10 +290,7 @@ export function Settings() {
               </div>
             </form>
           </Card>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
-          <Card class="flex flex-col h-full">
+          <Card>
             <CardHeader
               title="Integrations"
               description="Connect external services for email notifications."
@@ -316,7 +313,7 @@ export function Settings() {
                 value={resendSenderEmail.value}
                 onInput={(e) => resendSenderEmail.value = (e.target as HTMLInputElement).value}
               />
-              <p class="text-xs text-gray-500 mt-2">Required if you want to enable Email Notifications in your Web Settings. The Sender Email must be verified in your <a href="https://resend.com" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">Resend account</a>.</p>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Required if you want to enable Email Notifications in your Web Settings. The Sender Email must be verified in your <a href="https://resend.com" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 hover:underline">Resend account</a>.</p>
 
               <div class="pt-4 mt-auto">
                 <Button type="submit" disabled={savingIntegrations.value} fullWidth>
@@ -326,19 +323,19 @@ export function Settings() {
             </form>
           </Card>
 
-          <Card class="flex flex-col h-full">
+          <Card>
             <CardHeader
               title="Data Management"
               description="Export or Import comments for the currently selected website."
               icon={<Database class="w-5 h-5" />}
             />
             <div class="space-y-6 flex flex-col flex-1">
-              <div class={`p-4 border rounded-xl text-sm ${selectedSiteId.value ? 'bg-blue-50 border-blue-100 text-blue-800' : 'bg-orange-50 border-orange-100 text-orange-800'}`}>
+              <div class={`p-4 border rounded-xl text-sm ${selectedSiteId.value ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-100 dark:border-blue-900/50 text-blue-800 dark:text-blue-300' : 'bg-orange-50 dark:bg-orange-900/30 border-orange-100 dark:border-orange-900/50 text-orange-800 dark:text-orange-300'}`}>
                 {selectedSiteId.value ? "These actions will only apply to the currently selected website." : "Please select a website from the top header to enable data management."}
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-auto pt-4">
-                <Button onClick={handleExport} disabled={!selectedSiteId.value || exporting.value} type="button" fullWidth style={{ backgroundColor: 'transparent', color: '#4b5563', border: '1px solid #e5e7eb' }}>
+                <Button onClick={handleExport} disabled={!selectedSiteId.value || exporting.value} type="button" fullWidth style={{ backgroundColor: 'transparent', color: 'currentColor', border: '1px solid currentColor' }} class="text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700">
                   {exporting.value ? 'Exporting...' : 'Export Data (JSON)'}
                 </Button>
 
@@ -349,6 +346,39 @@ export function Settings() {
                   </Button>
                 </div>
               </div>
+            </div>
+          </Card>
+
+          <Card>
+            <CardHeader
+              title="Appearance"
+              description="Customize the look and feel of your dashboard."
+              icon={<Palette class="w-5 h-5" />}
+            />
+            <div class="grid grid-cols-3 gap-4 mt-2">
+              <button 
+                onClick={() => theme.value = 'light'}
+                class={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all cursor-pointer ${theme.value === 'light' ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 text-gray-500 dark:text-gray-400'}`}
+              >
+                <Sun class="w-6 h-6 mb-2" />
+                <span class="text-sm font-medium">Light</span>
+              </button>
+
+              <button 
+                onClick={() => theme.value = 'dark'}
+                class={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all cursor-pointer ${theme.value === 'dark' ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 text-gray-500 dark:text-gray-400'}`}
+              >
+                <Moon class="w-6 h-6 mb-2" />
+                <span class="text-sm font-medium">Dark</span>
+              </button>
+
+              <button 
+                onClick={() => theme.value = 'system'}
+                class={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all cursor-pointer ${theme.value === 'system' ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 text-gray-500 dark:text-gray-400'}`}
+              >
+                <Monitor class="w-6 h-6 mb-2" />
+                <span class="text-sm font-medium">System</span>
+              </button>
             </div>
           </Card>
         </div>

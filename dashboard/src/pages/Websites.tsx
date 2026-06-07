@@ -141,7 +141,7 @@ export function Websites() {
   return (
     <div class="max-w-7xl mx-auto space-y-8 relative">
       {notification.value && (
-        <div class={`fixed top-6 right-6 z-[100] flex items-center gap-3 px-5 py-3 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border transition-all duration-300 transform translate-y-0 opacity-100 ${notification.value.type === 'success' ? 'bg-white border-green-100 text-gray-800' : 'bg-red-50 border-red-100 text-red-800'}`}>
+        <div class={`fixed top-6 right-6 z-[100] flex items-center gap-3 px-5 py-3 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border transition-all duration-300 transform translate-y-0 opacity-100 ${notification.value.type === 'success' ? 'bg-white dark:bg-[#18181b] border-green-100 dark:border-green-900/30 text-gray-800 dark:text-gray-100' : 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-900/30 text-red-800 dark:text-red-300'}`}>
           {notification.value.type === 'success' ? (
             <div class="w-8 h-8 rounded-full bg-green-50 text-green-500 flex items-center justify-center shrink-0">
               <Check class="w-4 h-4" strokeWidth={3} />
@@ -170,11 +170,11 @@ export function Websites() {
         <div class="text-center py-20 text-gray-400">Loading websites...</div>
       ) : sites.value.length === 0 ? (
         <Card class="text-center py-16 max-w-xl mx-auto flex flex-col items-center">
-          <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-6">
+          <div class="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mb-6">
             <Globe class="w-8 h-8" />
           </div>
-          <h3 class="text-xl font-bold text-gray-900 mb-2">No websites yet</h3>
-          <p class="text-gray-500 text-sm mb-8">Add your first website to get a public API Key and install the comment widget.</p>
+          <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">No websites yet</h3>
+          <p class="text-gray-500 dark:text-gray-400 text-sm mb-8">Add your first website to get a public API Key and install the comment widget.</p>
           <Button onClick={() => isAddModalOpen.value = true}>
             Add Website
           </Button>
@@ -187,17 +187,17 @@ export function Websites() {
                 <div>
                   <div class="flex items-start justify-between">
                     <div class="flex items-center gap-3">
-                      <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center shrink-0">
+                      <div class="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center shrink-0">
                         <Globe class="w-6 h-6" />
                       </div>
                       <div>
-                        <h3 class="font-bold text-gray-900 truncate max-w-[150px]">{site.domain}</h3>
-                        <p class="text-xs text-gray-400">Added {new Date(site.createdAt).toLocaleDateString('id-ID')}</p>
+                        <h3 class="font-bold text-gray-900 dark:text-gray-100 truncate max-w-[150px]">{site.domain}</h3>
+                        <p class="text-xs text-gray-400 dark:text-gray-500">Added {new Date(site.createdAt).toLocaleDateString('id-ID')}</p>
                       </div>
                     </div>
                     <button 
                       onClick={() => handleDeleteSite(site.id, site.domain)}
-                      class="text-gray-400 hover:text-red-600 p-2 rounded-xl hover:bg-red-50 transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
+                      class="text-gray-400 hover:text-red-600 dark:hover:text-red-400 p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
                       title="Delete Website"
                     >
                       <Trash2 class="w-4 h-4" />
@@ -207,12 +207,12 @@ export function Websites() {
                   <div class="mt-8 space-y-3">
                     <div>
                       <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-2">Public API Key</label>
-                      <div class="flex items-center gap-2 bg-gray-50 border border-gray-100 rounded-xl px-4 py-2.5 text-xs text-gray-600 font-mono select-all overflow-x-auto">
+                      <div class="flex items-center gap-2 bg-gray-50 dark:bg-[#1f1f22] border border-gray-100 dark:border-gray-800 rounded-xl px-4 py-2.5 text-xs text-gray-600 dark:text-gray-300 font-mono select-all overflow-x-auto">
                         <Key class="w-4 h-4 shrink-0 text-gray-400" />
                         <span class="truncate">{site.publicApiKey}</span>
                         <button 
                           onClick={() => handleCopyKey(site.publicApiKey)}
-                          class="ml-auto text-gray-400 hover:text-gray-900 shrink-0 transition-colors cursor-pointer bg-white p-1.5 rounded-md border border-gray-200 shadow-sm"
+                          class="ml-auto text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 shrink-0 transition-colors cursor-pointer bg-white dark:bg-[#27272a] p-1.5 rounded-md border border-gray-200 dark:border-gray-700 shadow-sm"
                           title="Copy API Key"
                         >
                           {copiedKey.value === site.publicApiKey ? (
@@ -226,7 +226,7 @@ export function Websites() {
                   </div>
                 </div>
 
-                <div class="mt-6 pt-6 border-t border-gray-100 flex gap-2">
+                <div class="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800 flex gap-2">
                   <Button 
                     variant="ghost" 
                     class="flex-1"
@@ -257,11 +257,11 @@ export function Websites() {
       {isAddModalOpen.value && (
         <div class="fixed inset-0 bg-gray-900/50 z-50 flex items-center justify-center p-4">
           <Card class="max-w-md w-full shadow-lg" noPadding>
-            <div class="flex justify-between items-center p-6 border-b border-gray-100">
-              <h3 class="font-bold text-gray-900 text-lg">Add Website</h3>
+            <div class="flex justify-between items-center p-6 border-b border-gray-100 dark:border-gray-800">
+              <h3 class="font-bold text-gray-900 dark:text-gray-100 text-lg">Add Website</h3>
               <button 
                 onClick={() => { isAddModalOpen.value = false; newDomain.value = ''; }}
-                class="text-gray-400 hover:text-gray-600 p-2 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer"
+                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-[#27272a] transition-colors cursor-pointer"
               >
                 <X class="w-5 h-5" />
               </button>
@@ -276,9 +276,9 @@ export function Websites() {
                   value={newDomain.value}
                   onInput={(e) => newDomain.value = (e.target as HTMLInputElement).value}
                 />
-                <p class="text-xs text-gray-500 mt-2">Enter your domain name without http:// or https://</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Enter your domain name without http:// or https://</p>
               </div>
-              <div class="flex gap-3 justify-end pt-4 border-t border-gray-100">
+              <div class="flex gap-3 justify-end pt-4 border-t border-gray-100 dark:border-gray-800">
                 <Button 
                   type="button" 
                   variant="secondary"
@@ -301,16 +301,16 @@ export function Websites() {
       {selectedSiteForEmbed.value && (
         <div class="fixed inset-0 bg-gray-900/50 z-50 flex items-center justify-center p-4">
           <Card class="max-w-2xl w-full shadow-lg" noPadding>
-            <div class="flex justify-between items-center p-6 border-b border-gray-100">
+            <div class="flex justify-between items-center p-6 border-b border-gray-100 dark:border-gray-800">
               <div class="flex items-center gap-3">
-                <div class="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                <div class="p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
                   <Code class="w-5 h-5" />
                 </div>
-                <h3 class="font-bold text-gray-900 text-lg">Embed Code — {selectedSiteForEmbed.value.domain}</h3>
+                <h3 class="font-bold text-gray-900 dark:text-gray-100 text-lg">Embed Code — {selectedSiteForEmbed.value.domain}</h3>
               </div>
               <button 
                 onClick={() => selectedSiteForEmbed.value = null}
-                class="text-gray-400 hover:text-gray-600 p-2 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer"
+                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-[#27272a] transition-colors cursor-pointer"
               >
                 <X class="w-5 h-5" />
               </button>
@@ -381,11 +381,11 @@ export function Websites() {
       {selectedSiteForSettings.value && (
         <div class="fixed inset-0 bg-gray-900/50 z-50 flex items-center justify-center p-4">
           <Card class="max-w-2xl w-full shadow-lg" noPadding>
-            <div class="flex justify-between items-center p-6 border-b border-gray-100">
-              <h3 class="font-bold text-gray-900 text-lg">Web Settings</h3>
+            <div class="flex justify-between items-center p-6 border-b border-gray-100 dark:border-gray-800">
+              <h3 class="font-bold text-gray-900 dark:text-gray-100 text-lg">Web Settings</h3>
               <button 
                 onClick={() => selectedSiteForSettings.value = null}
-                class="text-gray-400 hover:text-gray-600 p-2 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer"
+                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-[#27272a] transition-colors cursor-pointer"
               >
                 <X class="w-5 h-5" />
               </button>
@@ -396,56 +396,56 @@ export function Websites() {
                 {/* Column 1 */}
                 <div class="space-y-6">
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-3">Authentication Mode</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Authentication Mode</label>
                     <div class="space-y-3">
-                      <label class={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${!requireLoginSetting.value ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white hover:bg-gray-50'}`}>
+                      <label class={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${!requireLoginSetting.value ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-[#18181b] hover:bg-gray-50 dark:hover:bg-[#27272a]'}`}>
                         <div class="pt-0.5">
                           <input 
                             type="radio" 
                             name="auth_mode" 
                             checked={!requireLoginSetting.value} 
                             onChange={() => requireLoginSetting.value = false} 
-                            class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 cursor-pointer" 
+                            class="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 dark:bg-[#1f1f22] focus:ring-blue-500 cursor-pointer" 
                           />
                         </div>
                         <div>
-                          <div class={`font-medium text-sm ${!requireLoginSetting.value ? 'text-blue-900' : 'text-gray-900'}`}>Guest & Login Allowed</div>
-                          <div class={`text-xs mt-1 ${!requireLoginSetting.value ? 'text-blue-700' : 'text-gray-500'}`}>Visitors can post comments as Guests without creating an account.</div>
+                          <div class={`font-medium text-sm ${!requireLoginSetting.value ? 'text-blue-900 dark:text-blue-400' : 'text-gray-900 dark:text-gray-100'}`}>Guest & Login Allowed</div>
+                          <div class={`text-xs mt-1 ${!requireLoginSetting.value ? 'text-blue-700 dark:text-blue-300' : 'text-gray-500 dark:text-gray-400'}`}>Visitors can post comments as Guests without creating an account.</div>
                         </div>
                       </label>
-                      <label class={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${requireLoginSetting.value ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white hover:bg-gray-50'}`}>
+                      <label class={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${requireLoginSetting.value ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-[#18181b] hover:bg-gray-50 dark:hover:bg-[#27272a]'}`}>
                         <div class="pt-0.5">
                           <input 
                             type="radio" 
                             name="auth_mode" 
                             checked={requireLoginSetting.value} 
                             onChange={() => requireLoginSetting.value = true} 
-                            class="w-4 h-4 text-blue-600 border-gray-300 focus:ring-blue-500 cursor-pointer" 
+                            class="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 dark:bg-[#1f1f22] focus:ring-blue-500 cursor-pointer" 
                           />
                         </div>
                         <div>
-                          <div class={`font-medium text-sm ${requireLoginSetting.value ? 'text-blue-900' : 'text-gray-900'}`}>Login Required</div>
-                          <div class={`text-xs mt-1 ${requireLoginSetting.value ? 'text-blue-700' : 'text-gray-500'}`}>Visitors must log in or register an account first to post comments.</div>
+                          <div class={`font-medium text-sm ${requireLoginSetting.value ? 'text-blue-900 dark:text-blue-400' : 'text-gray-900 dark:text-gray-100'}`}>Login Required</div>
+                          <div class={`text-xs mt-1 ${requireLoginSetting.value ? 'text-blue-700 dark:text-blue-300' : 'text-gray-500 dark:text-gray-400'}`}>Visitors must log in or register an account first to post comments.</div>
                         </div>
                       </label>
                     </div>
                   </div>
 
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-3">Email Notifications</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Email Notifications</label>
                     <div class="space-y-4">
-                      <label class={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${enableEmailSetting.value ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white hover:bg-gray-50'}`}>
+                      <label class={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${enableEmailSetting.value ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-[#18181b] hover:bg-gray-50 dark:hover:bg-[#27272a]'}`}>
                         <div class="pt-0.5">
                           <input 
                             type="checkbox" 
                             checked={enableEmailSetting.value} 
                             onChange={(e) => enableEmailSetting.value = (e.target as HTMLInputElement).checked} 
-                            class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer" 
+                            class="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 dark:bg-[#1f1f22] rounded focus:ring-blue-500 cursor-pointer" 
                           />
                         </div>
                         <div>
-                          <div class={`font-medium text-sm ${enableEmailSetting.value ? 'text-blue-900' : 'text-gray-900'}`}>Notify on New Comments</div>
-                          <div class={`text-xs mt-1 ${enableEmailSetting.value ? 'text-blue-700' : 'text-gray-500'}`}>Receive an email whenever someone posts a new comment.</div>
+                          <div class={`font-medium text-sm ${enableEmailSetting.value ? 'text-blue-900 dark:text-blue-400' : 'text-gray-900 dark:text-gray-100'}`}>Notify on New Comments</div>
+                          <div class={`text-xs mt-1 ${enableEmailSetting.value ? 'text-blue-700 dark:text-blue-300' : 'text-gray-500 dark:text-gray-400'}`}>Receive an email whenever someone posts a new comment.</div>
                         </div>
                       </label>
                     </div>
@@ -455,43 +455,43 @@ export function Websites() {
                 {/* Column 2 */}
                 <div class="space-y-6">
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-3">Moderation Mode</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Moderation Mode</label>
                     <div class="space-y-3">
-                      <label class={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${requireModerationSetting.value ? 'border-blue-600 bg-blue-50' : 'border-gray-200 bg-white hover:bg-gray-50'}`}>
+                      <label class={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${requireModerationSetting.value ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-[#18181b] hover:bg-gray-50 dark:hover:bg-[#27272a]'}`}>
                         <div class="pt-0.5">
                           <input 
                             type="checkbox" 
                             checked={requireModerationSetting.value} 
                             onChange={(e) => requireModerationSetting.value = (e.target as HTMLInputElement).checked} 
-                            class="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 cursor-pointer" 
+                            class="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 dark:bg-[#1f1f22] rounded focus:ring-blue-500 cursor-pointer" 
                           />
                         </div>
                         <div>
-                          <div class={`font-medium text-sm ${requireModerationSetting.value ? 'text-blue-900' : 'text-gray-900'}`}>Require Moderation</div>
-                          <div class={`text-xs mt-1 ${requireModerationSetting.value ? 'text-blue-700' : 'text-gray-500'}`}>New comments from visitors will be pending until you approve them.</div>
+                          <div class={`font-medium text-sm ${requireModerationSetting.value ? 'text-blue-900 dark:text-blue-400' : 'text-gray-900 dark:text-gray-100'}`}>Require Moderation</div>
+                          <div class={`text-xs mt-1 ${requireModerationSetting.value ? 'text-blue-700 dark:text-blue-300' : 'text-gray-500 dark:text-gray-400'}`}>New comments from visitors will be pending until you approve them.</div>
                         </div>
                       </label>
                     </div>
                   </div>
 
                   <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-3">Comments Limit</label>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Comments Limit</label>
                     <div class="space-y-3">
                       <input 
                         type="number" 
                         min="1"
                         value={commentsLimitSetting.value} 
                         onInput={(e) => commentsLimitSetting.value = parseInt((e.target as HTMLInputElement).value, 10)} 
-                        class="block w-full py-2.5 px-3 bg-white border border-gray-200 rounded-xl text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-colors" 
+                        class="block w-full py-2.5 px-3 bg-white dark:bg-[#18181b] border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-colors" 
                       />
-                      <div class="text-xs text-gray-500">Number of root comments to display initially before showing the "Load More" button.</div>
+                      <div class="text-xs text-gray-500 dark:text-gray-400">Number of root comments to display initially before showing the "Load More" button.</div>
                     </div>
                   </div>
                 </div>
 
               </div>
 
-              <div class="flex gap-3 justify-end pt-4 border-t border-gray-100">
+              <div class="flex gap-3 justify-end pt-4 border-t border-gray-100 dark:border-gray-800">
                 <Button 
                   type="button" 
                   variant="secondary"

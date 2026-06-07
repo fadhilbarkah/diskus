@@ -72,43 +72,43 @@ export function Users() {
           </div>
         ) : users.value.length === 0 ? (
           <div class="flex flex-col items-center justify-center py-20 text-center px-4">
-            <div class="w-16 h-16 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center mb-6">
+            <div class="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mb-6">
               <UsersIcon class="w-8 h-8" />
             </div>
-            <h3 class="text-xl font-bold text-gray-900 mb-2">No users found</h3>
-            <p class="text-gray-500 text-sm max-w-[250px] mb-8">There are no registered commenters yet.</p>
+            <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">No users found</h3>
+            <p class="text-gray-500 dark:text-gray-400 text-sm max-w-[250px] mb-8">There are no registered commenters yet.</p>
           </div>
         ) : (
           <div class="overflow-x-auto">
-            <table class="w-full text-left text-sm text-gray-600">
-              <thead class="bg-gray-50/50 text-xs uppercase font-semibold text-gray-500 border-b border-gray-200">
+            <table class="w-full text-left text-sm text-gray-600 dark:text-gray-300">
+              <thead class="bg-gray-50/50 dark:bg-[#1f1f22] text-xs uppercase font-semibold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800">
                 <tr>
                   <th class="px-6 py-4">User</th>
                   <th class="px-6 py-4">Joined</th>
                   <th class="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-gray-100">
+              <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
                 {users.value.map((user) => (
-                  <tr key={user.id} class="hover:bg-gray-50/50 transition-colors">
+                  <tr key={user.id} class="hover:bg-gray-50/50 dark:hover:bg-[#1f1f22] transition-colors">
                     <td class="px-6 py-4">
                       <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden shrink-0 border border-gray-200">
+                        <div class="w-10 h-10 rounded-full bg-gray-100 dark:bg-[#18181b] flex items-center justify-center overflow-hidden shrink-0 border border-gray-200 dark:border-gray-700">
                            <img src={`https://api.dicebear.com/10.x/thumbs/svg?seed=${encodeURIComponent(user.email)}`} alt={user.name} class="w-full h-full object-cover" />
                         </div>
                         <div>
-                          <div class="font-bold text-gray-900">{user.name}</div>
-                          <div class="text-xs text-gray-500 mt-0.5">{user.email}</div>
+                          <div class="font-bold text-gray-900 dark:text-gray-100">{user.name}</div>
+                          <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{user.email}</div>
                         </div>
                       </div>
                     </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 font-medium">
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400 font-medium">
                       {new Date(user.createdAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-right">
                       <button 
                         onClick={() => userToDelete.value = { id: user.id, name: user.name }}
-                        class="text-gray-400 hover:text-red-600 p-2 rounded-xl hover:bg-red-50 transition-colors cursor-pointer"
+                        class="text-gray-400 hover:text-red-600 dark:hover:text-red-400 p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer"
                         title="Delete User"
                       >
                         <Trash2 class="w-4 h-4" />
@@ -129,9 +129,9 @@ export function Users() {
               <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-5 ring-8 ring-red-50/50">
                 <AlertTriangle class="w-8 h-8" strokeWidth={2.5} />
               </div>
-              <h3 class="text-xl font-bold text-gray-900 mb-3">Delete User?</h3>
-              <p class="text-gray-500 text-sm mb-8 leading-relaxed">
-                Are you sure you want to delete the user <span class="font-bold text-gray-800">{userToDelete.value.name}</span>? 
+              <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-3">Delete User?</h3>
+              <p class="text-gray-500 dark:text-gray-400 text-sm mb-8 leading-relaxed">
+                Are you sure you want to delete the user <span class="font-bold text-gray-800 dark:text-gray-200">{userToDelete.value.name}</span>? 
                 This action is <b>permanent</b> and cannot be undone.
               </p>
               
