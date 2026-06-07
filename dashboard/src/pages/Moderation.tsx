@@ -187,7 +187,7 @@ export function Moderation() {
               <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(c.id)} class="w-4 h-4 rounded border-gray-300 dark:border-gray-600 dark:bg-[#1f1f22] text-blue-600 focus:ring-blue-500 cursor-pointer" />
             </div>
             
-            <div class="flex flex-1 items-start gap-4 relative" style={{ marginLeft: `${depth * 32}px` }}>
+            <div class="flex flex-1 min-w-0 items-start gap-4 relative" style={{ marginLeft: `${depth * 32}px` }}>
               {depth > 0 && <div class="absolute h-px bg-gray-200 dark:bg-gray-700" style={{ left: '-12px', top: '20px', width: '12px' }}></div>}
               
               <div class={`w-10 h-10 rounded-full overflow-hidden shrink-0 flex items-center justify-center text-white relative z-10 ${depth > 0 ? 'bg-cyan-100' : 'bg-blue-900'}`}>
@@ -195,17 +195,17 @@ export function Moderation() {
               </div>
               <div class={`flex-1 min-w-0 relative ${openMenuId.value === c.id ? 'z-50' : 'z-10'}`}>
                 <div class="flex items-start justify-between mb-1 gap-2">
-                  <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                    <div class="flex items-center gap-2 flex-wrap">
-                      <span class="font-bold text-sm text-gray-900 dark:text-gray-100">{c.authorName}</span>
-                      {c.isAuthor && <span class="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">Author</span>}
+                  <div class="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 min-w-0">
+                    <div class="flex items-center gap-2 flex-wrap min-w-0">
+                      <span class="font-bold text-sm text-gray-900 dark:text-gray-100 truncate">{c.authorName}</span>
+                      {c.isAuthor && <span class="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded shrink-0">Author</span>}
                       {(c.threadTitle || c.threadKey) && (
                         <span class="bg-gray-100 dark:bg-[#27272a] text-gray-500 dark:text-gray-400 text-[10px] font-medium px-2 py-0.5 rounded max-w-[200px] truncate" title={c.threadTitle || c.threadKey}>
-                          on: {c.threadTitle || c.threadKey}
+                          {c.threadTitle || c.threadKey}
                         </span>
                       )}
                     </div>
-                    <span class="text-xs text-gray-400 dark:text-gray-500 font-medium">{timeStr}</span>
+                    <span class="text-xs text-gray-400 dark:text-gray-500 font-medium shrink-0">{timeStr}</span>
                   </div>
                   <div class="flex items-center gap-1 sm:gap-2 shrink-0">
                     <span class={`border text-[10px] sm:text-xs px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full font-medium capitalize ${statusColors[c.status] || 'bg-gray-50 dark:bg-gray-800 text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700'}`}>{c.status}</span>
