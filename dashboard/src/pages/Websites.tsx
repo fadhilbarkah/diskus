@@ -373,14 +373,7 @@ export function Websites() {
                 </div>
               </div>
             </div>
-            <div class="p-6 border-t border-gray-100 bg-gray-50 flex justify-end">
-              <Button 
-                variant="secondary"
-                onClick={() => selectedSiteForEmbed.value = null}
-              >
-                Close
-              </Button>
-            </div>
+
           </Card>
         </div>
       )}
