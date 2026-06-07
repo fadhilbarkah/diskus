@@ -53,12 +53,15 @@ export class WidgetController {
     const apiKey = c.req.query('api_key');
     if (!apiKey) return c.json({ error: 'Missing api_key' }, 400);
 
-    const origin = c.req.header('origin');
-    const result = await WidgetService.issueEmbedToken(apiKey, origin);
+    const result = await WidgetService.issueEmbedToken(apiKey, c);
 
     if ('error' in result) {
       if (result.error === 'invalid_key') return c.json({ error: 'Invalid API Key' }, 403);
-      return c.json({ error: 'This domain is not authorized to use this widget' }, 403);
+      return c.json({
+        error: 'This domain is not authorized to use this widget',
+        hostname: result.hostname,
+        registeredDomain: result.registeredDomain,
+      }, 403);
     }
 
     return c.json({ token: result.token });

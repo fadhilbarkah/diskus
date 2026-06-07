@@ -13,9 +13,13 @@ export function isDevHostname(hostname: string): boolean {
  * Returns true when `hostname` matches the registered site domain or is a subdomain of it.
  * Registered domains are stored without protocol or www prefix (see dashboard).
  */
+function stripWww(hostname: string): string {
+  return hostname.startsWith('www.') ? hostname.slice(4) : hostname;
+}
+
 export function isHostnameAllowed(hostname: string, allowedDomain: string): boolean {
-  const host = normalizeHostname(hostname);
-  const domain = normalizeHostname(allowedDomain);
+  const host = stripWww(normalizeHostname(hostname));
+  const domain = stripWww(normalizeHostname(allowedDomain));
 
   if (!host || !domain) return false;
   if (host === domain) return true;

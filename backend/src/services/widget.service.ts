@@ -4,9 +4,14 @@ import { eq, and, desc, sql, isNull, isNotNull } from 'drizzle-orm';
 import { simpleMarkdownToHtml, sanitizeHtml } from '../utils/html';
 import { hashEmail } from '../utils/hash';
 import { extractHostnameFromOrigin, isHostnameAllowed, isOriginAllowedForSite } from '../utils/domain';
+import { getParentOriginFromRequest } from '../utils/request-origin';
 import { signEmbedToken, verifyEmbedToken } from '../utils/embed-token';
 import crypto from 'crypto';
 import { Context } from 'hono';
+
+function getEmbedTokenFromRequest(c: Context): string | undefined {
+  return c.req.header('X-Diskus-Embed-Token') || c.req.query('embed_token') || undefined;
+}
 
 interface CreateCommentData {
   threadId: string;
@@ -24,7 +29,7 @@ export class WidgetService {
 
     if (!c) return site;
 
-    const embedToken = c.req.header('X-Diskus-Embed-Token');
+    const embedToken = getEmbedTokenFromRequest(c);
     if (!embedToken) return null;
 
     const payload = await verifyEmbedToken(embedToken);
@@ -34,15 +39,16 @@ export class WidgetService {
     return site;
   }
 
-  static async issueEmbedToken(apiKey: string, origin: string | undefined) {
+  static async issueEmbedToken(apiKey: string, c: Context) {
     const site = await db.select().from(sites).where(eq(sites.publicApiKey, apiKey)).get();
     if (!site) return { error: 'invalid_key' as const };
 
-    if (!isOriginAllowedForSite(origin, site.domain)) {
-      return { error: 'unauthorized_domain' as const };
+    const parentOrigin = getParentOriginFromRequest(c);
+    if (!isOriginAllowedForSite(parentOrigin, site.domain)) {
+      return { error: 'unauthorized_domain' as const, hostname: parentOrigin ? extractHostnameFromOrigin(parentOrigin) : null, registeredDomain: site.domain };
     }
 
-    const parentHost = origin ? (extractHostnameFromOrigin(origin) ?? 'localhost') : 'localhost';
+    const parentHost = parentOrigin ? (extractHostnameFromOrigin(parentOrigin) ?? 'localhost') : 'localhost';
     const token = await signEmbedToken({
       siteId: site.id,
       apiKey,

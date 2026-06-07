@@ -3,6 +3,10 @@ import { Comment } from '../components/DiskusWidget';
 import { widgetToken } from '../lib/auth';
 import { embedToken } from '../lib/embed';
 
+function embedQueryParam(): string {
+  return embedToken.value ? `&embed_token=${encodeURIComponent(embedToken.value)}` : '';
+}
+
 function embedHeaders(extra: Record<string, string> = {}): Record<string, string> {
   const headers = { ...extra };
   if (embedToken.value) {
@@ -31,9 +35,7 @@ export function useComments(apiUrl: string, apiKey: string, threadKey: string, t
       loading.value = true;
       if (!isLoadMore) page.value = 1;
       
-      const res = await fetch(`${apiUrl}/widget/comments?api_key=${apiKey}&thread_key=${threadKey}&page=${page.value}${title ? `&title=${encodeURIComponent(title)}` : ''}`, {
-        headers: embedHeaders(),
-      });
+      const res = await fetch(`${apiUrl}/widget/comments?api_key=${apiKey}&thread_key=${threadKey}&page=${page.value}${title ? `&title=${encodeURIComponent(title)}` : ''}${embedQueryParam()}`);
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
         throw new Error(data.error || 'Failed to load comments');
@@ -134,7 +136,7 @@ export function useComments(apiUrl: string, apiKey: string, threadKey: string, t
 
   const handleLike = async (id: string, isUnlike: boolean) => {
     try {
-      await fetch(`${apiUrl}/widget/comments/${id}/${isUnlike ? 'unlike' : 'like'}?api_key=${encodeURIComponent(apiKey)}`, {
+      await fetch(`${apiUrl}/widget/comments/${id}/${isUnlike ? 'unlike' : 'like'}?api_key=${encodeURIComponent(apiKey)}${embedQueryParam()}`, {
         method: 'POST',
         headers: embedHeaders(),
       });
