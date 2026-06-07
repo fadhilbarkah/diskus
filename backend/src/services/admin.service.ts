@@ -2,6 +2,7 @@ import { db } from '../db';
 import { users, comments, sites, threads } from '../db/schema';
 import { eq, inArray, desc, and } from 'drizzle-orm';
 import { widgetUsers } from '../db/schema';
+import { sanitizeHtml } from '../utils/html';
 import crypto from 'crypto';
 
 export class AdminService {
@@ -194,7 +195,7 @@ export class AdminService {
 
     if (data.comments && data.comments.length > 0) {
       // Sort comments by createdAt so parents are inserted before children
-      const sortedComments = [...data.comments].sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      const sortedComments = [...data.comments].sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
       
       for (const c of sortedComments) {
         const targetThreadId = threadIdMap[c.threadId] || c.threadId;
@@ -211,6 +212,9 @@ export class AdminService {
           const newCommentId = crypto.randomUUID();
           commentIdMap[c.id] = newCommentId;
           
+          // Re-sanitize htmlContent on import to prevent stored XSS via imported data
+          const safeHtmlContent = sanitizeHtml(c.htmlContent);
+
           await db.insert(comments).values({
             id: newCommentId,
             threadId: targetThreadId,
@@ -218,7 +222,7 @@ export class AdminService {
             authorName: c.authorName,
             authorEmail: c.authorEmail,
             content: c.content,
-            htmlContent: c.htmlContent,
+            htmlContent: safeHtmlContent,
             status: c.status || 'approved',
             likesCount: c.likesCount || 0,
             createdAt: new Date(c.createdAt)
@@ -235,6 +239,17 @@ export class AdminService {
     await db.update(comments)
       .set({ isPinned })
       .where(eq(comments.id, id));
+  }
+
+  /** Verify that a comment belongs to a site owned by the given user */
+  static async verifyCommentOwnershipByUser(commentId: string, userId: string): Promise<boolean> {
+    const result = await db.select({ id: comments.id })
+      .from(comments)
+      .innerJoin(threads, eq(comments.threadId, threads.id))
+      .innerJoin(sites, eq(threads.siteId, sites.id))
+      .where(and(eq(comments.id, commentId), eq(sites.userId, userId)))
+      .get();
+    return !!result;
   }
 
   static async getWidgetUsers() {

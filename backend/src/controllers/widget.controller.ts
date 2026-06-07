@@ -7,6 +7,12 @@ import { Resend } from 'resend';
 import { escapeHtmlEntities } from '../utils/html';
 import { hashEmail } from '../utils/hash';
 
+/** Hash the client IP for privacy-preserving like tracking */
+function getIpHash(c: Context): string {
+  const ip = c.req.header('x-forwarded-for')?.split(',')[0]?.trim() || c.req.header('x-real-ip') || 'unknown-ip';
+  return hashEmail(ip); // reuse SHA-256 hash utility
+}
+
 export class WidgetController {
   static async register(c: Context) {
     const data = (c.req as any).valid('json');
@@ -31,7 +37,7 @@ export class WidgetController {
     
     const dashboardUser = await WidgetService.findDashboardUser(email);
     if (dashboardUser && await WidgetService.verifyPassword(password, dashboardUser.passwordHash)) {
-      const token = await signToken({ userId: dashboardUser.id, email: dashboardUser.email, name: dashboardUser.name || 'Admin', role: dashboardUser.role });
+      const token = await signToken({ userId: dashboardUser.id, email: dashboardUser.email, name: dashboardUser.name || 'Admin', role: dashboardUser.role, tokenVersion: dashboardUser.tokenVersion });
       return c.json({ token, user: { id: dashboardUser.id, email: dashboardUser.email, name: dashboardUser.name || 'Admin', role: dashboardUser.role, avatarSeed: hashEmail(dashboardUser.email) } });
     }
 
@@ -147,7 +153,7 @@ export class WidgetController {
                 <p><strong>Thread:</strong> ${escapeHtmlEntities(thread.title)}</p>
                 <p><strong>Email:</strong> ${escapeHtmlEntities(authorEmail)}</p>
                 <br />
-                <div>${newComment.htmlContent}</div>
+                <div>${escapeHtmlEntities(newComment.content)}</div>
               `,
             });
           }
@@ -210,13 +216,26 @@ export class WidgetController {
 
   static async likeComment(c: Context) {
     const id = c.req.param('id') as string;
-    await WidgetService.likeComment(id);
+    const ipHash = getIpHash(c);
+    const result = await WidgetService.likeComment(id, ipHash);
+
+    if (result.alreadyLiked) {
+      return c.json({ error: 'Already liked' }, 409);
+    }
+    if (!result.success) {
+      return c.json({ error: 'Comment not found' }, 404);
+    }
     return c.json({ success: true });
   }
 
   static async unlikeComment(c: Context) {
     const id = c.req.param('id') as string;
-    await WidgetService.unlikeComment(id);
+    const ipHash = getIpHash(c);
+    const result = await WidgetService.unlikeComment(id, ipHash);
+
+    if (!result.success) {
+      return c.json({ error: 'Like not found or comment does not exist' }, 404);
+    }
     return c.json({ success: true });
   }
 }

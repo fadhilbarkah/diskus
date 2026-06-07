@@ -1,6 +1,6 @@
 import { db } from '../db';
 import { users } from '../db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 export class AuthService {
   static async hashPassword(password: string) { return await Bun.password.hash(password); }
@@ -17,5 +17,20 @@ export class AuthService {
       passwordHash 
     }).returning();
     return newUser;
+  }
+
+  /** Returns the total number of dashboard users in the system */
+  static async getUserCount(): Promise<number> {
+    const result = await db.select({ count: sql<number>`count(*)` }).from(users).get();
+    return result?.count ?? 0;
+  }
+
+  /** Increments the user's tokenVersion, invalidating all existing JWTs */
+  static async incrementTokenVersion(userId: string): Promise<number> {
+    const [updated] = await db.update(users)
+      .set({ tokenVersion: sql`${users.tokenVersion} + 1` })
+      .where(eq(users.id, userId))
+      .returning({ tokenVersion: users.tokenVersion });
+    return updated?.tokenVersion ?? 0;
   }
 }

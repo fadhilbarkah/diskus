@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, index } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, index, uniqueIndex } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
 
 export const users = sqliteTable('users', {
@@ -7,6 +7,7 @@ export const users = sqliteTable('users', {
   email: text('email').notNull().unique(),
   passwordHash: text('password_hash').notNull(),
   role: text('role', { enum: ['admin', 'user'] }).default('user').notNull(),
+  tokenVersion: integer('token_version').default(0).notNull(),
   resendApiKey: text('resend_api_key'),
   resendSenderEmail: text('resend_sender_email'),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
@@ -53,6 +54,16 @@ export const comments = sqliteTable('comments', {
   threadIdIdx: index('comments_thread_id_idx').on(table.threadId),
   parentIdIdx: index('comments_parent_id_idx').on(table.parentId),
   statusIdx: index('comments_status_idx').on(table.status),
+}));
+
+export const commentLikes = sqliteTable('comment_likes', {
+  id: text('id').primaryKey(),
+  commentId: text('comment_id').notNull().references(() => comments.id, { onDelete: 'cascade' }),
+  ipHash: text('ip_hash').notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
+}, (table) => ({
+  uniqueLike: uniqueIndex('comment_likes_unique_idx').on(table.commentId, table.ipHash),
+  commentIdIdx: index('comment_likes_comment_id_idx').on(table.commentId),
 }));
 
 export const widgetUsers = sqliteTable('widget_users', {

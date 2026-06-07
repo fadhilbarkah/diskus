@@ -1,6 +1,14 @@
 import { Context } from 'hono';
 import { AdminService } from '../services/admin.service';
+import { AuthService } from '../services/auth.service';
 import { AuthVariables } from '../middlewares/auth';
+import { signToken } from '../utils/jwt';
+
+/** Mask sensitive API keys — show only last 4 characters */
+function maskApiKey(key: string | null): string {
+  if (!key || key.length < 8) return key ? '••••' : '';
+  return '••••••••' + key.slice(-4);
+}
 
 export class AdminController {
   static async getSites(c: Context<{ Variables: AuthVariables }>) {
@@ -62,9 +70,20 @@ export class AdminController {
   }
 
   static async togglePinComment(c: Context<{ Variables: AuthVariables }>) {
+    const user = c.get('user')!;
     const id = c.req.param('id') as string;
     const { isPinned } = (c.req as any).valid('json');
-    // TODO: Verify permissions, but since they are admin/owner we'll trust for now based on middleware
+
+    // Verify the user owns the site this comment belongs to, or is an admin
+    if (user.role === 'admin') {
+      await AdminService.togglePinComment(id, isPinned);
+      return c.json({ success: true });
+    }
+
+    // For non-admin users, verify ownership
+    const isOwner = await AdminService.verifyCommentOwnershipByUser(id, user.userId);
+    if (!isOwner) return c.json({ error: 'Unauthorized' }, 403);
+
     await AdminService.togglePinComment(id, isPinned);
     return c.json({ success: true });
   }
@@ -87,7 +106,13 @@ export class AdminController {
     const user = c.get('user')!;
     const dbUser = await AdminService.getUserAccount(user.userId);
     if (!dbUser) return c.json({ error: 'User not found' }, 404);
-    return c.json({ id: dbUser.id, name: dbUser.name || '', email: dbUser.email, resendApiKey: dbUser.resendApiKey || '', resendSenderEmail: dbUser.resendSenderEmail || '' });
+    return c.json({
+      id: dbUser.id,
+      name: dbUser.name || '',
+      email: dbUser.email,
+      resendApiKey: maskApiKey(dbUser.resendApiKey),
+      resendSenderEmail: dbUser.resendSenderEmail || '',
+    });
   }
 
   static async updateAccount(c: Context<{ Variables: AuthVariables }>) {
@@ -111,6 +136,21 @@ export class AdminController {
     }
 
     await AdminService.updateUserAccount(user.userId, dbUser, updateData);
+
+    // If password was changed, increment tokenVersion to invalidate all old tokens
+    // Then issue a new token so the current session stays valid
+    if (newPassword) {
+      const newTokenVersion = await AuthService.incrementTokenVersion(user.userId);
+      const newToken = await signToken({
+        userId: user.userId,
+        email: email || user.email,
+        role: user.role,
+        name: name || user.name,
+        tokenVersion: newTokenVersion,
+      });
+      return c.json({ success: true, token: newToken });
+    }
+
     return c.json({ success: true });
   }
 
@@ -139,6 +179,11 @@ export class AdminController {
   }
 
   static async getWidgetUsers(c: Context<{ Variables: AuthVariables }>) {
+    const user = c.get('user')!;
+    // Only admins can view the full widget users list
+    if (user.role !== 'admin') {
+      return c.json({ error: 'Unauthorized. Only admins can view users.' }, 403);
+    }
     const users = await AdminService.getWidgetUsers();
     return c.json({ users });
   }

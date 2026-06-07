@@ -11,8 +11,18 @@ export const widgetCorsMiddleware = cors({
 });
 
 // Admin/auth routes: restricted to dashboard origin when configured via DASHBOARD_ORIGIN env var
+const dashboardOrigin = Bun.env.DASHBOARD_ORIGIN?.split(',').map(o => o.trim()).filter(Boolean);
+if (!dashboardOrigin || dashboardOrigin.length === 0) {
+  if (Bun.env.NODE_ENV === 'production') {
+    console.warn(
+      '⚠️  WARNING: DASHBOARD_ORIGIN is not set. Admin CORS will default to wildcard (*). ' +
+      'Set DASHBOARD_ORIGIN to your dashboard URL for production security.'
+    );
+  }
+}
+
 export const adminCorsMiddleware = cors({
-  origin: Bun.env.DASHBOARD_ORIGIN?.split(',') || '*',
+  origin: dashboardOrigin && dashboardOrigin.length > 0 ? dashboardOrigin : '*',
   allowMethods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
 });
