@@ -6,6 +6,11 @@
   /* Provide empty defaults if needed */
 }
 
+html, body {
+  background-color: transparent !important;
+  color-scheme: light dark;
+}
+
 /* Reset some default styles just in case it is embedded in a highly styled website */
 #diskus-thread {
   all: initial;
