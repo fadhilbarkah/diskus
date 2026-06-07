@@ -8,10 +8,11 @@ export default defineConfig({
   build: {
     target: 'esnext',
     outDir: 'dist',
+    emptyOutDir: true,
     lib: {
       entry: 'src/index.tsx',
-      name: 'DiskusWidget',
-      fileName: () => 'embed.js',
+      name: 'DiskusApp',
+      fileName: () => 'app.js',
       formats: ['iife'],
     },
     rollupOptions: {

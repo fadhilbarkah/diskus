@@ -2,9 +2,14 @@
 
 @variant dark (&:where(.dark, .dark *));
 
+:root {
+  /* Provide empty defaults if needed */
+}
+
 /* Reset some default styles just in case it is embedded in a highly styled website */
 #diskus-thread {
   all: initial;
+  display: block;
   font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
