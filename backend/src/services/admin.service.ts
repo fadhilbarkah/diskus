@@ -159,7 +159,11 @@ export class AdminService {
     
     let siteComments: any[] = [];
     if (threadIds.length > 0) {
-      siteComments = await db.select().from(comments).where(inArray(comments.threadId, threadIds)).all();
+      siteComments = await db.select().from(comments)
+        .where(and(
+          inArray(comments.threadId, threadIds),
+          not(eq(comments.status, 'trash'))
+        )).all();
     }
 
     return { siteId, threads: siteThreads, comments: siteComments };
