@@ -99,7 +99,7 @@ Paste the following HTML snippet into your target website, replacing the data at
      data-thread-key="your-unique-page-identifier"
      data-api-url="http://localhost:3000/api/v1">
 </div>
-<script src="http://localhost:3000/widget/dist/embed.js" async defer></script>
+<script src="http://localhost:8080/widget/dist/embed.js" async defer></script>
 ```
 
 > **Note:** The `data-thread-key` should be unique per page (e.g., the article slug or ID) so that comments remain tied to their specific content.
