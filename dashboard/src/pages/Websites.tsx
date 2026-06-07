@@ -328,9 +328,9 @@ export function Websites() {
 <div id="diskus-thread"
   data-api-key="${selectedSiteForEmbed.value.publicApiKey}"
   data-thread-key="YOUR_PAGE_SLUG"
-  data-api-url="http://localhost:3000/api/v1">
+  data-api-url="${import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'}">
 </div>
-<script async defer src="http://localhost:3000/widget/dist/embed.js"></script>`)}
+<script async defer src="${window.location.origin}/widget/dist/embed.js"></script>`)}
                     class="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors cursor-pointer"
                   >
                     {copiedEmbed.value ? (
@@ -352,9 +352,9 @@ export function Websites() {
 <div id="diskus-thread"
   data-api-key="${selectedSiteForEmbed.value.publicApiKey}"
   data-thread-key="YOUR_PAGE_SLUG"
-  data-api-url="http://localhost:3000/api/v1">
+  data-api-url="${import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'}">
 </div>
-<script async defer src="http://localhost:3000/widget/dist/embed.js"></script>`}
+<script async defer src="${window.location.origin}/widget/dist/embed.js"></script>`}
                 </pre>
               </div>
 
