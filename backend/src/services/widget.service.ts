@@ -18,26 +18,7 @@ interface CreateCommentData {
 export class WidgetService {
   static async verifyApiKey(apiKey: string, c?: Context) {
     const site = await db.select().from(sites).where(eq(sites.publicApiKey, apiKey)).get();
-    if (!site) return null;
-
-    if (c) {
-      const origin = c.req.header('origin') || c.req.header('referer') || '';
-      if (origin) {
-        try {
-          const url = new URL(origin);
-          const hostname = url.hostname;
-          if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-            if (hostname !== site.domain && !hostname.endsWith(`.${site.domain}`)) {
-              return null; // Unauthorized domain
-            }
-          }
-        } catch (e) {
-          return null; // Invalid origin URL
-        }
-      }
-    }
-    
-    return site;
+    return site || null;
   }
 
   static async hashPassword(password: string) { return await Bun.password.hash(password); }
