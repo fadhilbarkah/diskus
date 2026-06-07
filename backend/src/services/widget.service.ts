@@ -51,6 +51,10 @@ export class WidgetService {
         title: (title || threadKey).substring(0, 500),
       }).returning();
       thread = newThread;
+    } else if (title && thread.title !== title && thread.title === thread.threadKey) {
+      // If we got a real title, and the current title is just the fallback slug, update it.
+      await db.update(threads).set({ title: title.substring(0, 500) }).where(eq(threads.id, thread.id));
+      thread.title = title.substring(0, 500);
     }
 
     const allComments = await db.select().from(comments)

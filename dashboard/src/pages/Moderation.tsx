@@ -153,8 +153,21 @@ export function Moderation() {
     }
 
     const renderNode = (c: any, depth: number = 0) => {
-      const timeAgo = Math.floor((Date.now() - new Date(c.createdAt).getTime()) / 3600000);
-      const timeStr = timeAgo === 0 ? 'Just now' : `${timeAgo} hours ago`;
+      const diffInMs = Math.max(0, Date.now() - new Date(c.createdAt).getTime());
+      const diffInSecs = Math.floor(diffInMs / 1000);
+      let timeStr = 'Just now';
+      if (diffInSecs >= 86400) {
+        const days = Math.floor(diffInSecs / 86400);
+        timeStr = `${days} day${days > 1 ? 's' : ''} ago`;
+      } else if (diffInSecs >= 3600) {
+        const hours = Math.floor(diffInSecs / 3600);
+        timeStr = `${hours} hour${hours > 1 ? 's' : ''} ago`;
+      } else if (diffInSecs >= 60) {
+        const mins = Math.floor(diffInSecs / 60);
+        timeStr = `${mins} min${mins > 1 ? 's' : ''} ago`;
+      } else if (diffInSecs > 10) {
+        timeStr = `${diffInSecs} secs ago`;
+      }
       const replies = repliesMap.get(c.id) || [];
       const isSelected = selectedIds.value.includes(c.id);
 
@@ -186,6 +199,11 @@ export function Moderation() {
                     <div class="flex items-center gap-2 flex-wrap">
                       <span class="font-bold text-sm text-gray-900 dark:text-gray-100">{c.authorName}</span>
                       {c.isAuthor && <span class="bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">Author</span>}
+                      {(c.threadTitle || c.threadKey) && (
+                        <span class="bg-gray-100 dark:bg-[#27272a] text-gray-500 dark:text-gray-400 text-[10px] font-medium px-2 py-0.5 rounded max-w-[200px] truncate" title={c.threadTitle || c.threadKey}>
+                          on: {c.threadTitle || c.threadKey}
+                        </span>
+                      )}
                     </div>
                     <span class="text-xs text-gray-400 dark:text-gray-500 font-medium">{timeStr}</span>
                   </div>

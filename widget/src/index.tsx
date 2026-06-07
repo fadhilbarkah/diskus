@@ -14,6 +14,7 @@ function mount() {
   const threadKey = params.get('thread_key');
   const apiUrl = params.get('api_url') || 'http://localhost:3000/api/v1';
   const initialTheme = params.get('theme');
+  const title = params.get('title') || document.title;
 
   if (initialTheme === 'dark') {
     document.documentElement.classList.add('dark');
@@ -51,7 +52,7 @@ function mount() {
     }
   });
 
-  render(<DiskusWidget apiKey={apiKey} threadKey={threadKey} apiUrl={apiUrl} />, rootElement);
+  render(<DiskusWidget apiKey={apiKey} threadKey={threadKey} apiUrl={apiUrl} title={title} />, rootElement);
 }
 
 // Auto-mount when the script loads

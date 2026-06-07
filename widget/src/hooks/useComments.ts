@@ -2,7 +2,7 @@ import { useSignal } from '@preact/signals';
 import { Comment } from '../components/DiskusWidget';
 import { widgetToken } from '../lib/auth';
 
-export function useComments(apiUrl: string, apiKey: string, threadKey: string) {
+export function useComments(apiUrl: string, apiKey: string, threadKey: string, title?: string) {
   const comments = useSignal<Comment[]>([]);
   const loading = useSignal(true);
   const error = useSignal('');
@@ -22,7 +22,7 @@ export function useComments(apiUrl: string, apiKey: string, threadKey: string) {
       loading.value = true;
       if (!isLoadMore) page.value = 1;
       
-      const res = await fetch(`${apiUrl}/widget/comments?api_key=${apiKey}&thread_key=${threadKey}&page=${page.value}`);
+      const res = await fetch(`${apiUrl}/widget/comments?api_key=${apiKey}&thread_key=${threadKey}&page=${page.value}${title ? `&title=${encodeURIComponent(title)}` : ''}`);
       if (!res.ok) throw new Error('Failed to load comments');
       
       const data = await res.json();
@@ -57,7 +57,7 @@ export function useComments(apiUrl: string, apiKey: string, threadKey: string) {
       const res = await fetch(`${apiUrl}/widget/comments`, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ api_key: apiKey, thread_key: threadKey, content, authorName, authorEmail, parentId, _diskus_trap: trap })
+        body: JSON.stringify({ api_key: apiKey, thread_key: threadKey, title, content, authorName, authorEmail, parentId, _diskus_trap: trap })
       });
       if (res.ok) {
         const data = await res.json();

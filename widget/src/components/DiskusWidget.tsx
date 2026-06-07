@@ -18,7 +18,7 @@ export interface Comment {
   isAuthor?: boolean;
 }
 
-export function DiskusWidget({ apiKey, threadKey, apiUrl }: { apiKey: string, threadKey: string, apiUrl: string }) {
+export function DiskusWidget({ apiKey, threadKey, apiUrl, title }: { apiKey: string, threadKey: string, apiUrl: string, title?: string }) {
   const { isDark } = useTheme();
   
   const {
@@ -35,7 +35,7 @@ export function DiskusWidget({ apiKey, threadKey, apiUrl }: { apiKey: string, th
     deleteComment,
     togglePin,
     handleLike
-  } = useComments(apiUrl, apiKey, threadKey);
+  } = useComments(apiUrl, apiKey, threadKey, title);
 
   useEffect(() => {
     fetchComments();

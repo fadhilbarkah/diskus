@@ -39,8 +39,11 @@
     return 'light';
   };
 
+  const providedTitle = rootElement.getAttribute('data-title');
+  const finalTitle = providedTitle || document.title;
+
   const initialTheme = getHostTheme();
-  const iframeUrl = `${iframeBaseUrl}?api_key=${encodeURIComponent(apiKey)}&thread_key=${encodeURIComponent(threadKey)}&api_url=${encodeURIComponent(apiUrl)}&theme=${initialTheme}`;
+  const iframeUrl = `${iframeBaseUrl}?api_key=${encodeURIComponent(apiKey)}&thread_key=${encodeURIComponent(threadKey)}&api_url=${encodeURIComponent(apiUrl)}&theme=${initialTheme}&title=${encodeURIComponent(finalTitle)}`;
 
   const iframe = document.createElement('iframe');
   iframe.src = iframeUrl;
