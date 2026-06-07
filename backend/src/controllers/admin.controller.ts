@@ -42,7 +42,7 @@ export class AdminController {
     if (enableEmail === true) {
       const dbUser = await db.select().from(users).where(eq(users.id, user.userId)).get();
       if (!dbUser?.resendApiKey || !dbUser?.resendSenderEmail) {
-        return c.json({ error: 'Please configure Resend API Key and Sender Email in Account Settings before enabling email notifications.' }, 400);
+        return c.json({ error: 'Configure Resend integrations in Account Settings first.' }, 400);
       }
     }
 
