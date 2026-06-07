@@ -56,7 +56,7 @@ export class WidgetController {
     const page = parseInt(c.req.query('page') || '1', 10);
 
     if (!apiKey || !threadKey) return c.json({ error: 'Missing parameters' }, 400);
-    const site = await WidgetService.verifyApiKey(apiKey);
+    const site = await WidgetService.verifyApiKey(apiKey, c);
     if (!site) return c.json({ error: 'Invalid API Key' }, 403);
 
     const initialLimit = site.commentsLimit || 10;
@@ -86,8 +86,8 @@ export class WidgetController {
       return c.json({ comment: { id: crypto.randomUUID(), status: 'pending', content: data.content, authorName: data.authorName || 'Guest' } }, 201);
     }
 
-    const site = await WidgetService.verifyApiKey(data.api_key);
-    if (!site) return c.json({ error: 'Invalid API Key' }, 403);
+    const site = await WidgetService.verifyApiKey(data.api_key, c);
+    if (!site) return c.json({ error: 'Invalid API Key or Unauthorized Domain' }, 403);
 
     const thread = await WidgetService.getThread(site.id, data.thread_key);
     if (!thread) return c.json({ error: 'Thread not found' }, 404);

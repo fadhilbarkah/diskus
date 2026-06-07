@@ -4,6 +4,7 @@ import { eq, and, desc, sql, isNull, isNotNull } from 'drizzle-orm';
 import { simpleMarkdownToHtml, sanitizeHtml } from '../utils/html';
 import { hashEmail } from '../utils/hash';
 import crypto from 'crypto';
+import { Context } from 'hono';
 
 interface CreateCommentData {
   threadId: string;
@@ -15,9 +16,28 @@ interface CreateCommentData {
 }
 
 export class WidgetService {
-  static async verifyApiKey(apiKey: string) {
+  static async verifyApiKey(apiKey: string, c?: Context) {
     const site = await db.select().from(sites).where(eq(sites.publicApiKey, apiKey)).get();
-    return site || null;
+    if (!site) return null;
+
+    if (c) {
+      const origin = c.req.header('origin') || c.req.header('referer') || '';
+      if (origin) {
+        try {
+          const url = new URL(origin);
+          const hostname = url.hostname;
+          if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+            if (hostname !== site.domain && !hostname.endsWith(`.${site.domain}`)) {
+              return null; // Unauthorized domain
+            }
+          }
+        } catch (e) {
+          return null; // Invalid origin URL
+        }
+      }
+    }
+    
+    return site;
   }
 
   static async hashPassword(password: string) { return await Bun.password.hash(password); }
