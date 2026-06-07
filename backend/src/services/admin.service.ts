@@ -1,6 +1,6 @@
 import { db } from '../db';
 import { users, comments, sites, threads } from '../db/schema';
-import { eq, inArray, desc, and } from 'drizzle-orm';
+import { eq, inArray, desc, and, not } from 'drizzle-orm';
 import { widgetUsers } from '../db/schema';
 import { sanitizeHtml } from '../utils/html';
 import crypto from 'crypto';
