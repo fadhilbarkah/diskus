@@ -324,13 +324,20 @@ export function Websites() {
                 <div class="flex justify-between items-center">
                   <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">HTML Embed Code</span>
                   <button 
-                    onClick={() => handleCopyEmbed(`<!-- Diskus Comment Widget Embed -->
+                    onClick={() => {
+                      const defaultApiUrl = 'http://localhost:3000/api/v1';
+                      const apiUrl = import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== defaultApiUrl
+                        ? import.meta.env.VITE_API_URL
+                        : `${window.location.origin}/api/v1`;
+                      
+                      handleCopyEmbed(`<!-- Diskus Comment Widget Embed -->
 <div id="diskus-thread"
   data-api-key="${selectedSiteForEmbed.value.publicApiKey}"
   data-thread-key="YOUR_PAGE_SLUG"
-  data-api-url="${import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'}">
+  data-api-url="${apiUrl}">
 </div>
-<script async defer src="${window.location.origin}/widget/dist/embed.js"></script>`)}
+<script async defer src="${window.location.origin}/widget/dist/embed.js"></script>`);
+                    }}
                     class="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors cursor-pointer"
                   >
                     {copiedEmbed.value ? (
@@ -352,7 +359,7 @@ export function Websites() {
 <div id="diskus-thread"
   data-api-key="${selectedSiteForEmbed.value.publicApiKey}"
   data-thread-key="YOUR_PAGE_SLUG"
-  data-api-url="${import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1'}">
+  data-api-url="${import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== 'http://localhost:3000/api/v1' ? import.meta.env.VITE_API_URL : `${window.location.origin}/api/v1`}">
 </div>
 <script async defer src="${window.location.origin}/widget/dist/embed.js"></script>`}
                 </pre>
