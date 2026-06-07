@@ -82,6 +82,7 @@ export class AdminService {
       status: comments.status,
       createdAt: comments.createdAt,
       parentId: comments.parentId,
+      isPinned: comments.isPinned,
       threadTitle: threads.title,
       threadKey: threads.threadKey,
     }).from(comments)
