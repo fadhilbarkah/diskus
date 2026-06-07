@@ -28,7 +28,8 @@ EXPOSE 3000
 COPY entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
-# Run as non-root user
-USER diskus
+# Install su-exec for privilege dropping
+RUN apk add --no-cache su-exec
 
+# Entrypoint runs as root initially, then drops privileges internally
 ENTRYPOINT ["/app/entrypoint.sh"]
