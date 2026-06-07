@@ -13,6 +13,11 @@ function mount() {
   const apiKey = params.get('api_key');
   const threadKey = params.get('thread_key');
   const apiUrl = params.get('api_url') || 'http://localhost:3000/api/v1';
+  const initialTheme = params.get('theme');
+
+  if (initialTheme === 'dark') {
+    document.documentElement.classList.add('dark');
+  }
 
   if (!apiKey || !threadKey) {
     console.error('Diskus Widget: Missing api_key or thread_key query parameters.');
@@ -31,6 +36,17 @@ function mount() {
   });
   
   observer.observe(document.body);
+
+  // Listen for theme changes from parent
+  window.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'diskus-theme') {
+      if (event.data.theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    }
+  });
 
   render(<DiskusWidget apiKey={apiKey} threadKey={threadKey} apiUrl={apiUrl} />, rootElement);
 }

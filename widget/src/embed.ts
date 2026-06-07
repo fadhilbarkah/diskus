@@ -26,7 +26,21 @@
     return;
   }
 
-  const iframeUrl = `${iframeBaseUrl}?api_key=${encodeURIComponent(apiKey)}&thread_key=${encodeURIComponent(threadKey)}&api_url=${encodeURIComponent(apiUrl)}`;
+  const getHostTheme = () => {
+    if (document.documentElement.classList.contains('dark') || document.body.classList.contains('dark')) {
+      return 'dark';
+    }
+    if (document.documentElement.getAttribute('data-theme') === 'dark' || document.body.getAttribute('data-theme') === 'dark') {
+      return 'dark';
+    }
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return 'dark';
+    }
+    return 'light';
+  };
+
+  const initialTheme = getHostTheme();
+  const iframeUrl = `${iframeBaseUrl}?api_key=${encodeURIComponent(apiKey)}&thread_key=${encodeURIComponent(threadKey)}&api_url=${encodeURIComponent(apiUrl)}&theme=${initialTheme}`;
 
   const iframe = document.createElement('iframe');
   iframe.src = iframeUrl;
@@ -34,8 +48,20 @@
   iframe.style.border = 'none';
   iframe.style.overflow = 'hidden';
   iframe.style.minHeight = '300px';
-  // Optional: add a class for users to target
   iframe.className = 'diskus-iframe';
+  
+  // Observe theme changes
+  let currentTheme = initialTheme;
+  const themeObserver = new MutationObserver(() => {
+    const newTheme = getHostTheme();
+    if (newTheme !== currentTheme && iframe.contentWindow) {
+      currentTheme = newTheme;
+      iframe.contentWindow.postMessage({ type: 'diskus-theme', theme: newTheme }, '*');
+    }
+  });
+  themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-theme'] });
+  themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class', 'data-theme'] });
+
   
   // Listen for messages from the iframe to adjust height
   window.addEventListener('message', (event) => {
