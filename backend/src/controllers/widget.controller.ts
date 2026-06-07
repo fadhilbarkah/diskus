@@ -1,10 +1,9 @@
 import { Context } from 'hono';
 import { WidgetService } from '../services/widget.service';
+import { AdminService } from '../services/admin.service';
+import { NotificationService } from '../services/notification.service';
 import { signToken } from '../utils/jwt';
 import { AuthVariables } from '../middlewares/auth';
-import { AdminService } from '../services/admin.service';
-import { Resend } from 'resend';
-import { escapeHtmlEntities } from '../utils/html';
 import { hashEmail } from '../utils/hash';
 
 /** Hash the client IP for privacy-preserving like tracking */
@@ -137,29 +136,17 @@ export class WidgetController {
     };
     delete (returnedComment as any).authorEmail;
 
-    if (site.enableEmail) {
-      Promise.resolve().then(async () => {
-        try {
-          if (owner && owner.resendApiKey) {
-            const resend = new Resend(owner.resendApiKey);
-            const senderEmail = owner.resendSenderEmail || process.env.RESEND_SENDER_EMAIL || 'onboarding@resend.dev';
-            
-            await resend.emails.send({
-              from: `Diskus <${senderEmail}>`,
-              to: owner.email,
-              subject: `New comment on ${thread.title}`,
-              html: `
-                <h2>New Comment from ${escapeHtmlEntities(authorName)}</h2>
-                <p><strong>Thread:</strong> ${escapeHtmlEntities(thread.title)}</p>
-                <p><strong>Email:</strong> ${escapeHtmlEntities(authorEmail)}</p>
-                <br />
-                <div>${escapeHtmlEntities(newComment.content)}</div>
-              `,
-            });
-          }
-        } catch (err) {
-          console.error('Failed to send email notification:', err);
-        }
+    if (site.enableEmail && owner) {
+      Promise.resolve().then(() => {
+        NotificationService.sendNewCommentEmail(
+          owner.resendApiKey,
+          owner.resendSenderEmail,
+          owner.email,
+          authorName,
+          authorEmail,
+          thread.title,
+          newComment.content
+        );
       });
     }
 

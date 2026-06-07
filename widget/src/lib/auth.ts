@@ -1,6 +1,6 @@
 import { signal } from '@preact/signals';
 
-interface WidgetUser {
+export interface WidgetUser {
   id: string;
   email: string;
   name: string;

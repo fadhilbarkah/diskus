@@ -1,7 +1,7 @@
 import { useSignal } from '@preact/signals';
 import { useEffect, useRef } from 'preact/hooks';
-
-import { widgetToken, widgetUser, setWidgetAuth, logoutWidget } from '../lib/auth';
+import { useAuth } from '../hooks/useAuth';
+import { generateAvatarSeed } from '../lib/utils';
 
 interface Props {
   onSubmit: (content: string, name: string, email: string, parentId?: string, trap?: string) => Promise<void>;
@@ -12,85 +12,54 @@ interface Props {
 }
 
 export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin }: Props) {
-  const getStored = (key: string) => {
-    try { return localStorage.getItem(key) || ''; } catch { return ''; }
-  };
-  const setStored = (key: string, val: string) => {
-    try { localStorage.setItem(key, val); } catch {}
-  };
-
   const content = useSignal('');
-  const name = useSignal(getStored('diskus_guest_name'));
-  const email = useSignal(getStored('diskus_guest_email'));
-  const saveInfo = useSignal(true);
   const password = useSignal('');
   const submitting = useSignal(false);
   const isExpanded = useSignal(!!parentId);
   const trap = useSignal('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
-  const authMode = useSignal<'guest' | 'login' | 'register'>(requireLogin ? 'login' : 'guest');
-  const authError = useSignal('');
-
-  // Update authMode if requireLogin changes (from API fetch)
-  useEffect(() => {
-    if (requireLogin && authMode.value === 'guest') {
-      authMode.value = 'login';
-    }
-  }, [requireLogin]);
+  const {
+    authMode,
+    authError,
+    guestName,
+    guestEmail,
+    saveInfo,
+    widgetUser,
+    login,
+    register,
+    logout,
+    handleGuestSubmit
+  } = useAuth(apiUrl, !!requireLogin);
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
     authError.value = '';
 
-    if (!widgetUser.value) {
+    const currentUser = widgetUser.peek();
+    if (!currentUser) {
       if (authMode.value === 'guest') {
-        if (!content.value || !name.value || !email.value) return;
+        if (!content.value || !guestName.value || !guestEmail.value) return;
         submitting.value = true;
-        if (saveInfo.value) {
-          setStored('diskus_guest_name', name.value);
-          setStored('diskus_guest_email', email.value);
-        } else {
-          try { localStorage.removeItem('diskus_guest_name'); localStorage.removeItem('diskus_guest_email'); } catch {}
-        }
-        await onSubmit(content.value, name.value, email.value, parentId, trap.value);
+        handleGuestSubmit(guestName.value, guestEmail.value);
+        await onSubmit(content.value, guestName.value, guestEmail.value, parentId, trap.value);
       } else if (authMode.value === 'login') {
-        if (!email.value || !password.value) return;
+        if (!guestEmail.value || !password.value) return;
         submitting.value = true;
-        try {
-          const res = await fetch(`${apiUrl}/widget/auth/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: email.value, password: password.value })
-          });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error);
-          setWidgetAuth(data.token, data.user);
-          if (content.value) {
-            await onSubmit(content.value, data.user.name, data.user.email, parentId, trap.value);
-          }
-        } catch (err: any) {
-          authError.value = err.message;
+        const success = await login(guestEmail.value, password.value);
+        if (success && widgetUser.peek() && content.value) {
+          await onSubmit(content.value, widgetUser.peek()!.name, widgetUser.peek()!.email, parentId, trap.value);
+        } else {
           submitting.value = false;
           return;
         }
       } else if (authMode.value === 'register') {
-        if (!name.value || !email.value || !password.value) return;
+        if (!guestName.value || !guestEmail.value || !password.value) return;
         submitting.value = true;
-        try {
-          const res = await fetch(`${apiUrl}/widget/auth/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email: email.value, name: name.value, password: password.value, _diskus_trap: trap.value })
-          });
-          const data = await res.json();
-          if (!res.ok) throw new Error(data.error);
-          setWidgetAuth(data.token, data.user);
-          if (content.value) {
-            await onSubmit(content.value, data.user.name, data.user.email, parentId, trap.value);
-          }
-        } catch (err: any) {
-          authError.value = err.message;
+        const success = await register(guestEmail.value, guestName.value, password.value, trap.value);
+        if (success && widgetUser.peek() && content.value) {
+          await onSubmit(content.value, widgetUser.peek()!.name, widgetUser.peek()!.email, parentId, trap.value);
+        } else {
           submitting.value = false;
           return;
         }
@@ -98,7 +67,7 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
     } else {
       if (!content.value) return;
       submitting.value = true;
-      await onSubmit(content.value, widgetUser.value.name, widgetUser.value.email, parentId, trap.value);
+      await onSubmit(content.value, currentUser.name, currentUser.email, parentId, trap.value);
     }
     
     content.value = '';
@@ -119,42 +88,18 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
   };
 
   const showCancel = !!onCancel || (!parentId && isExpanded.value);
-
   const avatarSeedPreview = useSignal('guest');
 
   useEffect(() => {
-    const generateHash = async () => {
-      let rawEmail = '';
-      if (widgetUser.value) {
-        if (widgetUser.value.avatarSeed) {
-          avatarSeedPreview.value = widgetUser.value.avatarSeed;
-          return;
-        }
-        rawEmail = widgetUser.value.email;
-      } else if (email.value) {
-        rawEmail = email.value;
-      }
+    const rawEmail = widgetUser.value ? widgetUser.value.email : guestEmail.value;
+    if (widgetUser.value?.avatarSeed) {
+      avatarSeedPreview.value = widgetUser.value.avatarSeed;
+    } else {
+      generateAvatarSeed(rawEmail).then(seed => avatarSeedPreview.value = seed);
+    }
+  }, [guestEmail.value, widgetUser.value]);
 
-      if (rawEmail) {
-        try {
-          const msgUint8 = new TextEncoder().encode(rawEmail.trim().toLowerCase());
-          const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
-          const hashArray = Array.from(new Uint8Array(hashBuffer));
-          const hashHex = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
-          avatarSeedPreview.value = hashHex;
-        } catch (e) {
-          avatarSeedPreview.value = 'guest';
-        }
-      } else {
-        avatarSeedPreview.value = 'guest';
-      }
-    };
-    generateHash();
-  }, [email.value, widgetUser.value]);
-
-  const getAvatarUrl = () => {
-    return `https://api.dicebear.com/10.x/thumbs/svg?seed=${avatarSeedPreview.value}`;
-  };
+  const getAvatarUrl = () => `https://api.dicebear.com/10.x/thumbs/svg?seed=${avatarSeedPreview.value}`;
 
   return (
     <div class={`w-full ${parentId ? 'mt-4' : ''}`}>
@@ -197,12 +142,12 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
                     {(authMode.value === 'guest' || authMode.value === 'register') && (
                       <div class="relative">
                         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                        <input type="text" placeholder="Name" class="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-[14px] text-gray-900 dark:text-gray-100 outline-none focus:border-gray-400 dark:focus:border-gray-500 bg-white dark:bg-[#222] transition-colors" value={name.value} onInput={(e) => name.value = (e.target as HTMLInputElement).value} required={isExpanded.value} />
+                        <input type="text" placeholder="Name" class="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-[14px] text-gray-900 dark:text-gray-100 outline-none focus:border-gray-400 dark:focus:border-gray-500 bg-white dark:bg-[#222] transition-colors" value={guestName.value} onInput={(e) => guestName.value = (e.target as HTMLInputElement).value} required={isExpanded.value} />
                       </div>
                     )}
                     <div class="relative">
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                      <input type="email" placeholder="Email" class="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-[14px] text-gray-900 dark:text-gray-100 outline-none focus:border-gray-400 dark:focus:border-gray-500 bg-white dark:bg-[#222] transition-colors" value={email.value} onInput={(e) => email.value = (e.target as HTMLInputElement).value} required={isExpanded.value} />
+                      <input type="email" placeholder="Email" class="w-full pl-10 pr-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-xl text-[14px] text-gray-900 dark:text-gray-100 outline-none focus:border-gray-400 dark:focus:border-gray-500 bg-white dark:bg-[#222] transition-colors" value={guestEmail.value} onInput={(e) => guestEmail.value = (e.target as HTMLInputElement).value} required={isExpanded.value} />
                     </div>
                     {authMode.value === 'guest' && (
                       <label class="flex items-start gap-2 mt-1 cursor-pointer group">
@@ -226,16 +171,25 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
                   </div>
                 </div>
               ) : (
-                <div class="flex items-center justify-between px-5 py-4 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-[#181818]">
-                  <div class="text-[13px] text-gray-500 dark:text-gray-400 flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-[#22c55e]"></span>
-                    <span>Logged in as <strong class="text-gray-900 dark:text-gray-100 font-semibold">{widgetUser.value.name}</strong></span>
-                    <span class="text-gray-300 dark:text-gray-700">|</span>
-                    <button type="button" onClick={logoutWidget} class="text-[#ff4b4b] hover:text-red-600 transition-colors">Logout</button>
+                <div class="flex items-center justify-between px-4 sm:px-5 py-3 border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-[#181818]">
+                  <div class="flex items-center gap-3 sm:gap-4 flex-1 min-w-0 pr-3">
+                    <div class="flex items-center gap-2.5 min-w-0 shrink">
+                      <span class="w-2.5 h-2.5 rounded-full bg-[#22c55e] shrink-0"></span>
+                      <strong class="text-[14px] sm:text-[15px] text-[#111827] dark:text-gray-100 font-semibold truncate">{widgetUser.value.name}</strong>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 sm:gap-4 shrink-0">
+                      <div class="w-px h-5 bg-gray-200 dark:bg-gray-700 shrink-0"></div>
+                      <button type="button" onClick={logout} class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-colors flex items-center justify-center shrink-0" title="Logout">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                      </button>
+                    </div>
                   </div>
-                  <div class="flex items-center gap-3 shrink-0">
-                    {showCancel && <button type="button" onClick={handleCancel} class="text-[14px] font-medium text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 transition-colors">Cancel</button>}
-                    <button type="submit" disabled={submitting.value} class="px-4 py-2 bg-blue-600 text-white text-[14px] font-medium rounded-xl hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm">
+                  <div class="flex items-center gap-3 sm:gap-4 shrink-0 ml-auto">
+                    {showCancel && (
+                      <button type="button" onClick={handleCancel} class="text-[14px] sm:text-[15px] font-medium text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors shrink-0">Cancel</button>
+                    )}
+                    <button type="submit" disabled={submitting.value} class="px-5 py-2.5 ml-1 bg-blue-600 text-white text-[14px] sm:text-[15px] font-medium rounded-xl hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shrink-0">
                       {submitting.value ? 'Sending...' : (parentId ? 'Reply' : 'Comment')}
                     </button>
                   </div>

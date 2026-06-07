@@ -1,8 +1,8 @@
-import { useSignal } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
 import { CommentForm } from './CommentForm';
 import { CommentThread } from './CommentThread';
-import { widgetToken } from '../lib/auth';
+import { useComments } from '../hooks/useComments';
+import { useTheme } from '../hooks/useTheme';
 
 export interface Comment {
   id: string;
@@ -19,154 +19,29 @@ export interface Comment {
 }
 
 export function DiskusWidget({ apiKey, threadKey, apiUrl }: { apiKey: string, threadKey: string, apiUrl: string }) {
-  const comments = useSignal<Comment[]>([]);
-  const loading = useSignal(true);
-  const error = useSignal('');
-  const sortBy = useSignal<'newest' | 'oldest'>('newest');
-  const notification = useSignal<{message: string, type: 'success'|'error'} | null>(null);
-  const page = useSignal(1);
-  const hasMore = useSignal(false);
-  const isDark = useSignal(false);
-  const requireLogin = useSignal(false);
-
-  const showNotification = (message: string, type: 'success'|'error') => {
-    notification.value = { message, type };
-    setTimeout(() => { notification.value = null; }, 4000);
-  };
-
-  const fetchComments = async (isLoadMore = false) => {
-    try {
-      loading.value = true;
-      if (!isLoadMore) page.value = 1;
-      
-      const res = await fetch(`${apiUrl}/widget/comments?api_key=${apiKey}&thread_key=${threadKey}&page=${page.value}`);
-      if (!res.ok) throw new Error('Failed to load comments');
-      
-      const data = await res.json();
-      
-      if (isLoadMore) {
-        const newMap = new Map(comments.value.map(c => [c.id, c]));
-        data.comments.forEach((c: Comment) => newMap.set(c.id, c));
-        comments.value = Array.from(newMap.values());
-      } else {
-        comments.value = data.comments;
-      }
-      
-      hasMore.value = data.hasMore;
-
-      if (data.config && data.config.requireLogin) {
-        requireLogin.value = true;
-      }
-    } catch (err: any) {
-      error.value = err.message;
-    } finally {
-      loading.value = false;
-    }
-  };
+  const { isDark } = useTheme();
+  
+  const {
+    comments,
+    loading,
+    error,
+    sortBy,
+    notification,
+    page,
+    hasMore,
+    requireLogin,
+    fetchComments,
+    addComment,
+    deleteComment,
+    togglePin,
+    handleLike
+  } = useComments(apiUrl, apiKey, threadKey);
 
   useEffect(() => {
     fetchComments();
-    
-    // Dark mode detection logic
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)');
-    const checkDark = () => {
-      const hasDarkClass = document.documentElement.classList.contains('dark') || document.body.classList.contains('dark');
-      // Set to dark if host has dark class, or if it has no class but system is dark
-      const hostHasLightClass = document.documentElement.classList.contains('light') || document.body.classList.contains('light');
-      
-      if (hasDarkClass) {
-        isDark.value = true;
-      } else if (hostHasLightClass) {
-        isDark.value = false;
-      } else {
-        isDark.value = prefersDark.matches;
-      }
-    };
-    
-    checkDark();
-    prefersDark.addEventListener('change', checkDark);
-    
-    const observer = new MutationObserver(checkDark);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-    observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
-    
-    return () => {
-      prefersDark.removeEventListener('change', checkDark);
-      observer.disconnect();
-    };
   }, []);
 
-  const addComment = async (content: string, authorName: string, authorEmail: string, parentId?: string, trap?: string) => {
-    try {
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (widgetToken.value) {
-        headers['Authorization'] = `Bearer ${widgetToken.value}`;
-      }
-
-      const res = await fetch(`${apiUrl}/widget/comments`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ api_key: apiKey, thread_key: threadKey, content, authorName, authorEmail, parentId, _diskus_trap: trap })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.comment && data.comment.status === 'approved') {
-          showNotification('Comment added successfully.', 'success');
-        } else {
-          showNotification('Your comment is awaiting moderation.', 'success');
-        }
-        fetchComments(); // Refresh the comment list immediately
-      } else {
-        showNotification('Failed to add comment, please try again.', 'error');
-      }
-    } catch (err) {
-      showNotification('Network error occurred.', 'error');
-    }
-  };
-
-  const deleteComment = async (id: string) => {
-    try {
-      const headers: Record<string, string> = {};
-      if (widgetToken.value) {
-        headers['Authorization'] = `Bearer ${widgetToken.value}`;
-      }
-      const res = await fetch(`${apiUrl}/widget/comments/${id}`, {
-        method: 'DELETE',
-        headers
-      });
-      if (res.ok) {
-        showNotification('Comment deleted.', 'success');
-        fetchComments();
-      } else {
-        showNotification('Failed to delete comment.', 'error');
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const togglePin = async (id: string, isPinned: boolean) => {
-    try {
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (widgetToken.value) {
-        headers['Authorization'] = `Bearer ${widgetToken.value}`;
-      }
-      const res = await fetch(`${apiUrl}/widget/comments/${id}/pin`, {
-        method: 'PATCH',
-        headers,
-        body: JSON.stringify({ isPinned })
-      });
-      if (res.ok) {
-        fetchComments();
-      } else {
-        showNotification('Failed to pin comment.', 'error');
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  if (loading.value) return <div class="p-4 text-gray-500">Loading comments...</div>;
+  if (loading.value && page.value === 1) return <div class="p-4 text-gray-500">Loading comments...</div>;
   if (error.value) return <div class="p-4 text-red-500">{error.value}</div>;
 
   const topLevelComments = comments.value.filter(c => !c.parentId);
@@ -186,19 +61,11 @@ export function DiskusWidget({ apiKey, threadKey, apiUrl }: { apiKey: string, th
     }
   });
 
-  const handleLike = async (id: string, isUnlike: boolean) => {
-    try {
-      await fetch(`${apiUrl}/widget/comments/${id}/${isUnlike ? 'unlike' : 'like'}`, { method: 'POST' });
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   const visibleTopLevelComments = topLevelComments;
 
   return (
     <div class={`${isDark.value ? 'dark' : ''}`}>
-      <div class="diskus-widget font-sans text-gray-900 dark:text-gray-100 bg-white dark:bg-[#121212] rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 p-4 md:p-8 max-w-3xl mx-auto transition-colors duration-300">
+      <div class="diskus-widget font-sans text-gray-900 dark:text-gray-100 bg-transparent p-4 md:px-0 max-w-3xl mx-auto transition-colors duration-300">
         {notification.value && (
         <div class={`mb-4 px-4 py-3 rounded-lg flex items-center justify-between shadow-sm animate-fade-in-down ${notification.value.type === 'success' ? 'bg-[#f0fdf4] text-[#166534] border border-[#bbf7d0]' : 'bg-[#fef2f2] text-[#991b1b] border border-[#fecaca]'}`}>
           <div class="flex items-center gap-2">
@@ -236,7 +103,7 @@ export function DiskusWidget({ apiKey, threadKey, apiUrl }: { apiKey: string, th
         <CommentForm onSubmit={addComment} apiUrl={apiUrl} requireLogin={requireLogin.value} />
       </div>
 
-      {loading.value && <div class="py-8 flex justify-center"><div class="w-8 h-8 border-4 border-gray-200 border-t-gray-800 rounded-full animate-spin"></div></div>}
+      {loading.value && page.value === 1 && <div class="py-8 flex justify-center"><div class="w-8 h-8 border-4 border-gray-200 border-t-gray-800 rounded-full animate-spin"></div></div>}
       
       <div class="space-y-6">
         {visibleTopLevelComments.map(c => (

@@ -33,7 +33,7 @@ widgetRoutes.get('/comments', WidgetController.getComments);
 
 widgetRoutes.post(
   '/comments',
-  rateLimitMiddleware(5, 60 * 1000), // Max 5 comments per IP per minute
+  rateLimitMiddleware(30, 60 * 1000), // Max 30 comments per IP per minute
   optionalAuthMiddleware,
   zValidator(
     'json',

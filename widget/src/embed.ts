@@ -48,6 +48,8 @@
   iframe.style.border = 'none';
   iframe.style.overflow = 'hidden';
   iframe.style.minHeight = '300px';
+  iframe.setAttribute('allowtransparency', 'true');
+  iframe.style.backgroundColor = 'transparent';
   iframe.className = 'diskus-iframe';
   
   // Observe theme changes
