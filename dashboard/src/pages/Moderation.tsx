@@ -156,7 +156,13 @@ export function Moderation() {
       const diffInMs = Math.max(0, Date.now() - new Date(c.createdAt).getTime());
       const diffInSecs = Math.floor(diffInMs / 1000);
       let timeStr = 'Just now';
-      if (diffInSecs >= 86400) {
+      if (diffInSecs >= 31536000) {
+        const years = Math.floor(diffInSecs / 31536000);
+        timeStr = `${years} year${years > 1 ? 's' : ''} ago`;
+      } else if (diffInSecs >= 2592000) {
+        const months = Math.floor(diffInSecs / 2592000);
+        timeStr = `${months} month${months > 1 ? 's' : ''} ago`;
+      } else if (diffInSecs >= 86400) {
         const days = Math.floor(diffInSecs / 86400);
         timeStr = `${days} day${days > 1 ? 's' : ''} ago`;
       } else if (diffInSecs >= 3600) {
