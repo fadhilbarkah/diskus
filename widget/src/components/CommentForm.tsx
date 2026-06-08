@@ -213,13 +213,13 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
 
       {showAuthModal.value && (
          <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-transparent backdrop-blur-sm animate-in fade-in duration-200">
-           <div class="relative w-full max-w-[700px] bg-white dark:bg-[#121212] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl flex flex-col md:flex-row overflow-hidden animate-in zoom-in-95 duration-200">
+           <div class="relative w-full max-w-[700px] bg-white dark:bg-[#121212] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl flex flex-col min-[480px]:flex-row overflow-hidden animate-in zoom-in-95 duration-200">
               <button onClick={() => showAuthModal.value = false} class="absolute top-4 right-4 z-10 p-1 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800">
                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
               
-              <div class="w-full md:w-[45%] bg-gray-50/50 dark:bg-[#161616] p-6 md:p-8 flex flex-col justify-center border-b md:border-b-0 md:border-r border-gray-100 dark:border-gray-800/60">
-                 <div class="mt-2 md:mt-0">
+              <div class="w-full min-[480px]:w-[45%] bg-gray-50/50 dark:bg-[#161616] p-6 min-[480px]:p-8 flex flex-col justify-center border-b min-[480px]:border-b-0 min-[480px]:border-r border-gray-100 dark:border-gray-800/60">
+                 <div class="mt-2 min-[480px]:mt-0">
                    <h3 class="text-[20px] font-bold text-gray-900 dark:text-white leading-tight">
                       {authMode.value === 'login' ? 'Welcome back 👋' : authMode.value === 'register' ? 'Create account ✨' : 'Leave a comment ✍️'}
                    </h3>
@@ -241,7 +241,7 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
                  </div>
               </div>
 
-              <div class="w-full md:w-[55%] p-6 md:p-8 md:pt-12">
+              <div class="w-full min-[480px]:w-[55%] p-6 min-[480px]:p-8 min-[480px]:pt-12">
                  <form onSubmit={handleModalSubmit} class="flex flex-col gap-4">
                     <input type="text" name="_diskus_trap" value={trap.value} onInput={(e) => trap.value = (e.target as HTMLInputElement).value} style={{ display: 'none', position: 'absolute', opacity: 0 }} tabIndex={-1} autoComplete="off" />
                     
