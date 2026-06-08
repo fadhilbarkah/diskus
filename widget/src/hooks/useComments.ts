@@ -14,12 +14,23 @@ function embedQueryParam(token?: string | null): string {
 
 function getVisitorId(): string {
   if (typeof window === 'undefined') return 'unknown-visitor';
-  let visitorId = localStorage.getItem('diskus_visitor_id');
-  if (!visitorId) {
-    visitorId = crypto.randomUUID();
-    localStorage.setItem('diskus_visitor_id', visitorId);
+  try {
+    let visitorId = localStorage.getItem('diskus_visitor_id');
+    if (!visitorId) {
+      if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        visitorId = crypto.randomUUID();
+      } else {
+        visitorId = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+          const r = Math.random() * 16 | 0;
+          return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        });
+      }
+      localStorage.setItem('diskus_visitor_id', visitorId);
+    }
+    return visitorId;
+  } catch (err) {
+    return 'fallback-visitor-' + Math.random().toString(36).substring(2);
   }
-  return visitorId;
 }
 
 function embedHeaders(extra: Record<string, string> = {}, token?: string | null): Record<string, string> {
@@ -156,6 +167,8 @@ export function useComments(apiUrl: string, apiKey: string, threadKey: string, t
         method: 'POST',
         headers: embedHeaders({}, embedTokenStr),
       });
+      if (!isUnlike && res.status === 409) return true; // Already liked
+      if (isUnlike && res.status === 404) return true; // Already unliked
       return res.ok;
     } catch (err) {
       console.error(err);

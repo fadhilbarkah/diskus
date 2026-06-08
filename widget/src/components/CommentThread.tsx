@@ -28,10 +28,12 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
   const localLikesCount = useSignal(comment.likesCount);
 
   useEffect(() => {
-    const likedComments = JSON.parse(localStorage.getItem('diskus_liked_comments') || '[]');
-    if (likedComments.includes(comment.id)) {
-      hasLiked.value = true;
-    }
+    try {
+      const likedComments = JSON.parse(localStorage.getItem('diskus_liked_comments') || '[]');
+      if (likedComments.includes(comment.id)) {
+        hasLiked.value = true;
+      }
+    } catch (e) {}
   }, [comment.id]);
 
   useEffect(() => {
@@ -47,15 +49,20 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
   }, [showMenu, comment.id]);
 
   const handleLikeClick = async () => {
-    const likedComments = JSON.parse(localStorage.getItem('diskus_liked_comments') || '[]');
+    let likedComments: string[] = [];
+    try {
+      likedComments = JSON.parse(localStorage.getItem('diskus_liked_comments') || '[]');
+    } catch (e) {}
     
     if (hasLiked.value) {
       hasLiked.value = false;
       localLikesCount.value = Math.max(0, localLikesCount.value - 1);
       const success = await onLike(comment.id, true);
       if (success) {
-        const newLiked = likedComments.filter((id: string) => id !== comment.id);
-        localStorage.setItem('diskus_liked_comments', JSON.stringify(newLiked));
+        try {
+          const newLiked = likedComments.filter((id: string) => id !== comment.id);
+          localStorage.setItem('diskus_liked_comments', JSON.stringify(newLiked));
+        } catch (e) {}
       } else {
         hasLiked.value = true;
         localLikesCount.value++;
@@ -65,7 +72,9 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
       localLikesCount.value++;
       const success = await onLike(comment.id, false);
       if (success) {
-        localStorage.setItem('diskus_liked_comments', JSON.stringify([...likedComments, comment.id]));
+        try {
+          localStorage.setItem('diskus_liked_comments', JSON.stringify([...likedComments, comment.id]));
+        } catch (e) {}
       } else {
         hasLiked.value = false;
         localLikesCount.value = Math.max(0, localLikesCount.value - 1);
