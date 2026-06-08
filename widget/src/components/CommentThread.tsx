@@ -9,7 +9,7 @@ interface Props {
   comment: Comment;
   repliesMap: Map<string, Comment[]>;
   onReply: (content: string, name: string, email: string, parentId?: string, trap?: string) => Promise<void>;
-  onLike: (id: string, isUnlike: boolean) => Promise<void>;
+  onLike: (id: string, isUnlike: boolean) => Promise<boolean>;
   apiUrl: string;
   depth?: number;
   onDelete: (id: string) => Promise<void>;
@@ -33,20 +33,30 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
     }
   }, [comment.id]);
 
-  const handleLikeClick = () => {
+  const handleLikeClick = async () => {
     const likedComments = JSON.parse(localStorage.getItem('diskus_liked_comments') || '[]');
     
     if (hasLiked.value) {
       hasLiked.value = false;
       localLikesCount.value = Math.max(0, localLikesCount.value - 1);
-      onLike(comment.id, true);
-      const newLiked = likedComments.filter((id: string) => id !== comment.id);
-      localStorage.setItem('diskus_liked_comments', JSON.stringify(newLiked));
+      const success = await onLike(comment.id, true);
+      if (success) {
+        const newLiked = likedComments.filter((id: string) => id !== comment.id);
+        localStorage.setItem('diskus_liked_comments', JSON.stringify(newLiked));
+      } else {
+        hasLiked.value = true;
+        localLikesCount.value++;
+      }
     } else {
       hasLiked.value = true;
       localLikesCount.value++;
-      onLike(comment.id, false);
-      localStorage.setItem('diskus_liked_comments', JSON.stringify([...likedComments, comment.id]));
+      const success = await onLike(comment.id, false);
+      if (success) {
+        localStorage.setItem('diskus_liked_comments', JSON.stringify([...likedComments, comment.id]));
+      } else {
+        hasLiked.value = false;
+        localLikesCount.value = Math.max(0, localLikesCount.value - 1);
+      }
     }
   };
 

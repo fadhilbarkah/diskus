@@ -152,7 +152,7 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
                     {authMode.value === 'guest' && (
                       <label class="flex items-start gap-2 mt-1 cursor-pointer group">
                         <input type="checkbox" checked={saveInfo.value} onChange={(e) => saveInfo.value = (e.target as HTMLInputElement).checked} class="mt-0.5 w-4 h-4 rounded border-gray-300 dark:border-gray-600 bg-white dark:bg-[#222] text-blue-600 focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-900 cursor-pointer transition-colors" />
-                        <span class="text-[13px] leading-relaxed text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 select-none transition-colors">Save my name and email in this browser for the next time I comment.</span>
+                        <span class="text-[13px] leading-relaxed text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300 select-none transition-colors">Remember me</span>
                       </label>
                     )}
                     {(authMode.value === 'login' || authMode.value === 'register') && (

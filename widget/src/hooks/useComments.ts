@@ -140,14 +140,16 @@ export function useComments(apiUrl: string, apiKey: string, threadKey: string, t
     }
   };
 
-  const handleLike = async (id: string, isUnlike: boolean) => {
+  const handleLike = async (id: string, isUnlike: boolean): Promise<boolean> => {
     try {
-      await fetch(`${apiUrl}/widget/comments/${id}/${isUnlike ? 'unlike' : 'like'}?api_key=${encodeURIComponent(apiKey)}${embedQueryParam(embedTokenStr)}`, {
+      const res = await fetch(`${apiUrl}/widget/comments/${id}/${isUnlike ? 'unlike' : 'like'}?api_key=${encodeURIComponent(apiKey)}${embedQueryParam(embedTokenStr)}`, {
         method: 'POST',
         headers: embedHeaders({}, embedTokenStr),
       });
+      return res.ok;
     } catch (err) {
       console.error(err);
+      return false;
     }
   };
 
