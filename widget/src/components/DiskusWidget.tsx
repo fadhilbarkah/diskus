@@ -89,12 +89,12 @@ export function DiskusWidget({ apiKey, threadKey, apiUrl, title, embedToken: emb
         </h3>
         
         {comments.value.length > 0 && (
-          <div class="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800/50 px-3 py-1.5 rounded-lg border border-gray-100 dark:border-gray-800">
-            <span class="font-medium">Sort by:</span>
-            <select class="bg-transparent font-medium text-gray-900 dark:text-gray-200 outline-none cursor-pointer" value={sortBy.value} onChange={(e) => sortBy.value = (e.target as HTMLSelectElement).value as any}>
-              <option value="newest" class="dark:bg-gray-800">Newest</option>
-              <option value="oldest" class="dark:bg-gray-800">Oldest</option>
+          <div class="relative flex items-center group">
+            <select class="appearance-none bg-transparent font-semibold text-[14px] text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200 transition-colors outline-none cursor-pointer pr-5" value={sortBy.value} onChange={(e) => sortBy.value = (e.target as HTMLSelectElement).value as any}>
+              <option value="newest" class="text-gray-900 dark:bg-gray-800 dark:text-gray-100">Newest</option>
+              <option value="oldest" class="text-gray-900 dark:bg-gray-800 dark:text-gray-100">Oldest</option>
             </select>
+            <svg class="w-3.5 h-3.5 absolute right-0 pointer-events-none text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200 transition-colors mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7"></path></svg>
           </div>
         )}
       </div>

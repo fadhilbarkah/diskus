@@ -18,6 +18,29 @@ if (storedUserStr) {
 export const widgetToken = signal<string | null>(storedToken);
 export const widgetUser = signal<WidgetUser | null>(initialUser);
 
+const storedGuestName = typeof window !== 'undefined' ? localStorage.getItem('diskus_guest_name') || '' : '';
+const storedGuestEmail = typeof window !== 'undefined' ? localStorage.getItem('diskus_guest_email') || '' : '';
+
+export const globalGuestName = signal(storedGuestName);
+export const globalGuestEmail = signal(storedGuestEmail);
+export const globalIsGuestReady = signal(!!(storedGuestName && storedGuestEmail));
+
+export const setGuestAuth = (name: string, email: string) => {
+  try { localStorage.setItem('diskus_guest_name', name); } catch {}
+  try { localStorage.setItem('diskus_guest_email', email); } catch {}
+  globalGuestName.value = name;
+  globalGuestEmail.value = email;
+  globalIsGuestReady.value = true;
+};
+
+export const clearGuestAuth = () => {
+  try { localStorage.removeItem('diskus_guest_name'); } catch {}
+  try { localStorage.removeItem('diskus_guest_email'); } catch {}
+  globalGuestName.value = '';
+  globalGuestEmail.value = '';
+  globalIsGuestReady.value = false;
+};
+
 export const setWidgetAuth = (token: string, user: WidgetUser) => {
   localStorage.setItem('diskus_widget_token', token);
   localStorage.setItem('diskus_widget_user', JSON.stringify(user));

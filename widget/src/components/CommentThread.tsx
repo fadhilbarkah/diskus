@@ -1,9 +1,10 @@
-import { useSignal } from '@preact/signals';
+import { useSignal, signal } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
 import { CommentForm } from './CommentForm';
 import { Comment } from './DiskusWidget';
 import { widgetUser } from '../lib/auth';
 
+const activeMenuId = signal<string | null>(null);
 
 interface Props {
   comment: Comment;
@@ -19,7 +20,7 @@ interface Props {
 
 export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, depth = 0, onDelete, onPin, requireLogin }: Props) {
   const showReplyForm = useSignal(false);
-  const showMenu = useSignal(false);
+  const showMenu = activeMenuId.value === comment.id;
   const replies = repliesMap.get(comment.id) || [];
   
   // Local state for liking
@@ -32,6 +33,18 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
       hasLiked.value = true;
     }
   }, [comment.id]);
+
+  useEffect(() => {
+    const handleClickOutside = () => {
+      if (activeMenuId.value === comment.id) {
+        activeMenuId.value = null;
+      }
+    };
+    if (showMenu) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showMenu, comment.id]);
 
   const handleLikeClick = async () => {
     const likedComments = JSON.parse(localStorage.getItem('diskus_liked_comments') || '[]');
@@ -94,29 +107,29 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
             <div class="flex items-center gap-2 min-w-0">
               <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100 truncate block">{comment.authorName}</span>
               {comment.isPinned && (
-                <span class="bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-800 text-[10px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1 shrink-0 shadow-sm">
+                <span class="bg-transparent text-blue-600 dark:text-blue-400 border border-blue-500/50 dark:border-blue-400/50 text-[11px] font-medium px-2 py-[1px] rounded-full flex items-center gap-1 shrink-0">
                   <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-                  PINNED
+                  Pinned
                 </span>
               )}
-              {isAuthor && <span class="bg-[#10b981] dark:bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider shrink-0 shadow-sm">AUTHOR</span>}
+              {isAuthor && <span class="bg-transparent border border-emerald-500/60 dark:border-emerald-500/50 text-emerald-600 dark:text-emerald-400 text-[11px] font-medium px-2 py-[1px] rounded-full shrink-0">Author</span>}
             </div>
             <div class="text-[13px] text-gray-400 dark:text-gray-500 mt-0.5 whitespace-nowrap">{timeAgo(comment.createdAt)}</div>
           </div>
           
           {widgetUser.value && ((widgetUser.value.avatarSeed && widgetUser.value.avatarSeed === comment.avatarSeed) || widgetUser.value.role === 'admin' || widgetUser.value.role === 'user') && (
             <div class="absolute right-0 top-0">
-              <button onClick={() => showMenu.value = !showMenu.value} class="text-gray-400 hover:text-gray-600 outline-none">
+              <button onClick={(e) => { e.stopPropagation(); activeMenuId.value = showMenu ? null : comment.id; }} class="text-gray-400 hover:text-gray-600 outline-none">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path></svg>
               </button>
-              {showMenu.value && (
-                <div class="absolute right-0 mt-1 w-32 bg-white dark:bg-[#222] border border-gray-200 dark:border-gray-700 shadow-lg rounded-lg py-1 z-20 text-sm">
+              {showMenu && (
+                <div onClick={(e) => e.stopPropagation()} class="absolute right-0 mt-1 w-32 bg-white dark:bg-[#222] border border-gray-200 dark:border-gray-700 shadow-lg rounded-lg py-1 z-20 text-sm">
                   {(widgetUser.value.role === 'admin' || widgetUser.value.role === 'user') && depth === 0 && onPin && comment.status === 'approved' && (
-                    <button onClick={() => { showMenu.value = false; onPin(comment.id, !comment.isPinned); }} class="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium transition-colors">
+                    <button onClick={() => { activeMenuId.value = null; onPin(comment.id, !comment.isPinned); }} class="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium transition-colors">
                       {comment.isPinned ? 'Unpin' : 'Pin to top'}
                     </button>
                   )}
-                  <button onClick={() => { showMenu.value = false; onDelete(comment.id); }} class="w-full text-left px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 font-medium transition-colors">Delete</button>
+                  <button onClick={() => { activeMenuId.value = null; onDelete(comment.id); }} class="w-full text-left px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 font-medium transition-colors">Delete</button>
                 </div>
               )}
             </div>

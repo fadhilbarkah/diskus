@@ -1,20 +1,11 @@
 import { useSignal } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
-import { widgetToken, widgetUser, setWidgetAuth, logoutWidget } from '../lib/auth';
+import { widgetToken, widgetUser, setWidgetAuth, logoutWidget, globalGuestName, globalGuestEmail, setGuestAuth, clearGuestAuth, globalIsGuestReady } from '../lib/auth';
 
 export function useAuth(apiUrl: string, requireLogin: boolean) {
-  const getStored = (key: string) => {
-    try { return localStorage.getItem(key) || ''; } catch { return ''; }
-  };
-  const setStored = (key: string, val: string) => {
-    try { localStorage.setItem(key, val); } catch {}
-  };
-
   const authMode = useSignal<'guest' | 'login' | 'register'>(requireLogin ? 'login' : 'guest');
   const authError = useSignal('');
   
-  const guestName = useSignal(getStored('diskus_guest_name'));
-  const guestEmail = useSignal(getStored('diskus_guest_email'));
   const saveInfo = useSignal(true);
 
   useEffect(() => {
@@ -61,18 +52,21 @@ export function useAuth(apiUrl: string, requireLogin: boolean) {
 
   const handleGuestSubmit = (name: string, email: string) => {
     if (saveInfo.value) {
-      setStored('diskus_guest_name', name);
-      setStored('diskus_guest_email', email);
+      setGuestAuth(name, email);
     } else {
-      try { localStorage.removeItem('diskus_guest_name'); localStorage.removeItem('diskus_guest_email'); } catch {}
+      clearGuestAuth();
+      // Even if we don't save to localStorage, we keep it in memory for this session
+      globalGuestName.value = name;
+      globalGuestEmail.value = email;
+      globalIsGuestReady.value = true;
     }
   };
 
   return {
     authMode,
     authError,
-    guestName,
-    guestEmail,
+    guestName: globalGuestName,
+    guestEmail: globalGuestEmail,
     saveInfo,
     widgetUser,
     widgetToken,

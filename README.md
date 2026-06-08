@@ -8,7 +8,7 @@ A lightweight, self-hosted comments system built for modern web applications. Di
 
 ## Features
 
-- **Ultra-lightweight Widget:** The embed script is less than 1KB, and the total widget size is under 20kB (gzipped), ensuring zero impact on your Core Web Vitals.
+- **Ultra-lightweight Widget:** The embed script is ~2KB, and the total widget size is ~22KB (gzipped), ensuring zero impact on your Core Web Vitals.
 - **100% CSS Isolation:** Runs within an automatically-resizing `<iframe>`, ensuring your website's CSS never conflicts with the widget's design.
 - **Multi-tenant Architecture:** Manage comments across multiple domains and websites from a single centralized dashboard.
 - **Built-in Anti-Spam:** Native rate-limiting and invisible honeypot traps to prevent automated bot registrations without requiring intrusive CAPTCHAs.
