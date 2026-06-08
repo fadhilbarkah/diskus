@@ -12,8 +12,18 @@ function embedQueryParam(token?: string | null): string {
   return value ? `&embed_token=${encodeURIComponent(value)}` : '';
 }
 
+function getVisitorId(): string {
+  if (typeof window === 'undefined') return 'unknown-visitor';
+  let visitorId = localStorage.getItem('diskus_visitor_id');
+  if (!visitorId) {
+    visitorId = crypto.randomUUID();
+    localStorage.setItem('diskus_visitor_id', visitorId);
+  }
+  return visitorId;
+}
+
 function embedHeaders(extra: Record<string, string> = {}, token?: string | null): Record<string, string> {
-  const headers = { ...extra };
+  const headers: Record<string, string> = { ...extra, 'X-Visitor-Id': getVisitorId() };
   const value = resolveEmbedToken(token);
   if (value) {
     headers['X-Diskus-Embed-Token'] = value;

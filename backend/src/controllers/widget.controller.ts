@@ -25,6 +25,14 @@ function getIpHash(c: Context): string {
   return hashEmail(ip); // reuse SHA-256 hash utility
 }
 
+function getVisitorId(c: Context): string {
+  const visitorId = c.req.header('x-visitor-id');
+  if (visitorId && visitorId.length > 10 && visitorId.length <= 64) {
+    return visitorId; // Trust the client's UUID/String
+  }
+  return getIpHash(c); // Fallback to IP hash if missing
+}
+
 export class WidgetController {
   static async register(c: Context) {
     const data = (c.req as any).valid('json');
@@ -241,8 +249,8 @@ export class WidgetController {
     if (!auth.site) return c.json({ error: widgetAuthError(auth.failure), reason: auth.failure }, 403);
 
     const id = c.req.param('id') as string;
-    const ipHash = getIpHash(c);
-    const result = await WidgetService.likeComment(id, ipHash);
+    const identifier = getVisitorId(c);
+    const result = await WidgetService.likeComment(id, identifier);
 
     if (result.alreadyLiked) {
       return c.json({ error: 'Already liked' }, 409);
@@ -260,8 +268,8 @@ export class WidgetController {
     if (!auth.site) return c.json({ error: widgetAuthError(auth.failure), reason: auth.failure }, 403);
 
     const id = c.req.param('id') as string;
-    const ipHash = getIpHash(c);
-    const result = await WidgetService.unlikeComment(id, ipHash);
+    const identifier = getVisitorId(c);
+    const result = await WidgetService.unlikeComment(id, identifier);
 
     if (!result.success) {
       return c.json({ error: 'Like not found or comment does not exist' }, 404);
