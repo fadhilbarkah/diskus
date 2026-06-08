@@ -149,17 +149,17 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
             
             <div class={`grid transition-all duration-300 ease-in-out ${isExpanded.value ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
               <div class="overflow-hidden">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-[#181818]">
-                  <div class="flex items-center justify-between sm:justify-start gap-3 sm:gap-4 flex-1 min-w-0 px-4 sm:px-5 py-3">
+                <div class="flex flex-col min-[480px]:flex-row min-[480px]:items-center justify-between border-t border-gray-100 dark:border-gray-800 bg-white dark:bg-[#181818]">
+                  <div class="flex items-center justify-between min-[480px]:justify-start gap-3 min-[480px]:gap-4 flex-1 min-w-0 px-4 min-[480px]:px-5 py-3">
                     <div class="flex items-center gap-2.5 min-w-0 shrink">
                       <span class={`w-2.5 h-2.5 rounded-full shrink-0 ${widgetUser.value ? 'bg-[#22c55e]' : 'bg-gray-400 dark:bg-gray-500'}`}></span>
-                      <strong class="text-[14px] sm:text-[15px] text-[#111827] dark:text-gray-100 font-semibold truncate">
+                      <strong class="text-[14px] min-[480px]:text-[15px] text-[#111827] dark:text-gray-100 font-semibold truncate">
                         {widgetUser.value ? widgetUser.value.name : `${guestName.value} (Guest)`}
                       </strong>
                     </div>
                     
-                    <div class="flex items-center gap-3 sm:gap-4 shrink-0">
-                      <div class="hidden sm:block w-px h-5 bg-gray-200 dark:bg-gray-700 shrink-0"></div>
+                    <div class="flex items-center gap-3 min-[480px]:gap-4 shrink-0">
+                      <div class="hidden min-[480px]:block w-px h-5 bg-gray-200 dark:bg-gray-700 shrink-0"></div>
                       {widgetUser.value ? (
                         <button type="button" onClick={logout} class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-colors flex items-center justify-center shrink-0" title="Logout">
                           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
@@ -171,11 +171,11 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
                       )}
                     </div>
                   </div>
-                  <div class="flex items-center justify-end sm:justify-end gap-3 sm:gap-4 shrink-0 w-full sm:w-auto px-4 sm:px-5 py-3 sm:py-3 border-t border-gray-100 dark:border-gray-800 sm:border-t-0">
+                  <div class="flex items-center justify-end min-[480px]:justify-end gap-3 min-[480px]:gap-4 shrink-0 w-full min-[480px]:w-auto px-4 min-[480px]:px-5 py-3 min-[480px]:py-3 border-t border-gray-100 dark:border-gray-800 min-[480px]:border-t-0">
                     {showCancel && (
-                      <button type="button" onClick={handleCancel} class="text-[14px] sm:text-[15px] font-medium text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors shrink-0 mr-auto sm:mr-0">Cancel</button>
+                      <button type="button" onClick={handleCancel} class="text-[14px] min-[480px]:text-[15px] font-medium text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors shrink-0 mr-auto min-[480px]:mr-0">Cancel</button>
                     )}
-                    <button type="submit" disabled={submitting.value} class="px-5 py-2.5 ml-1 bg-blue-600 text-white text-[14px] sm:text-[15px] font-medium rounded-xl hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shrink-0">
+                    <button type="submit" disabled={submitting.value} class="px-5 py-2.5 ml-1 bg-blue-600 text-white text-[14px] min-[480px]:text-[15px] font-medium rounded-xl hover:bg-blue-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shrink-0">
                       {submitting.value ? 'Sending...' : (parentId ? 'Reply' : 'Comment')}
                     </button>
                   </div>

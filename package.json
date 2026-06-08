@@ -11,5 +11,9 @@
     "dev": "cd backend && bun run dev & cd dashboard && bun run dev & cd widget && bun run dev",
     "build:widget": "cd widget && bun run build",
     "build:dashboard": "cd dashboard && bun run build"
+  },
+  "dependencies": {
+    "esbuild": "^0.28.0",
+    "vite": "^8.0.16"
   }
 }
