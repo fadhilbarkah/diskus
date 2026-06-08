@@ -146,9 +146,9 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
                 <span class={hasLiked.value ? 'font-medium' : ''}>{localLikesCount.value}</span>
               </button>
             )}
-            {depth < 2 && (
+            {!isDeleted && depth < 2 && (
               <>
-                {!isDeleted && <div class="w-px h-[14px] bg-gray-200 dark:bg-gray-700"></div>}
+                <div class="w-px h-[14px] bg-gray-200 dark:bg-gray-700"></div>
                 <button onClick={() => showReplyForm.value = !showReplyForm.value} class="text-[14px] text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors">
                   Reply
                 </button>
