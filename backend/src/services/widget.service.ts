@@ -176,9 +176,35 @@ export class WidgetService {
 
   static async deleteComment(id: string, authorEmail?: string) {
     if (authorEmail) {
-      await db.delete(comments).where(and(eq(comments.id, id), eq(comments.authorEmail, authorEmail)));
+      // Tombstone / Soft delete for regular users
+      const comment = await db.select({ id: comments.id }).from(comments).where(and(eq(comments.id, id), eq(comments.authorEmail, authorEmail))).get();
+      if (!comment) return;
+      
+      const deletedHtml = '<p class="italic text-gray-500 dark:text-gray-400">[Comment deleted]</p>';
+      await db.update(comments)
+        .set({
+          authorName: '[deleted]',
+          content: '[Comment deleted]',
+          htmlContent: deletedHtml
+        })
+        .where(eq(comments.id, id));
     } else {
-      await db.delete(comments).where(eq(comments.id, id));
+      // Cascade / Hard delete for Admins and Blog Owners
+      const getAllDescendantIds = async (parentId: string): Promise<string[]> => {
+        const children = await db.select({ id: comments.id }).from(comments).where(eq(comments.parentId, parentId)).all();
+        let descendantIds: string[] = [];
+        for (const child of children) {
+          descendantIds.push(child.id);
+          descendantIds = descendantIds.concat(await getAllDescendantIds(child.id));
+        }
+        return descendantIds;
+      };
+
+      const idsToDelete = [id, ...(await getAllDescendantIds(id))];
+      
+      for (const deleteId of idsToDelete) {
+         await db.delete(comments).where(eq(comments.id, deleteId));
+      }
     }
   }
 

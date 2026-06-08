@@ -114,20 +114,34 @@ export class AdminService {
 
   static async deleteCommentsBulk(ids: string[], userId: string, role: string) {
     if (ids.length === 0) return;
-    if (role === 'admin') {
-      await db.delete(comments).where(inArray(comments.id, ids));
-    } else {
+
+    const getAllDescendantIds = async (parentIds: string[]): Promise<string[]> => {
+      if (parentIds.length === 0) return [];
+      const children = await db.select({ id: comments.id }).from(comments).where(inArray(comments.parentId, parentIds)).all();
+      const childIds = children.map(c => c.id);
+      if (childIds.length === 0) return [];
+      return [...childIds, ...(await getAllDescendantIds(childIds))];
+    };
+
+    let validIds = ids;
+
+    if (role !== 'admin') {
       const userComments = await db.select({ id: comments.id })
         .from(comments)
         .innerJoin(threads, eq(comments.threadId, threads.id))
         .innerJoin(sites, eq(threads.siteId, sites.id))
         .where(and(inArray(comments.id, ids), eq(sites.userId, userId)))
         .all();
-        
-      const validIds = userComments.map(c => c.id);
-      if (validIds.length > 0) {
-        await db.delete(comments).where(inArray(comments.id, validIds));
-      }
+      validIds = userComments.map(c => c.id);
+    }
+
+    if (validIds.length > 0) {
+      const descendantIds = await getAllDescendantIds(validIds);
+      const allIdsToDelete = Array.from(new Set([...validIds, ...descendantIds]));
+      
+      // SQLite has a variable limit, so chunking is safe if deleting thousands, but `inArray` handles arrays well for typical sizes.
+      // Drizzle ORM translates `inArray` nicely.
+      await db.delete(comments).where(inArray(comments.id, allIdsToDelete));
     }
   }
 
