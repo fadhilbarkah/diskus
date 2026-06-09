@@ -90,7 +90,7 @@ export function DiskusWidget({ apiKey, threadKey, apiUrl, title, embedToken: emb
         
         {comments.value.length > 0 && (
           <div class="relative flex items-center group">
-            <select class="appearance-none bg-transparent font-semibold text-[14px] text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200 transition-colors outline-none cursor-pointer pr-5" value={sortBy.value} onChange={(e) => sortBy.value = (e.target as HTMLSelectElement).value as any}>
+            <select class="appearance-none bg-transparent font-semibold text-[14px] text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200 transition-colors outline-none cursor-pointer pr-5" value={sortBy.value} onInput={(e) => sortBy.value = (e.target as HTMLSelectElement).value as any}>
               <option value="newest" class="text-gray-900 dark:bg-gray-800 dark:text-gray-100">Newest</option>
               <option value="oldest" class="text-gray-900 dark:bg-gray-800 dark:text-gray-100">Oldest</option>
             </select>

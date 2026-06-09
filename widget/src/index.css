@@ -6,21 +6,13 @@
   /* Provide empty defaults if needed */
 }
 
-html, body {
+:host {
   background-color: transparent !important;
   color-scheme: light dark;
-}
-
-/* Reset some default styles just in case it is embedded in a highly styled website */
-#diskus-thread {
-  all: initial;
-  display: block;
   font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
-#diskus-thread * {
-  box-sizing: border-box;
-}
+
 
 .diskus-prose p {
   margin-bottom: 0.5rem;

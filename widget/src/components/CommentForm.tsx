@@ -213,7 +213,7 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
 
       {showAuthModal.value && (
          <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-transparent backdrop-blur-sm animate-in fade-in duration-200">
-           <div class="relative w-full max-w-[700px] bg-white dark:bg-[#121212] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl flex flex-col min-[480px]:flex-row overflow-hidden animate-in zoom-in-95 duration-200">
+           <div class="relative w-full min-w-0 max-w-[700px] max-h-[95vh] overflow-y-auto bg-white dark:bg-[#121212] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl flex flex-col min-[480px]:flex-row animate-in zoom-in-95 duration-200">
               <button onClick={() => showAuthModal.value = false} class="absolute top-4 right-4 z-10 p-1 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800">
                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>

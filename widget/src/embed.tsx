@@ -1,33 +1,12 @@
+import { render } from 'preact';
+import { DiskusWidget } from './components/DiskusWidget';
+import { applyHostTheme, HostTheme } from './lib/theme';
+import { embedToken as embedTokenSignal } from './lib/embed';
+// @ts-ignore
+import styles from './index.css?inline';
+
 (function() {
-  const IFRAME_BASE_KEY = '__diskusIframeBaseUrl';
   const pendingInits = new WeakMap<HTMLElement, Promise<void>>();
-
-  function getIframeBaseUrl(): string {
-    const win = window as any;
-
-    // @ts-ignore — only available during synchronous script execution
-    if (document.currentScript?.src) {
-      // @ts-ignore
-      const base = document.currentScript.src.replace(/embed\.js.*$/, 'iframe.html');
-      win[IFRAME_BASE_KEY] = base;
-      return base;
-    }
-
-    if (win[IFRAME_BASE_KEY]) return win[IFRAME_BASE_KEY];
-
-    // Fallback: locate the embed script tag (needed for SPA re-inits after Astro navigation)
-    const scripts = document.querySelectorAll('script[src*="embed.js"]');
-    for (let i = scripts.length - 1; i >= 0; i--) {
-      const src = (scripts[i] as HTMLScriptElement).src;
-      if (src) {
-        const base = src.replace(/embed\.js.*$/, 'iframe.html');
-        win[IFRAME_BASE_KEY] = base;
-        return base;
-      }
-    }
-
-    return '';
-  }
 
   function getContainerSignature(el: HTMLElement): string {
     return [
@@ -42,7 +21,7 @@
     if (!el.isConnected) return false;
     if (!el.getAttribute('data-api-key') || !el.getAttribute('data-thread-key')) return false;
     const sig = getContainerSignature(el);
-    if (el.dataset.diskusInit === sig && el.querySelector('.diskus-iframe')) return false;
+    if (el.dataset.diskusInit === sig && el.shadowRoot) return false;
     return true;
   }
 
@@ -53,7 +32,11 @@
   }
 
   function showEmbedError(rootElement: HTMLElement, message: string) {
-    rootElement.innerHTML = `<div style="font-family:system-ui,sans-serif;padding:1rem;color:#6b7280;font-size:14px;text-align:center;border:1px dashed #e5e7eb;border-radius:8px;">${message}</div>`;
+    if (rootElement.shadowRoot) {
+      rootElement.shadowRoot.innerHTML = `<div style="font-family:system-ui,sans-serif;padding:1rem;color:#6b7280;font-size:14px;text-align:center;border:1px dashed #e5e7eb;border-radius:8px;">${message}</div>`;
+    } else {
+      rootElement.innerHTML = `<div style="font-family:system-ui,sans-serif;padding:1rem;color:#6b7280;font-size:14px;text-align:center;border:1px dashed #e5e7eb;border-radius:8px;">${message}</div>`;
+    }
   }
 
   async function initDiskusWidget(rootElement: HTMLElement) {
@@ -69,12 +52,6 @@
 
       if (!apiKey || !threadKey) {
         console.error('Diskus Widget: Missing data-api-key or data-thread-key attributes.');
-        return;
-      }
-
-      const iframeBaseUrl = getIframeBaseUrl();
-      if (!iframeBaseUrl) {
-        console.error('Diskus Widget: Cannot determine script origin.');
         return;
       }
 
@@ -97,13 +74,14 @@
         }
         const tokenData = await tokenRes.json();
         embedToken = tokenData.token;
+        embedTokenSignal.value = embedToken;
       } catch (err) {
         console.error('Diskus Widget: Failed to obtain embed token.', err);
         showEmbedError(rootElement, 'Unable to load comments. Please try again later.');
         return;
       }
 
-      // Re-check after async work — container may have been swapped during navigation
+      // Re-check after async work
       if (!rootElement.isConnected || !needsInit(rootElement)) return;
 
       const getHostTheme = (): 'light' | 'dark' => {
@@ -129,31 +107,54 @@
       const providedTitle = rootElement.getAttribute('data-title');
       const finalTitle = providedTitle || document.title;
       const initialTheme = getHostTheme();
-      const iframeOrigin = (() => {
-        try { return new URL(iframeBaseUrl).origin; } catch { return '*'; }
-      })();
 
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'block';
-      iframe.style.width = '100%';
-      iframe.style.border = 'none';
-      iframe.style.overflow = 'hidden';
-      iframe.style.margin = '0';
-      iframe.style.padding = '0';
-      iframe.style.outline = 'none';
-      iframe.setAttribute('allowtransparency', 'true');
-      iframe.style.backgroundColor = 'transparent';
-      iframe.className = 'diskus-iframe';
+      applyHostTheme(initialTheme);
 
-      const iframeUrl = `${iframeBaseUrl}?v=${Date.now()}&api_key=${encodeURIComponent(apiKey)}&thread_key=${encodeURIComponent(threadKey)}&api_url=${encodeURIComponent(apiUrl)}&embed_token=${encodeURIComponent(embedToken)}&theme=${initialTheme}&title=${encodeURIComponent(finalTitle)}`;
-      iframe.src = iframeUrl;
+      // Create Shadow DOM
+      if (!rootElement.shadowRoot) {
+        rootElement.attachShadow({ mode: 'open' });
+      }
+      const shadow = rootElement.shadowRoot!;
+      shadow.innerHTML = ''; // Clear previous content if any
+
+      // Extract and inject @property rules into the host document <head>
+      // This is required because browsers ignore @property definitions inside a Shadow DOM.
+      const propertyRegex = /@property\s+--[\w-]+\s*\{[^}]+\}/g;
+      const propertyRules = styles.match(propertyRegex) || [];
+      if (propertyRules.length > 0) {
+        const headStyle = document.createElement('style');
+        headStyle.id = 'diskus-properties';
+        headStyle.textContent = propertyRules.join('\n');
+        if (!document.getElementById('diskus-properties')) {
+          document.head.appendChild(headStyle);
+        }
+      }
+
+      // Inject Tailwind CSS into Shadow DOM
+      const styleTag = document.createElement('style');
+      styleTag.textContent = styles.replace(/:root/g, ':host');
+      shadow.appendChild(styleTag);
+
+      // Create App Container
+      const appContainer = document.createElement('div');
+      appContainer.id = 'app';
+      // Pass the current theme down as class
+      if (initialTheme === 'dark') {
+        appContainer.classList.add('dark');
+      }
+      shadow.appendChild(appContainer);
 
       let currentTheme = initialTheme;
       const syncTheme = () => {
         const newTheme = getHostTheme();
-        if (newTheme !== currentTheme && iframe.contentWindow) {
+        if (newTheme !== currentTheme) {
           currentTheme = newTheme;
-          iframe.contentWindow.postMessage({ type: 'diskus-theme', theme: newTheme }, iframeOrigin);
+          applyHostTheme(newTheme as HostTheme);
+          if (newTheme === 'dark') {
+            appContainer.classList.add('dark');
+          } else {
+            appContainer.classList.remove('dark');
+          }
         }
       };
 
@@ -166,18 +167,9 @@
       const darkMq = window.matchMedia?.('(prefers-color-scheme: dark)');
       darkMq?.addEventListener('change', syncTheme);
 
-      window.addEventListener('message', (event) => {
-        if (event.data?.type === 'diskus-resize' && event.source === iframe.contentWindow) {
-          const newHeight = event.data.height;
-          if (newHeight) {
-            iframe.style.height = `${newHeight}px`;
-            iframe.style.minHeight = 'auto';
-          }
-        }
-      });
+      // Render Preact App
+      render(<DiskusWidget apiKey={apiKey} threadKey={threadKey} apiUrl={apiUrl} title={finalTitle} embedToken={embedToken} />, appContainer);
 
-      rootElement.innerHTML = '';
-      rootElement.appendChild(iframe);
       rootElement.dataset.diskusInit = getContainerSignature(rootElement);
     })();
 
@@ -235,11 +227,11 @@
       });
     }
 
-    // Framework-specific hooks (no-op on sites that don't emit these events)
+    // Framework-specific hooks
     document.addEventListener('astro:page-load', scheduleScan);
     document.addEventListener('astro:after-swap', scheduleScan);
 
-    // Universal SPA / client-router support
+    // Universal SPA support
     window.addEventListener('popstate', scheduleScan);
     const originalPushState = history.pushState.bind(history);
     const originalReplaceState = history.replaceState.bind(history);
@@ -253,7 +245,6 @@
     };
   }
 
-  // Prevent double IIFE execution when Astro re-injects the script on navigation
   if ((window as any).DiskusWidget) {
     (window as any).DiskusWidget.init();
     return;

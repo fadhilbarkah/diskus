@@ -1,19 +1,18 @@
 import { defineConfig } from 'vite';
 import preact from '@preact/preset-vite';
-import cssInjectedByJsPlugin from 'vite-plugin-css-injected-by-js';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
-  plugins: [preact(), cssInjectedByJsPlugin(), tailwindcss()],
+  plugins: [preact(), tailwindcss()],
   publicDir: false,
   build: {
     target: 'esnext',
     outDir: 'dist',
     emptyOutDir: true,
     lib: {
-      entry: 'src/index.tsx',
-      name: 'DiskusApp',
-      fileName: () => 'app.js',
+      entry: 'src/embed.tsx',
+      name: 'DiskusEmbed',
+      fileName: () => 'embed.js',
       formats: ['iife'],
     },
     rollupOptions: {
