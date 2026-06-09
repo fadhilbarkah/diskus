@@ -85,6 +85,22 @@ Diskus is fully containerized for easy production deployment using Docker Compos
 
 > **Note:** The database uses a Docker Volume (`diskus-data`), so your comments will persist even if you restart the containers.
 
+### Manual Seeding in Production
+If your `.env` file does not have `SEED_DB=true`, or you want to populate the database with dummy data manually after the containers are running, you can execute the seed script inside the backend container:
+```bash
+docker-compose exec backend bun run src/db/seed.ts
+```
+
+### Resetting the Production Database
+If you ever need to completely wipe your production database (e.g., to resolve severe migration conflicts or start fresh), you must destroy the Docker Named Volume. **WARNING: This will permanently delete all comments and user data.**
+```bash
+# Bring down containers and DESTROY the database volume (-v)
+docker-compose down -v
+
+# Restart the services (a fresh database will be created)
+./start.sh
+```
+
 ## Usage
 
 ### 1. Register a Website
