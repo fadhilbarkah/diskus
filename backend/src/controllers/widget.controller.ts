@@ -19,19 +19,7 @@ function widgetAuthError(failure: string | null) {
   }
 }
 
-/** Hash the client IP for privacy-preserving like tracking */
-function getIpHash(c: Context): string {
-  const ip = c.req.header('x-forwarded-for')?.split(',')[0]?.trim() || c.req.header('x-real-ip') || 'unknown-ip';
-  return hashEmail(ip); // reuse SHA-256 hash utility
-}
 
-function getVisitorId(c: Context): string {
-  const visitorId = c.req.header('x-visitor-id');
-  if (visitorId && visitorId.length > 10 && visitorId.length <= 64) {
-    return visitorId; // Trust the client's UUID/String
-  }
-  return getIpHash(c); // Fallback to IP hash if missing
-}
 
 export class WidgetController {
   static async register(c: Context) {
@@ -106,7 +94,7 @@ export class WidgetController {
     const offset = page === 1 ? 0 : initialLimit + (page - 2) * loadMoreLimit;
 
     const owner = await AdminService.getUserAccount(site.userId);
-    const { comments, hasMore } = await WidgetService.getComments(site.id, threadKey, limit, offset, title);
+    const { comments, hasMore, total } = await WidgetService.getComments(site.id, threadKey, limit, offset, title);
     
     const enrichedComments = comments.map(comment => {
       const isAuthor = owner ? comment.authorEmail === owner.email : false;
@@ -115,7 +103,7 @@ export class WidgetController {
       return { ...safeComment, isAuthor, avatarSeed };
     });
 
-    return c.json({ comments: enrichedComments, hasMore, config: { requireLogin: site.requireLogin } });
+    return c.json({ comments: enrichedComments, hasMore, total, config: { requireLogin: site.requireLogin } });
   }
 
   static async postComment(c: Context<{ Variables: AuthVariables }>) {
@@ -243,13 +231,16 @@ export class WidgetController {
   }
 
   static async likeComment(c: Context) {
+    const user = c.get('user');
+    if (!user) return c.json({ error: 'You must be logged in to like a comment' }, 401);
+
     const apiKey = c.req.query('api_key');
     if (!apiKey) return c.json({ error: 'Missing api_key' }, 400);
     const auth = await WidgetService.verifyApiKey(apiKey, c);
     if (!auth.site) return c.json({ error: widgetAuthError(auth.failure), reason: auth.failure }, 403);
 
     const id = c.req.param('id') as string;
-    const identifier = getVisitorId(c);
+    const identifier = user.userId;
     const result = await WidgetService.likeComment(id, identifier);
 
     if (result.alreadyLiked) {
@@ -262,13 +253,16 @@ export class WidgetController {
   }
 
   static async unlikeComment(c: Context) {
+    const user = c.get('user');
+    if (!user) return c.json({ error: 'You must be logged in to unlike a comment' }, 401);
+
     const apiKey = c.req.query('api_key');
     if (!apiKey) return c.json({ error: 'Missing api_key' }, 400);
     const auth = await WidgetService.verifyApiKey(apiKey, c);
     if (!auth.site) return c.json({ error: widgetAuthError(auth.failure), reason: auth.failure }, 403);
 
     const id = c.req.param('id') as string;
-    const identifier = getVisitorId(c);
+    const identifier = user.userId;
     const result = await WidgetService.unlikeComment(id, identifier);
 
     if (!result.success) {

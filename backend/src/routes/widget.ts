@@ -61,8 +61,8 @@ widgetRoutes.patch(
   WidgetController.togglePinComment
 );
 
-widgetRoutes.post('/comments/:id/like', rateLimitMiddleware(30, 60 * 1000), WidgetController.likeComment);
+widgetRoutes.post('/comments/:id/like', authMiddleware, rateLimitMiddleware(30, 60 * 1000), WidgetController.likeComment);
 
-widgetRoutes.post('/comments/:id/unlike', rateLimitMiddleware(30, 60 * 1000), WidgetController.unlikeComment);
+widgetRoutes.post('/comments/:id/unlike', authMiddleware, rateLimitMiddleware(30, 60 * 1000), WidgetController.unlikeComment);
 
 export default widgetRoutes;

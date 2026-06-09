@@ -147,7 +147,8 @@ export class WidgetService {
 
     return {
       comments: paginated,
-      hasMore: offset + limit < flattened.length
+      hasMore: offset + limit < flattened.length,
+      total: flattened.length
     };
   }
 
@@ -209,17 +210,17 @@ export class WidgetService {
   }
 
   /**
-   * Like a comment with IP-based tracking to prevent abuse.
+   * Like a comment with userId tracking to prevent abuse.
    * Returns { success, alreadyLiked } to indicate the result.
    */
-  static async likeComment(commentId: string, ipHash: string): Promise<{ success: boolean; alreadyLiked: boolean }> {
+  static async likeComment(commentId: string, userId: string): Promise<{ success: boolean; alreadyLiked: boolean }> {
     // Verify comment exists
     const comment = await db.select({ id: comments.id }).from(comments).where(eq(comments.id, commentId)).get();
     if (!comment) return { success: false, alreadyLiked: false };
 
-    // Check if already liked from this IP
+    // Check if already liked by this user
     const existing = await db.select({ id: commentLikes.id }).from(commentLikes)
-      .where(and(eq(commentLikes.commentId, commentId), eq(commentLikes.ipHash, ipHash)))
+      .where(and(eq(commentLikes.commentId, commentId), eq(commentLikes.userId, userId)))
       .get();
 
     if (existing) return { success: false, alreadyLiked: true };
@@ -228,7 +229,7 @@ export class WidgetService {
     await db.insert(commentLikes).values({
       id: crypto.randomUUID(),
       commentId,
-      ipHash,
+      userId,
     });
 
     await db.update(comments)
@@ -239,24 +240,24 @@ export class WidgetService {
   }
 
   /**
-   * Unlike a comment with IP-based tracking.
-   * Only allows unlike if the IP previously liked.
+   * Unlike a comment.
+   * Only allows unlike if the user previously liked.
    */
-  static async unlikeComment(commentId: string, ipHash: string): Promise<{ success: boolean }> {
+  static async unlikeComment(commentId: string, userId: string): Promise<{ success: boolean }> {
     // Verify comment exists
     const comment = await db.select({ id: comments.id }).from(comments).where(eq(comments.id, commentId)).get();
     if (!comment) return { success: false };
 
-    // Check if this IP actually liked it
+    // Check if this user actually liked it
     const existing = await db.select({ id: commentLikes.id }).from(commentLikes)
-      .where(and(eq(commentLikes.commentId, commentId), eq(commentLikes.ipHash, ipHash)))
+      .where(and(eq(commentLikes.commentId, commentId), eq(commentLikes.userId, userId)))
       .get();
 
     if (!existing) return { success: false };
 
     // Remove the like record and decrement count
     await db.delete(commentLikes)
-      .where(and(eq(commentLikes.commentId, commentId), eq(commentLikes.ipHash, ipHash)));
+      .where(and(eq(commentLikes.commentId, commentId), eq(commentLikes.userId, userId)));
 
     await db.update(comments)
       .set({ likesCount: sql`MAX(0, ${comments.likesCount} - 1)` }) // Prevent negative likes

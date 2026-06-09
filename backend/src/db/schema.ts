@@ -59,11 +59,12 @@ export const comments = sqliteTable('comments', {
 export const commentLikes = sqliteTable('comment_likes', {
   id: text('id').primaryKey(),
   commentId: text('comment_id').notNull().references(() => comments.id, { onDelete: 'cascade' }),
-  ipHash: text('ip_hash').notNull(),
+  userId: text('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
 }, (table) => ({
-  uniqueLike: uniqueIndex('comment_likes_unique_idx').on(table.commentId, table.ipHash),
+  uniqueLike: uniqueIndex('comment_likes_unique_idx').on(table.commentId, table.userId),
   commentIdIdx: index('comment_likes_comment_id_idx').on(table.commentId),
+  userIdIdx: index('comment_likes_user_id_idx').on(table.userId),
 }));
 
 export const widgetUsers = sqliteTable('widget_users', {

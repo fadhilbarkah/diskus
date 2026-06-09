@@ -1,6 +1,7 @@
 import { useEffect } from 'preact/hooks';
 import { CommentForm } from './CommentForm';
 import { CommentThread } from './CommentThread';
+import { AuthModal } from './AuthModal';
 import { useComments } from '../hooks/useComments';
 import { useTheme } from '../hooks/useTheme';
 
@@ -29,6 +30,7 @@ export function DiskusWidget({ apiKey, threadKey, apiUrl, title, embedToken: emb
     notification,
     page,
     hasMore,
+    totalCount,
     requireLogin,
     fetchComments,
     addComment,
@@ -85,10 +87,10 @@ export function DiskusWidget({ apiKey, threadKey, apiUrl, title, embedToken: emb
       <div class="flex flex-wrap items-center justify-between gap-4 mb-8 pb-4 border-b border-gray-100">
         <h3 class="text-xl font-bold flex items-center gap-2 dark:text-white shrink-0">
           Comments
-          <span class="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-sm font-medium px-2.5 py-0.5 rounded-full">{comments.value.length}</span>
+          <span class="bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 text-sm font-medium px-2.5 py-0.5 rounded-full">{totalCount.value}</span>
         </h3>
         
-        {comments.value.length > 0 && (
+        {totalCount.value > 0 && (
           <div class="relative flex items-center group">
             <select class="appearance-none bg-transparent font-semibold text-[14px] text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200 transition-colors outline-none cursor-pointer pr-5" value={sortBy.value} onInput={(e) => sortBy.value = (e.target as HTMLSelectElement).value as any}>
               <option value="newest" class="text-gray-900 dark:bg-gray-800 dark:text-gray-100">Newest</option>
@@ -135,6 +137,7 @@ export function DiskusWidget({ apiKey, threadKey, apiUrl, title, embedToken: emb
         </div>
       )}
       </div>
+      <AuthModal apiUrl={apiUrl} requireLogin={requireLogin.value} />
     </div>
   );
 }

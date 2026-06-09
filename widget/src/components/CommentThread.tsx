@@ -2,7 +2,7 @@ import { useSignal, signal } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
 import { CommentForm } from './CommentForm';
 import { Comment } from './DiskusWidget';
-import { widgetUser } from '../lib/auth';
+import { widgetUser, globalShowAuthModal, globalAuthMode, globalAuthReason } from '../lib/auth';
 
 const activeMenuId = signal<string | null>(null);
 
@@ -49,6 +49,13 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
   }, [showMenu, comment.id]);
 
   const handleLikeClick = async () => {
+    if (!widgetUser.value) {
+      globalAuthReason.value = 'like';
+      globalAuthMode.value = 'login';
+      globalShowAuthModal.value = true;
+      return;
+    }
+
     let likedComments: string[] = [];
     try {
       likedComments = JSON.parse(localStorage.getItem('diskus_liked_comments') || '[]');

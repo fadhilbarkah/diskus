@@ -51,6 +51,7 @@ export function useComments(apiUrl: string, apiKey: string, threadKey: string, t
   const page = useSignal(1);
   const hasMore = useSignal(false);
   const requireLogin = useSignal(false);
+  const totalCount = useSignal(0);
 
   const showNotification = (message: string, type: 'success'|'error') => {
     notification.value = { message, type };
@@ -70,18 +71,21 @@ export function useComments(apiUrl: string, apiKey: string, threadKey: string, t
       
       const data = await res.json();
       
-      if (isLoadMore) {
-        const newMap = new Map(comments.value.map(c => [c.id, c]));
-        data.comments.forEach((c: Comment) => newMap.set(c.id, c));
-        comments.value = Array.from(newMap.values());
-      } else {
-        comments.value = data.comments;
-      }
-      
-      hasMore.value = data.hasMore;
-
-      if (data.config && data.config.requireLogin) {
-        requireLogin.value = true;
+      if (data.comments) {
+        if (isLoadMore) {
+          comments.value = [...comments.value, ...data.comments];
+        } else {
+          comments.value = data.comments;
+        }
+        hasMore.value = data.hasMore;
+        if (data.total !== undefined) {
+          totalCount.value = data.total;
+        } else {
+          totalCount.value = comments.value.length;
+        }
+        if (data.config?.requireLogin !== undefined) {
+          requireLogin.value = data.config.requireLogin;
+        }
       }
     } catch (err: any) {
       error.value = err.message;
@@ -109,7 +113,10 @@ export function useComments(apiUrl: string, apiKey: string, threadKey: string, t
         } else {
           showNotification('Your comment is awaiting moderation.', 'success');
         }
-        fetchComments(); // Refresh the comment list immediately
+        const newComment = data.comment;
+        comments.value = [...comments.value, newComment];
+        totalCount.value += 1;
+        return true;
       } else {
         const data = await res.json();
         showNotification(data.error || 'Failed to add comment, please try again.', 'error');
@@ -131,7 +138,8 @@ export function useComments(apiUrl: string, apiKey: string, threadKey: string, t
       });
       if (res.ok) {
         showNotification('Comment deleted.', 'success');
-        fetchComments();
+        comments.value = comments.value.filter(c => c.id !== id);
+        totalCount.value = Math.max(0, totalCount.value - 1);
       } else {
         showNotification('Failed to delete comment.', 'error');
       }
@@ -163,9 +171,14 @@ export function useComments(apiUrl: string, apiKey: string, threadKey: string, t
 
   const handleLike = async (id: string, isUnlike: boolean): Promise<boolean> => {
     try {
+      const headers = embedHeaders({}, embedTokenStr);
+      if (widgetToken.peek()) {
+        headers['Authorization'] = `Bearer ${widgetToken.peek()}`;
+      }
+      
       const res = await fetch(`${apiUrl}/widget/comments/${id}/${isUnlike ? 'unlike' : 'like'}?api_key=${encodeURIComponent(apiKey)}${embedQueryParam(embedTokenStr)}`, {
         method: 'POST',
-        headers: embedHeaders({}, embedTokenStr),
+        headers,
       });
       if (!isUnlike && res.status === 409) return true; // Already liked
       if (isUnlike && res.status === 404) return true; // Already unliked
@@ -185,6 +198,7 @@ export function useComments(apiUrl: string, apiKey: string, threadKey: string, t
     page,
     hasMore,
     requireLogin,
+    totalCount,
     fetchComments,
     addComment,
     deleteComment,

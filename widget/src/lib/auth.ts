@@ -25,6 +25,11 @@ export const globalGuestName = signal(storedGuestName);
 export const globalGuestEmail = signal(storedGuestEmail);
 export const globalIsGuestReady = signal(!!(storedGuestName && storedGuestEmail));
 
+export const globalShowAuthModal = signal(false);
+export const globalAuthMode = signal<'login' | 'register' | 'guest'>('login');
+export const globalAuthReason = signal<'comment' | 'like'>('comment');
+export const globalAuthError = signal('');
+
 export const setGuestAuth = (name: string, email: string) => {
   try { localStorage.setItem('diskus_guest_name', name); } catch {}
   try { localStorage.setItem('diskus_guest_email', email); } catch {}
