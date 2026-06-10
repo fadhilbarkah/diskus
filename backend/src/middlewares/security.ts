@@ -24,7 +24,18 @@ if (!dashboardOrigin || dashboardOrigin.length === 0) {
 }
 
 export const adminCorsMiddleware = cors({
-  origin: dashboardOrigin && dashboardOrigin.length > 0 ? dashboardOrigin : '*',
+  origin: (origin) => {
+    if (!dashboardOrigin || dashboardOrigin.length === 0) {
+      return Bun.env.NODE_ENV === 'production' ? null : '*';
+    }
+    if (dashboardOrigin.includes('*')) {
+      return origin || '*';
+    }
+    if (origin && dashboardOrigin.includes(origin)) {
+      return origin;
+    }
+    return dashboardOrigin[0];
+  },
   allowMethods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
 });
