@@ -80,7 +80,7 @@ Diskus is fully containerized for easy production deployment using Docker Compos
    > **Note:** The script will automatically generate a secure `.env` file with a strong `JWT_SECRET` if one does not exist, and then run `docker-compose up -d --build`.
 
 2. The services will be available at:
-   - **Frontend (Dashboard & Widget Embed)**: `http://localhost:8080`
+   - **Frontend (Dashboard & Widget Embed)**: `http://localhost:5173` (or your domain)
    - **Backend API**: `http://localhost:3000`
 
 > **Note:** The database uses a Docker Volume (`diskus-data`), so your comments will persist even if you restart the containers.
@@ -116,7 +116,7 @@ Paste the following HTML snippet into your target website, replacing the data at
      data-thread-key="your-unique-page-identifier"
      data-api-url="http://localhost:3000/api/v1">
 </div>
-<script src="http://localhost:8080/widget/dist/embed.js" async defer></script>
+<script src="http://localhost:5174/dist/embed.js" async defer></script>
 ```
 
 > **Note:** The `data-thread-key` should be unique per page (e.g., the article slug or ID) so that comments remain tied to their specific content.
