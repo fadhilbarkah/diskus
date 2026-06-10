@@ -62,13 +62,9 @@ import styles from './index.css?inline';
         });
         if (!tokenRes.ok) {
           const errData = await tokenRes.json().catch(() => ({}));
-          const hostname = errData.hostname ? ` (${errData.hostname})` : '';
-          const registered = errData.registeredDomain ? ` — registered: ${errData.registeredDomain}` : '';
           showEmbedError(
             rootElement,
-            errData.error
-              ? `${errData.error}${hostname}${registered}`
-              : 'Comments are not available on this domain.'
+            errData.error || 'Comments are not available on this domain.'
           );
           return;
         }

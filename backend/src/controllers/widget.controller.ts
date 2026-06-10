@@ -68,8 +68,6 @@ export class WidgetController {
       if (result.error === 'invalid_key') return c.json({ error: 'Invalid API Key' }, 403);
       return c.json({
         error: 'This domain is not authorized to use this widget',
-        hostname: result.hostname,
-        registeredDomain: result.registeredDomain,
       }, 403);
     }
 
