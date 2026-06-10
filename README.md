@@ -104,7 +104,7 @@ docker-compose down -v
 ## Usage
 
 ### 1. Register a Website
-Open the Dashboard (`http://localhost:5173`), navigate to **Websites**, and register a new domain. You will receive a Public API Key.
+Open the Dashboard (`http://localhost:5173`), navigate to **Websites**, and register a new domain. You will receive an App ID.
 
 ### 2. Embed the Widget
 Paste the following HTML snippet into your target website, replacing the data attributes with your specific keys:
@@ -112,7 +112,7 @@ Paste the following HTML snippet into your target website, replacing the data at
 ```html
 <!-- Diskus Embed -->
 <div id="diskus-thread" 
-     data-api-key="YOUR_PUBLIC_API_KEY" 
+     data-app-id="YOUR_APP_ID" 
      data-thread-key="your-unique-page-identifier"
      data-api-url="http://localhost:3000/api/v1">
 </div>

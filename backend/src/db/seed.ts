@@ -118,7 +118,7 @@ async function seed() {
   }
 
   console.log('Seeding complete!');
-  console.log('Use this API key for the widget:', apiKey);
+  console.log('Use this App ID for the widget:', apiKey);
   sqlite.close();
 }
 

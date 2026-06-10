@@ -174,7 +174,7 @@ export function Websites() {
             <Globe class="w-8 h-8" />
           </div>
           <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">No websites yet</h3>
-          <p class="text-gray-500 dark:text-gray-400 text-sm mb-8">Add your first website to get a public API Key and install the comment widget.</p>
+          <p class="text-gray-500 dark:text-gray-400 text-sm mb-8">Add your first website to get an App ID and install the comment widget.</p>
           <Button onClick={() => isAddModalOpen.value = true}>
             Add Website
           </Button>
@@ -206,14 +206,14 @@ export function Websites() {
 
                   <div class="mt-8 space-y-3">
                     <div>
-                      <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-2">Public API Key</label>
+                      <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-2">App ID</label>
                       <div class="flex items-center gap-2 bg-gray-50 dark:bg-[#1f1f22] border border-gray-100 dark:border-gray-800 rounded-xl px-4 py-2.5 text-xs text-gray-600 dark:text-gray-300 font-mono select-all overflow-x-auto">
                         <Key class="w-4 h-4 shrink-0 text-gray-400" />
                         <span class="truncate">{site.publicApiKey}</span>
                         <button 
                           onClick={() => handleCopyKey(site.publicApiKey)}
                           class="ml-auto text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 shrink-0 transition-colors cursor-pointer bg-white dark:bg-[#27272a] p-1.5 rounded-md border border-gray-200 dark:border-gray-700 shadow-sm"
-                          title="Copy API Key"
+                          title="Copy App ID"
                         >
                           {copiedKey.value === site.publicApiKey ? (
                             <Check class="w-3.5 h-3.5 text-green-500" />
@@ -332,7 +332,7 @@ export function Websites() {
                       
                       handleCopyEmbed(`<!-- Diskus Comment Widget Embed -->
 <div id="diskus-thread"
-  data-api-key="${selectedSiteForEmbed.value.publicApiKey}"
+  data-app-id="${selectedSiteForEmbed.value.publicApiKey}"
   data-thread-key="YOUR_PAGE_SLUG"
   data-api-url="${apiUrl}">
 </div>
@@ -357,7 +357,7 @@ export function Websites() {
                 <pre class="bg-gray-900 text-gray-100 rounded-lg p-4 text-xs font-mono overflow-x-auto leading-relaxed border shadow-inner">
 {`<!-- Diskus Comment Widget Embed -->
 <div id="diskus-thread"
-  data-api-key="${selectedSiteForEmbed.value.publicApiKey}"
+  data-app-id="${selectedSiteForEmbed.value.publicApiKey}"
   data-thread-key="YOUR_PAGE_SLUG"
   data-api-url="${import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== 'http://localhost:3000/api/v1' ? import.meta.env.VITE_API_URL : `${window.location.origin}/api/v1`}">
 </div>

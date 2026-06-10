@@ -10,7 +10,7 @@ import styles from './index.css?inline';
 
   function getContainerSignature(el: HTMLElement): string {
     return [
-      el.getAttribute('data-api-key'),
+      el.getAttribute('data-app-id'),
       el.getAttribute('data-thread-key'),
       el.getAttribute('data-api-url'),
       el.getAttribute('data-title'),
@@ -19,7 +19,7 @@ import styles from './index.css?inline';
 
   function needsInit(el: HTMLElement): boolean {
     if (!el.isConnected) return false;
-    if (!el.getAttribute('data-api-key') || !el.getAttribute('data-thread-key')) return false;
+    if (!el.getAttribute('data-app-id') || !el.getAttribute('data-thread-key')) return false;
     const sig = getContainerSignature(el);
     if (el.dataset.diskusInit === sig && el.shadowRoot) return false;
     return true;
@@ -46,12 +46,12 @@ import styles from './index.css?inline';
     if (existing) return existing;
 
     const initPromise = (async () => {
-      const apiKey = rootElement.getAttribute('data-api-key');
+      const apiKey = rootElement.getAttribute('data-app-id');
       const threadKey = rootElement.getAttribute('data-thread-key');
       const apiUrl = rootElement.getAttribute('data-api-url') || 'http://localhost:3000/api/v1';
 
       if (!apiKey || !threadKey) {
-        console.error('Diskus Widget: Missing data-api-key or data-thread-key attributes.');
+        console.error('Diskus Widget: Missing data-app-id or data-thread-key attributes.');
         return;
       }
 
@@ -223,7 +223,7 @@ import styles from './index.css?inline';
         childList: true,
         subtree: true,
         attributes: true,
-        attributeFilter: ['data-thread-key', 'data-api-key', 'data-title', 'data-api-url'],
+        attributeFilter: ['data-thread-key', 'data-app-id', 'data-title', 'data-api-url'],
       });
     }
 
