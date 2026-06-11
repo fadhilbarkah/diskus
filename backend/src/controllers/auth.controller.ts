@@ -3,6 +3,12 @@ import { AuthService } from '../services/auth.service';
 import { signToken } from '../utils/jwt';
 
 export class AuthController {
+  static async setupStatus(c: Context) {
+    const userCount = await AuthService.getUserCount();
+    const allowRegistration = Bun.env.ALLOW_REGISTRATION === 'true';
+    return c.json({ setupRequired: userCount === 0 || allowRegistration });
+  }
+
   static async register(c: Context) {
     // Check if registration is allowed
     const allowRegistration = Bun.env.ALLOW_REGISTRATION === 'true';

@@ -42,6 +42,9 @@ export const api = {
   // Auth
   login: (email: string, password: string) => 
     fetchWithAuth('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
+  register: (email: string, password: string) => 
+    fetchWithAuth('/auth/register', { method: 'POST', body: JSON.stringify({ email, password }) }),
+  getSetupStatus: () => fetchWithAuth('/auth/setup-status'),
     
   // Admin
   getAnalytics: (siteId?: string | null) => fetchWithAuth(`/admin/analytics/summary${siteId ? `?siteId=${siteId}` : ''}`),

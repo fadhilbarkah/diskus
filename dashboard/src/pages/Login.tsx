@@ -1,4 +1,5 @@
-import { useSignal } from '@preact/signals';
+import { useSignal, useSignalEffect } from '@preact/signals';
+import { useEffect } from 'preact/hooks';
 import { api } from '../lib/api';
 import { setAuth } from '../lib/auth';
 import { Mail, Lock, LogIn } from 'lucide-preact';
@@ -9,14 +10,29 @@ export function Login() {
   const rememberMe = useSignal(false);
   const loading = useSignal(false);
   const error = useSignal('');
+  const isRegistering = useSignal(false);
+  const setupRequired = useSignal<boolean | null>(null);
 
-  const handleLogin = async (e: Event) => {
+  useEffect(() => {
+    api.getSetupStatus()
+      .then(res => {
+        setupRequired.value = res.setupRequired;
+        if (res.setupRequired) isRegistering.value = true;
+      })
+      .catch(() => {
+        setupRequired.value = false;
+      });
+  }, []);
+
+  const handleSubmit = async (e: Event) => {
     e.preventDefault();
     loading.value = true;
     error.value = '';
     
     try {
-      const data = await api.login(email.value, password.value);
+      const data = isRegistering.value 
+        ? await api.register(email.value, password.value)
+        : await api.login(email.value, password.value);
       setAuth(data.token, data.user);
       // authState.isLoggedIn becomes true -> App re-renders to Dashboard
     } catch (err: any) {
@@ -37,11 +53,11 @@ export function Login() {
             </div>
             <h2 class="text-center text-3xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight">Diskus</h2>
             <p class="mt-2 text-center text-[15px] text-gray-500 dark:text-gray-400">
-              Welcome back! Sign in to continue
+              {isRegistering.value ? 'Create your admin account' : 'Welcome back! Sign in to continue'}
             </p>
           </div>
 
-          <form class="space-y-6" onSubmit={handleLogin}>
+          <form class="space-y-6" onSubmit={handleSubmit}>
             {error.value && (
               <div class="bg-red-50 text-red-600 p-3 rounded-xl text-sm border border-red-100 text-center font-medium">
                 {error.value}
@@ -112,11 +128,26 @@ export function Login() {
                 ) : (
                   <>
                     <LogIn class="w-5 h-5" />
-                    Sign In
+                    {isRegistering.value ? 'Create Account' : 'Sign In'}
                   </>
                 )}
               </button>
             </div>
+            
+            {setupRequired.value && (
+              <div class="pt-4 text-center">
+                <button 
+                  type="button" 
+                  onClick={() => {
+                    isRegistering.value = !isRegistering.value;
+                    error.value = '';
+                  }}
+                  class="text-sm font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                >
+                  {isRegistering.value ? 'Already have an account? Sign In' : 'First time setup? Create Admin Account'}
+                </button>
+              </div>
+            )}
           </form>
         </div>
       </div>

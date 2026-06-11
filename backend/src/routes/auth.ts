@@ -5,6 +5,7 @@ import { AuthController } from '../controllers/auth.controller';
 import { rateLimitMiddleware } from '../middlewares/ratelimit';
 
 const authRoutes = new Hono();
+authRoutes.get('/setup-status', AuthController.setupStatus);
 
 authRoutes.post('/register',
   rateLimitMiddleware(5, 60 * 60 * 1000), // Max 5 registrations per IP per hour
