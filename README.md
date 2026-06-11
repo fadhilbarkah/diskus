@@ -68,7 +68,7 @@ Diskus operates as a monorepo containing three core packages:
 
 ## 🚀 One-Click Deploy to Railway
 
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/Rova33?referralCode=e_Cjfx&utm_medium=integration&utm_source=template&utm_campaign=generic)
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/new/template/diskus)
 
 Click the button above to instantly deploy both the Backend API and the Dashboard Frontend. All environment variables, volumes, and start commands are pre-configured in this official template.
 
