@@ -34,7 +34,13 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
     throw new Error(`Invalid JSON response: ${text.substring(0, 50)}... (${msg})`);
   }
   
-  if (!res.ok) throw new Error(data.error || 'API Error');
+  if (!res.ok) {
+    let errMsg = 'API Error';
+    if (typeof data.error === 'string') errMsg = data.error;
+    else if (data.error?.issues?.[0]?.message) errMsg = data.error.issues[0].message;
+    else if (data.message) errMsg = data.message;
+    throw new Error(errMsg);
+  }
   return data;
 }
 
