@@ -1,6 +1,8 @@
 import { authState, logout } from './auth';
 
-const API_BASE = '/api/v1';
+const API_BASE = (import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== 'http://localhost:3000/api/v1')
+  ? import.meta.env.VITE_API_URL
+  : '/api/v1';
 
 async function fetchWithAuth(url: string, options: RequestInit = {}) {
   const token = authState.token.value;
