@@ -68,20 +68,9 @@ Diskus operates as a monorepo containing three core packages:
 
 ## 🚀 One-Click Deploy to Railway
 
-[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new)
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/Rova33?referralCode=e_Cjfx&utm_medium=integration&utm_source=template&utm_campaign=generic)
 
-**Important Post-Deploy Steps on Railway:**
-Because Diskus is a monorepo, Railway will automatically detect and create 3 services (`backend`, `dashboard`, `widget`). Please adjust them as follows:
-
-1. **Delete** the `widget` service (you don't need it, the Frontend Dockerfile handles it).
-2. **Backend Service:**
-   - **Settings > Deploy > Custom Start Command**: `cd backend && bun run db:migrate && bun run src/index.ts`
-   - **Volumes**: Add a Volume mounted to `/app/data`
-   - **Variables**: Add `DATABASE_PATH=/app/data/sqlite.db` (so your data isn't lost on restart) and a random `JWT_SECRET`.
-3. **Dashboard Service (Frontend):**
-   - **Settings > Build > Builder**: Change to **Dockerfile**
-   - **Settings > Build > Dockerfile Path**: `frontend/Dockerfile`
-   - **Variables**: Add `PORT=80` and `VITE_API_URL=https://<your-backend-url>`
+Click the button above to instantly deploy both the Backend API and the Dashboard Frontend. All environment variables, volumes, and start commands are pre-configured in this official template.
 
 ## Production Deployment (Docker)
 
