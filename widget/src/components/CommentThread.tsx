@@ -5,6 +5,7 @@ import { Comment } from './DiskusWidget';
 import { widgetUser, globalShowAuthModal, globalAuthMode, globalAuthReason } from '../lib/auth';
 
 const activeMenuId = signal<string | null>(null);
+const activeReplyId = signal<string | null>(null);
 
 interface Props {
   comment: Comment;
@@ -19,7 +20,7 @@ interface Props {
 }
 
 export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, depth = 0, onDelete, onPin, requireLogin }: Props) {
-  const showReplyForm = useSignal(false);
+  const isReplying = activeReplyId.value === comment.id;
   const showMenu = activeMenuId.value === comment.id;
   const replies = repliesMap.get(comment.id) || [];
   
@@ -165,7 +166,7 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
             {!isDeleted && depth < 2 && (
               <>
                 <div class="w-px h-[14px] bg-gray-200 dark:bg-gray-700"></div>
-                <button onClick={() => showReplyForm.value = !showReplyForm.value} class="text-[14px] text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors">
+                <button onClick={() => activeReplyId.value = isReplying ? null : comment.id} class="text-[14px] text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors">
                   Reply
                 </button>
               </>
@@ -174,9 +175,9 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
         </div>
       </div>
 
-      {showReplyForm.value && (
+      {isReplying && (
         <div class="mt-4 mb-2 md:ml-14">
-          <CommentForm onSubmit={onReply} parentId={comment.id} onCancel={() => showReplyForm.value = false} apiUrl={apiUrl} requireLogin={requireLogin} />
+          <CommentForm onSubmit={onReply} parentId={comment.id} onCancel={() => activeReplyId.value = null} apiUrl={apiUrl} requireLogin={requireLogin} />
         </div>
       )}
 
