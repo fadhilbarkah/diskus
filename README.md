@@ -64,9 +64,24 @@ Diskus operates as a monorepo containing three core packages:
    bun dev
    ```
 
-> **Note:** If you ran the seed script, you can log in to the Dashboard using the initial default credentials:  
-> **Email:** `admin@blog.com`  
-> **Password:** `password123`
+> **Note:** When you open the Dashboard (`http://localhost:5173`) for the first time, you will be automatically prompted to create your initial Admin account. No manual seeding is required!
+
+## 🚀 One-Click Deploy to Railway
+
+[![Deploy on Railway](https://railway.app/button.svg)](https://railway.app/new)
+
+**Important Post-Deploy Steps on Railway:**
+Because Diskus is a monorepo, Railway will automatically detect and create 3 services (`backend`, `dashboard`, `widget`). Please adjust them as follows:
+
+1. **Delete** the `widget` service (you don't need it, the Frontend Dockerfile handles it).
+2. **Backend Service:**
+   - **Settings > Deploy > Custom Start Command**: `cd backend && bun run db:migrate && bun run src/index.ts`
+   - **Volumes**: Add a Volume mounted to `/app/data`
+   - **Variables**: Add `DATABASE_PATH=/app/data/sqlite.db` (so your data isn't lost on restart) and a random `JWT_SECRET`.
+3. **Dashboard Service (Frontend):**
+   - **Settings > Build > Builder**: Change to **Dockerfile**
+   - **Settings > Build > Dockerfile Path**: `frontend/Dockerfile`
+   - **Variables**: Add `PORT=80` and `VITE_API_URL=https://<your-backend-url>`
 
 ## Production Deployment (Docker)
 
@@ -85,11 +100,8 @@ Diskus is fully containerized for easy production deployment using Docker Compos
 
 > **Note:** The database uses a Docker Volume (`diskus-data`), so your comments will persist even if you restart the containers.
 
-### Manual Seeding in Production
-If your `.env` file does not have `SEED_DB=true`, or you want to populate the database with dummy data manually after the containers are running, you can execute the seed script inside the backend container:
-```bash
-docker-compose exec backend bun run src/db/seed.ts
-```
+### Initial Setup in Production
+Instead of manually seeding the database, simply open your frontend domain in the browser. You will be greeted with a "Create Admin Account" screen. **Register your account immediately** to secure your deployment, as the setup screen will permanently disappear once the first admin is created.
 
 ### Resetting the Production Database
 If you ever need to completely wipe your production database (e.g., to resolve severe migration conflicts or start fresh), you must destroy the Docker Named Volume. **WARNING: This will permanently delete all comments and user data.**
@@ -116,7 +128,7 @@ Paste the following HTML snippet into your target website, replacing the data at
      data-thread-key="your-unique-page-identifier"
      data-api-url="http://localhost:3000/api/v1">
 </div>
-<script src="http://localhost:5174/dist/embed.js" async defer></script>
+<script src="http://localhost:5173/widget/dist/embed.js" async defer></script>
 ```
 
 > **Note:** The `data-thread-key` should be unique per page (e.g., the article slug or ID) so that comments remain tied to their specific content.
