@@ -26,7 +26,10 @@ export class AuthController {
       return c.json({ error: 'Registration failed. Please try again or contact support.' }, 400);
     }
     const passwordHash = await AuthService.hashPassword(password);
-    const newUser = await AuthService.registerUser(email, passwordHash);
+    
+    // First user is always an admin. Subsequent users are 'user' unless otherwise specified.
+    const role = userCount === 0 ? 'admin' : 'user';
+    const newUser = await AuthService.registerUser(email, passwordHash, role);
     
     const token = await signToken({ userId: newUser.id, email: newUser.email, role: newUser.role, tokenVersion: newUser.tokenVersion });
     return c.json({ token, user: { id: newUser.id, email: newUser.email, role: newUser.role } });

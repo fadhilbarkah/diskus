@@ -10,11 +10,12 @@ export class AuthService {
     return await db.select().from(users).where(eq(users.email, email)).get();
   }
 
-  static async registerUser(email: string, passwordHash: string) {
+  static async registerUser(email: string, passwordHash: string, role: 'admin' | 'user' = 'user') {
     const [newUser] = await db.insert(users).values({ 
       id: crypto.randomUUID(), 
       email, 
-      passwordHash 
+      passwordHash,
+      role
     }).returning();
     return newUser;
   }
