@@ -110,12 +110,12 @@ export function useComments(apiUrl: string, apiKey: string, threadKey: string, t
         const data = await res.json();
         if (data.comment && data.comment.status === 'approved') {
           showNotification('Comment added successfully.', 'success');
+          const newComment = data.comment;
+          comments.value = [...comments.value, newComment];
+          totalCount.value += 1;
         } else {
           showNotification('Your comment is awaiting moderation.', 'success');
         }
-        const newComment = data.comment;
-        comments.value = [...comments.value, newComment];
-        totalCount.value += 1;
         return true;
       } else {
         const data = await res.json();

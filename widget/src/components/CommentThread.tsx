@@ -2,10 +2,7 @@ import { useSignal, signal } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
 import { CommentForm } from './CommentForm';
 import { Comment } from './DiskusWidget';
-import { widgetUser, globalShowAuthModal, globalAuthMode, globalAuthReason } from '../lib/auth';
-
-const activeMenuId = signal<string | null>(null);
-const activeReplyId = signal<string | null>(null);
+import { widgetUser, globalShowAuthModal, globalAuthMode, globalAuthReason, globalActiveMenuId, globalActiveReplyId } from '../lib/auth';
 
 interface Props {
   comment: Comment;
@@ -20,8 +17,8 @@ interface Props {
 }
 
 export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, depth = 0, onDelete, onPin, requireLogin }: Props) {
-  const isReplying = activeReplyId.value === comment.id;
-  const showMenu = activeMenuId.value === comment.id;
+  const isReplying = globalActiveReplyId.value === comment.id;
+  const showMenu = globalActiveMenuId.value === comment.id;
   const replies = repliesMap.get(comment.id) || [];
   
   // Local state for liking
@@ -39,8 +36,8 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
 
   useEffect(() => {
     const handleClickOutside = () => {
-      if (activeMenuId.value === comment.id) {
-        activeMenuId.value = null;
+      if (globalActiveMenuId.value === comment.id) {
+        globalActiveMenuId.value = null;
       }
     };
     if (showMenu) {
@@ -137,17 +134,17 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
           
           {widgetUser.value && !isDeleted && ((widgetUser.value.avatarSeed && widgetUser.value.avatarSeed === comment.avatarSeed) || widgetUser.value.role === 'admin' || widgetUser.value.role === 'user') && (
             <div class="absolute right-0 top-0">
-              <button onClick={(e) => { e.stopPropagation(); activeMenuId.value = showMenu ? null : comment.id; }} class="text-gray-400 hover:text-gray-600 outline-none">
+              <button onClick={(e) => { e.stopPropagation(); globalActiveMenuId.value = showMenu ? null : comment.id; }} class="text-gray-400 hover:text-gray-600 outline-none">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path></svg>
               </button>
               {showMenu && (
                 <div onClick={(e) => e.stopPropagation()} class="absolute right-0 mt-1 w-32 bg-white dark:bg-[#222] border border-gray-200 dark:border-gray-700 shadow-lg rounded-lg py-1 z-20 text-sm">
                   {(widgetUser.value.role === 'admin' || widgetUser.value.role === 'user') && depth === 0 && onPin && comment.status === 'approved' && (
-                    <button onClick={() => { activeMenuId.value = null; onPin(comment.id, !comment.isPinned); }} class="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium transition-colors">
+                    <button onClick={() => { globalActiveMenuId.value = null; onPin(comment.id, !comment.isPinned); }} class="w-full text-left px-4 py-2 hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium transition-colors">
                       {comment.isPinned ? 'Unpin' : 'Pin to top'}
                     </button>
                   )}
-                  <button onClick={() => { activeMenuId.value = null; onDelete(comment.id); }} class="w-full text-left px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 font-medium transition-colors">Delete</button>
+                  <button onClick={() => { globalActiveMenuId.value = null; onDelete(comment.id); }} class="w-full text-left px-4 py-2 hover:bg-red-50 dark:hover:bg-red-900/20 text-red-600 dark:text-red-400 font-medium transition-colors">Delete</button>
                 </div>
               )}
             </div>
@@ -166,7 +163,7 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
             {!isDeleted && depth < 2 && (
               <>
                 <div class="w-px h-[14px] bg-gray-200 dark:bg-gray-700"></div>
-                <button onClick={() => activeReplyId.value = isReplying ? null : comment.id} class="text-[14px] text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors">
+                <button onClick={() => globalActiveReplyId.value = isReplying ? null : comment.id} class="text-[14px] text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors">
                   Reply
                 </button>
               </>
@@ -177,7 +174,7 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
 
       {isReplying && (
         <div class="mt-4 mb-2 md:ml-14">
-          <CommentForm onSubmit={onReply} parentId={comment.id} onCancel={() => activeReplyId.value = null} apiUrl={apiUrl} requireLogin={requireLogin} />
+          <CommentForm onSubmit={onReply} parentId={comment.id} onCancel={() => globalActiveReplyId.value = null} apiUrl={apiUrl} requireLogin={requireLogin} />
         </div>
       )}
 
