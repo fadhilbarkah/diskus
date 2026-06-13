@@ -48,8 +48,8 @@ export function Login() {
         <div class="bg-white dark:bg-[#18181b] py-10 px-6 sm:py-12 sm:px-8 border border-gray-100 dark:border-gray-800 rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)]">
           
           <div class="flex flex-col items-center mb-10">
-            <div class="w-14 h-14 rounded-2xl bg-blue-50/80 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-900/50 flex items-center justify-center mb-5">
-              <span class="text-2xl font-bold text-blue-600 dark:text-blue-400">D</span>
+            <div class="w-14 h-14 flex items-center justify-center mb-5">
+              <img src="/favicon.svg" alt="Diskus Logo" class="w-14 h-14" />
             </div>
             <h2 class="text-center text-3xl font-extrabold text-gray-900 dark:text-gray-100 tracking-tight">Diskus</h2>
             <p class="mt-2 text-center text-[15px] text-gray-500 dark:text-gray-400">

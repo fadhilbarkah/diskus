@@ -34,8 +34,8 @@ export function TopHeader({ activePage, isCollapsed }: { activePage: Signal<stri
     <header class={`fixed top-0 right-0 h-14 bg-white dark:bg-[#18181b] border-b border-gray-100 dark:border-gray-800 z-40 flex items-center transition-all duration-300 ${isCollapsed.value ? 'left-0 md:left-16' : 'left-0 md:left-64'}`}>
       {/* Mobile Logo */}
       <div class="md:hidden flex items-center px-4 h-full">
-        <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-base shrink-0">
-          D
+        <div class="w-8 h-8 flex items-center justify-center shrink-0">
+          <img src="/favicon.svg" alt="Diskus Logo" class="w-8 h-8" />
         </div>
       </div>
 

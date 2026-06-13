@@ -9,15 +9,15 @@ export function Sidebar({ activePage, isCollapsed }: { activePage: Signal<string
         {/* Logo and Collapse Toggle */}
         {isCollapsed.value ? (
           <div class="h-14 flex items-center justify-center border-b border-gray-100 dark:border-gray-800 shrink-0">
-            <div onClick={() => isCollapsed.value = false} class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-base shrink-0 cursor-pointer hover:bg-blue-700 transition-colors" title="Expand Sidebar">
-              D
+            <div onClick={() => isCollapsed.value = false} class="w-8 h-8 flex items-center justify-center shrink-0 cursor-pointer transition-colors" title="Expand Sidebar">
+              <img src="/favicon.svg" alt="Diskus Logo" class="w-8 h-8" />
             </div>
           </div>
         ) : (
           <div class="h-14 flex items-center justify-between px-4 border-b border-gray-100 dark:border-gray-800 shrink-0">
             <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center font-bold text-base shrink-0">
-                D
+              <div class="w-8 h-8 flex items-center justify-center shrink-0">
+                <img src="/favicon.svg" alt="Diskus Logo" class="w-8 h-8" />
               </div>
               <span class="font-bold text-[16px] text-gray-900 dark:text-gray-100 tracking-tight">
                 Diskus
