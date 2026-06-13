@@ -10,7 +10,8 @@
   "scripts": {
     "dev": "cd backend && bun run dev & cd dashboard && bun run dev & cd widget && bun run dev",
     "build:widget": "cd widget && bun run build",
-    "build:dashboard": "cd dashboard && bun run build"
+    "build:dashboard": "cd dashboard && bun run build",
+    "reset-password": "cd backend && bun run reset-password"
   },
   "dependencies": {
     "esbuild": "^0.28.0",

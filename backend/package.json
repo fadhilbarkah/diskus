@@ -6,7 +6,8 @@
     "dev": "bun --watch src/index.ts",
     "db:push": "drizzle-kit push",
     "db:migrate": "bun run src/db/migrate.ts",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "reset-password": "bun run src/scripts/reset-password.ts"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.8.0",

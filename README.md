@@ -130,6 +130,18 @@ Paste the following HTML snippet into your target website, replacing the data at
 - **Honeypot Traps:** The widget form includes an invisible field to catch spam bots automatically.
 - **Moderation Tools:** Administrators can approve, delete, or mark comments as spam directly from the dashboard.
 
+## Admin Troubleshooting
+
+### Resetting Admin Password (CLI)
+If you are locked out of the dashboard, you can reset your password securely via the command line. This requires direct access to your server terminal or Railway console.
+
+1. Navigate to the `backend` directory (if not already there).
+2. Run the reset-password script with your email address:
+   ```bash
+   bun run reset-password admin@example.com
+   ```
+3. Follow the on-screen prompt to confirm. The system will generate a secure temporary password and print it to the terminal. Please log in immediately and change this temporary password.
+
 ## Contributing
 
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change. 
