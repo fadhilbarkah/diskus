@@ -33,6 +33,10 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
   }
   
   if (!res.ok) {
+    if (res.status === 403 && data?.demo) {
+      const { showToast } = await import('../components/ui/Toast');
+      showToast("This action is disabled in demo mode");
+    }
     let errMsg = 'API Error';
     if (typeof data.error === 'string') errMsg = data.error;
     else if (data.error?.issues?.[0]?.message) errMsg = data.error.issues[0].message;
