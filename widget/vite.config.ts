@@ -22,7 +22,18 @@ export default defineConfig({
     },
     sourcemap: true,
     cssCodeSplit: false,
-    minify: 'esbuild',
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        passes: 3,
+        drop_console: true,
+        drop_debugger: true,
+        pure_getters: true,
+      },
+      format: {
+        comments: false,
+      }
+    },
   },
   define: {
     'process.env.NODE_ENV': '"production"',
