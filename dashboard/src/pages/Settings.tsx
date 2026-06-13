@@ -334,24 +334,20 @@ export function Settings() {
                 {selectedSiteId.value ? "These actions will only apply to the currently selected website." : "Please select a website from the top header to enable data management."}
               </div>
 
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-auto pt-4">
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-auto pt-4">
                 <Button onClick={handleExport} disabled={!selectedSiteId.value || exporting.value} type="button" fullWidth style={{ backgroundColor: 'transparent', color: 'currentColor', border: '1px solid currentColor' }} class="text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700">
                   {exporting.value ? 'Exporting...' : 'Export Data (JSON)'}
                 </Button>
 
                 <div class="relative">
-                  <input type="file" accept=".json" onChange={handleImport} disabled={!selectedSiteId.value || importing.value} class="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed" />
+                  <input title="Import JSON" type="file" accept=".json" onChange={handleImport} disabled={!selectedSiteId.value || importing.value} class="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed" />
                   <Button type="button" disabled={!selectedSiteId.value || importing.value} fullWidth>
-                    {importing.value ? 'Importing...' : 'Import Data'}
+                    {importing.value ? 'Importing...' : 'Import Data (JSON)'}
                   </Button>
                 </div>
-              </div>
 
-              <div class="pt-4 border-t border-gray-100 dark:border-gray-800">
-                <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Import from Disqus</h4>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Migrating from Disqus? Upload your Disqus XML export file to seamlessly transfer all your threads and comments.</p>
-                <div class="relative w-full sm:w-1/2">
-                  <input type="file" accept=".xml,.gz,.xml.gz" onChange={async (e) => {
+                <div class="relative">
+                  <input title="Import Disqus XML" type="file" accept=".xml,.gz,.xml.gz" onChange={async (e) => {
                     if (!selectedSiteId.value) return;
                     const file = (e.target as HTMLInputElement).files?.[0];
                     if (!file) return;
@@ -370,7 +366,7 @@ export function Settings() {
                     }
                   }} disabled={!selectedSiteId.value || importing.value} class="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed" />
                   <Button type="button" disabled={!selectedSiteId.value || importing.value} fullWidth style={{ backgroundColor: '#2e9fff' }} class="text-white hover:bg-[#1d82db]">
-                    {importing.value ? 'Importing...' : 'Import from Disqus (XML)'}
+                    {importing.value ? 'Importing...' : 'Import from Disqus'}
                   </Button>
                 </div>
               </div>
