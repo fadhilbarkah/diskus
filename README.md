@@ -10,7 +10,7 @@ A lightweight, self-hosted comments system built for modern web applications. Di
 
 ## Features
 
-- **Ultra-lightweight Widget:** The embed script is ~2KB, and the total widget size is ~22KB (gzipped), ensuring zero impact on your Core Web Vitals.
+- **Ultra-lightweight Widget:** The entire widget is bundled into a single lightweight script (`embed.js`), with a total footprint of ~24.1KB (gzipped), ensuring zero impact on your Core Web Vitals.
 - **100% CSS Isolation:** Runs within a native `Shadow DOM`, ensuring your website's CSS never conflicts with the widget's design and vice-versa, without the heavy performance overhead of traditional iframes.
 - **Multi-tenant Architecture:** Manage comments across multiple domains and websites from a single centralized dashboard.
 - **Built-in Anti-Spam:** Native rate-limiting and invisible honeypot traps to prevent automated bot registrations without requiring intrusive CAPTCHAs.
@@ -25,7 +25,7 @@ Diskus operates as a monorepo containing three core packages:
 
 1. **Backend (`/backend`)**: A REST API built with Hono and running on Bun. Uses SQLite via Drizzle ORM for data persistence.
 2. **Dashboard (`/dashboard`)**: A Preact-based Single Page Application (SPA) for administrators to manage sites, moderate comments, and view users.
-3. **Widget (`/widget`)**: A highly optimized Preact component. The lightweight embed script (`embed.js`) dynamically injects the widget using a **native Shadow DOM**, guaranteeing **100% CSS isolation** and zero style bleeding with the host website, while maintaining a featherlight ~23KB (gzipped) footprint containing full Tailwind CSS v4 logic.
+3. **Widget (`/widget`)**: A highly optimized Preact component. The lightweight embed script (`embed.js`) dynamically injects the widget using a **native Shadow DOM**, guaranteeing **100% CSS isolation** and zero style bleeding with the host website, while maintaining a featherlight ~24.1KB (gzipped) footprint containing full Tailwind CSS v4 logic.
 
 ## Quick Start
 
