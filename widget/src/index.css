@@ -40,3 +40,75 @@
   white-space: pre;
   word-break: normal;
 }
+
+/* Markdown Elements Styling */
+.diskus-prose ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.diskus-prose ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.diskus-prose li {
+  margin-bottom: 0.25rem;
+}
+.diskus-prose ul ul, .diskus-prose ol ol, .diskus-prose ul ol, .diskus-prose ol ul {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+.diskus-prose blockquote {
+  border-left: 4px solid #e5e7eb;
+  padding-left: 1rem;
+  color: #6b7280;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-style: italic;
+}
+.dark .diskus-prose blockquote {
+  border-left-color: #4b5563;
+  color: #9ca3af;
+}
+.diskus-prose a {
+  color: #2563eb;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
+}
+.dark .diskus-prose a {
+  color: #60a5fa;
+}
+.diskus-prose a:hover {
+  color: #1d4ed8;
+}
+.dark .diskus-prose a:hover {
+  color: #93c5fd;
+}
+.diskus-prose h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+.diskus-prose h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+.diskus-prose h3 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+.diskus-prose strong, .diskus-prose b {
+  font-weight: 600;
+}
+.diskus-prose em, .diskus-prose i {
+  font-style: italic;
+}
