@@ -20,3 +20,23 @@
 .diskus-prose p:last-child {
   margin-bottom: 0;
 }
+.diskus-prose pre {
+  overflow-x: auto;
+  max-width: 100%;
+  padding: 0.75rem;
+  background-color: rgba(0, 0, 0, 0.05);
+  border-radius: 0.375rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+.dark .diskus-prose pre {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+.diskus-prose code {
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+.diskus-prose pre code {
+  white-space: pre;
+  word-break: normal;
+}
