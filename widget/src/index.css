@@ -35,10 +35,24 @@
 .diskus-prose code {
   word-break: break-word;
   white-space: pre-wrap;
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+}
+.dark .diskus-prose code {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 .diskus-prose pre code {
   white-space: pre;
   word-break: normal;
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
+.dark .diskus-prose pre code {
+  background-color: transparent;
 }
 
 /* Markdown Elements Styling */
@@ -106,9 +120,65 @@
   margin-top: 1rem;
   margin-bottom: 0.5rem;
 }
+.diskus-prose h4 {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+.diskus-prose h5 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+}
+.diskus-prose h6 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.5rem;
+  color: #6b7280;
+}
+.dark .diskus-prose h6 {
+  color: #9ca3af;
+}
 .diskus-prose strong, .diskus-prose b {
   font-weight: 600;
 }
 .diskus-prose em, .diskus-prose i {
   font-style: italic;
+}
+.diskus-prose del {
+  text-decoration: line-through;
+}
+.diskus-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.875em;
+}
+.diskus-prose th, .diskus-prose td {
+  border: 1px solid #e5e7eb;
+  padding: 0.5rem;
+  text-align: left;
+}
+.dark .diskus-prose th, .dark .diskus-prose td {
+  border-color: #4b5563;
+}
+.diskus-prose th {
+  background-color: rgba(0, 0, 0, 0.02);
+  font-weight: 600;
+}
+.dark .diskus-prose th {
+  background-color: rgba(255, 255, 255, 0.02);
+}
+.diskus-prose hr {
+  border: 0;
+  border-top: 1px solid #e5e7eb;
+  margin-top: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+.dark .diskus-prose hr {
+  border-top-color: #4b5563;
 }
