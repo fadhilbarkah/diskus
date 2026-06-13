@@ -7,6 +7,4 @@ export const hostTheme = signal<HostTheme>('light');
 
 export function applyHostTheme(theme: HostTheme) {
   hostTheme.value = theme;
-  document.documentElement.classList.toggle('dark', theme === 'dark');
-  document.documentElement.classList.toggle('light', theme === 'light');
 }
