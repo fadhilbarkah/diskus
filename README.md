@@ -6,6 +6,8 @@
 
 A lightweight, self-hosted comments system built for modern web applications. Diskus is designed to be a fast, privacy-respecting alternative to Disqus and other bloated third-party commenting services.
 
+**[📖 Read the documentation & try the live demo](https://diskus.pages.dev/)**
+
 ## Features
 
 - **Ultra-lightweight Widget:** The embed script is ~2KB, and the total widget size is ~22KB (gzipped), ensuring zero impact on your Core Web Vitals.
