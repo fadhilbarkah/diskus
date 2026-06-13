@@ -197,7 +197,16 @@ export class AdminController {
     const file = body['file'] as File;
     if (!file) return c.json({ error: 'XML file is required' }, 400);
 
-    const xmlString = await file.text();
+    let xmlString = '';
+    if (file.name.endsWith('.gz')) {
+      const { gunzipSync } = await import('zlib');
+      const buffer = await file.arrayBuffer();
+      const decompressed = gunzipSync(Buffer.from(buffer));
+      xmlString = decompressed.toString('utf-8');
+    } else {
+      xmlString = await file.text();
+    }
+
     const success = await AdminService.importDisqusData(user.userId, user.role, siteId, xmlString);
     if (!success) return c.json({ error: 'Failed to parse or import Disqus XML' }, 400);
     return c.json({ success: true });

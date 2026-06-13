@@ -351,7 +351,7 @@ export function Settings() {
                 <h4 class="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">Import from Disqus</h4>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mb-4">Migrating from Disqus? Upload your Disqus XML export file to seamlessly transfer all your threads and comments.</p>
                 <div class="relative w-full sm:w-1/2">
-                  <input type="file" accept=".xml" onChange={async (e) => {
+                  <input type="file" accept=".xml,.gz,.xml.gz" onChange={async (e) => {
                     if (!selectedSiteId.value) return;
                     const file = (e.target as HTMLInputElement).files?.[0];
                     if (!file) return;
