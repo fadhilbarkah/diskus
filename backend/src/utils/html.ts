@@ -4,7 +4,10 @@ import { marked } from 'marked';
 DOMPurify.addHook('afterSanitizeAttributes', function(node) {
   if (node.tagName === 'A') {
     node.setAttribute('target', '_blank');
-    node.setAttribute('rel', 'noopener noreferrer');
+    node.setAttribute('rel', 'noopener noreferrer nofollow');
+  }
+  if (node.tagName === 'IMG') {
+    node.setAttribute('loading', 'lazy');
   }
 });
 
