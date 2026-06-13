@@ -16,6 +16,7 @@ app.use('/api/v1/widget/*', widgetCorsMiddleware);
 // Admin & auth routes: restricted to dashboard origin (configurable via DASHBOARD_ORIGIN env var)
 app.use('/api/v1/admin/*', adminCorsMiddleware);
 app.use('/api/v1/auth/*', adminCorsMiddleware);
+app.use('/api/v1/demo', adminCorsMiddleware);
 
 // Global error handler — prevents stack trace leaks in production
 app.onError((err, c) => {
