@@ -40,3 +40,4 @@ body {
 .dark .diskus-prose th { background-color: rgba(255, 255, 255, 0.02); }
 .diskus-prose hr { border: 0; border-top: 1px solid #e5e7eb; margin-top: 1.5rem; margin-bottom: 1.5rem; }
 .dark .diskus-prose hr { border-top-color: #4b5563; }
+.diskus-prose img { max-width: 100%; height: auto; border-radius: 0.5rem; margin-top: 1rem; margin-bottom: 1rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); }
