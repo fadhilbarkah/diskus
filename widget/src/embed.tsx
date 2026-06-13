@@ -82,20 +82,46 @@ import styles from './index.css?inline';
 
       const getHostTheme = (): 'light' | 'dark' => {
         const html = document.documentElement;
-        const body = document.body;
+        const body = document.body || html;
 
-        if (html.classList.contains('dark') || body?.classList.contains('dark')) return 'dark';
-        if (html.classList.contains('light') || body?.classList.contains('light')) return 'light';
+        // 1. Check explicit container theme override (if developer wants to force a theme)
+        const forcedTheme = rootElement.getAttribute('data-theme');
+        if (forcedTheme === 'dark' || forcedTheme === 'light') return forcedTheme;
 
+        // 2. Check standard theme classes
+        if (html.classList.contains('dark') || body.classList.contains('dark')) return 'dark';
+        if (html.classList.contains('light') || body.classList.contains('light')) return 'light';
+
+        // 3. Check data-theme attributes
         const htmlTheme = html.getAttribute('data-theme');
-        const bodyTheme = body?.getAttribute('data-theme');
+        const bodyTheme = body.getAttribute('data-theme');
         if (htmlTheme === 'dark' || bodyTheme === 'dark') return 'dark';
         if (htmlTheme === 'light' || bodyTheme === 'light') return 'light';
 
+        // 4. Check computed color scheme
         const colorScheme = getComputedStyle(html).colorScheme;
         if (colorScheme === 'dark') return 'dark';
         if (colorScheme === 'light') return 'light';
 
+        // 5. Bulletproof fallback: Check actual background color brightness
+        try {
+          let bg = getComputedStyle(body).backgroundColor;
+          if (bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent') {
+            bg = getComputedStyle(html).backgroundColor;
+          }
+          if (bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') {
+            const match = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+            if (match) {
+              const r = parseInt(match[1]);
+              const g = parseInt(match[2]);
+              const b = parseInt(match[3]);
+              const brightness = Math.sqrt(0.299 * r * r + 0.587 * g * g + 0.114 * b * b);
+              return brightness > 127.5 ? 'light' : 'dark';
+            }
+          }
+        } catch (e) {}
+
+        // 6. Last resort: System preference
         if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) return 'dark';
         return 'light';
       };
