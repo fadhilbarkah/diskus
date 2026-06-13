@@ -77,6 +77,7 @@ export const api = {
   // Data Management
   exportComments: (siteId: string) => fetchWithAuth(`/admin/export/${siteId}`),
   importComments: (siteId: string, data: any) => fetchWithAuth(`/admin/import/${siteId}`, { method: 'POST', body: JSON.stringify(data) }),
+  importDisqusComments: (siteId: string, formData: FormData) => fetchWithAuth(`/admin/import-disqus/${siteId}`, { method: 'POST', body: formData }),
 
   getUsers: () => fetchWithAuth('/admin/users'),
   deleteUser: (id: string) => fetchWithAuth(`/admin/users/${id}`, { method: 'DELETE' }),

@@ -188,6 +188,21 @@ export class AdminController {
     return c.json({ success: true });
   }
 
+  static async importDisqusData(c: Context<{ Variables: AuthVariables }>) {
+    const user = c.get('user')!;
+    const siteId = c.req.param('siteId');
+    if (!siteId) return c.json({ error: 'Site ID is required' }, 400);
+
+    const body = await c.req.parseBody();
+    const file = body['file'] as File;
+    if (!file) return c.json({ error: 'XML file is required' }, 400);
+
+    const xmlString = await file.text();
+    const success = await AdminService.importDisqusData(user.userId, user.role, siteId, xmlString);
+    if (!success) return c.json({ error: 'Failed to parse or import Disqus XML' }, 400);
+    return c.json({ success: true });
+  }
+
   static async getWidgetUsers(c: Context<{ Variables: AuthVariables }>) {
     const user = c.get('user')!;
     // Only admins can view the full widget users list

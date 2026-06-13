@@ -254,6 +254,141 @@ export class AdminService {
     return true;
   }
 
+  static async importDisqusData(userId: string, role: string, siteId: string, xmlString: string) {
+    if (role !== 'admin') {
+      const site = await db.select().from(sites).where(and(eq(sites.id, siteId), eq(sites.userId, userId))).get();
+      if (!site) return false;
+    }
+
+    const { XMLParser } = await import('fast-xml-parser');
+    const parser = new XMLParser({
+      ignoreAttributes: false,
+      attributeNamePrefix: "@_"
+    });
+    const parsed = parser.parse(xmlString);
+    if (!parsed || !parsed.disqus) return false;
+
+    // Normalize threads and posts to arrays
+    let disqusThreads = parsed.disqus.thread || [];
+    let disqusPosts = parsed.disqus.post || [];
+    if (!Array.isArray(disqusThreads)) disqusThreads = [disqusThreads];
+    if (!Array.isArray(disqusPosts)) disqusPosts = [disqusPosts];
+
+    // Build internal mapping for threads
+    const dsqThreadIdMap: Record<string, string> = {}; // Disqus internal @dsq:id -> Our DB ID
+    for (const t of disqusThreads) {
+      const dsqId = t['@_dsq:id'];
+      // Use <id> if available, fallback to <link> or <title>
+      const threadKey = t.id || t.link || t.title || `disqus-thread-${dsqId}`;
+      const title = t.title || threadKey;
+      const createdAt = t.createdAt ? new Date(t.createdAt) : new Date();
+
+      const existing = await db.select().from(threads).where(and(eq(threads.siteId, siteId), eq(threads.threadKey, threadKey))).get();
+      if (!existing) {
+        const newThreadId = crypto.randomUUID();
+        await db.insert(threads).values({
+          id: newThreadId,
+          siteId: siteId,
+          threadKey,
+          title,
+          createdAt
+        });
+        dsqThreadIdMap[dsqId] = newThreadId;
+      } else {
+        dsqThreadIdMap[dsqId] = existing.id;
+      }
+    }
+
+    // Process posts
+    const dsqPostIdMap: Record<string, string> = {}; // Disqus internal @dsq:id -> Our DB ID
+    
+    // Sort posts chronologically to ensure parents are processed before children
+    disqusPosts.sort((a: any, b: any) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateA - dateB;
+    });
+
+    for (const p of disqusPosts) {
+      const dsqId = p['@_dsq:id'];
+      
+      // Thread ID resolution
+      let threadDsqId = p.thread?.['@_dsq:id'];
+      // Sometimes <thread> is just the text content if not using attribute
+      if (!threadDsqId && typeof p.thread === 'string') {
+        // Need to match thread by the text node which is the <id> in thread
+        const matchedThread = disqusThreads.find((t: any) => t.id === p.thread);
+        if (matchedThread) {
+          threadDsqId = matchedThread['@_dsq:id'];
+        }
+      } else if (!threadDsqId && p.thread && p.thread['#text']) {
+        const matchedThread = disqusThreads.find((t: any) => t.id === p.thread['#text']);
+        if (matchedThread) {
+          threadDsqId = matchedThread['@_dsq:id'];
+        }
+      }
+
+      if (!threadDsqId) continue; // Skip orphan posts
+      const targetThreadId = dsqThreadIdMap[threadDsqId];
+      if (!targetThreadId) continue;
+
+      // Status
+      let status: 'pending' | 'approved' | 'spam' | 'trash' = 'approved';
+      if (p.isSpam === true || p.isSpam === 'true') status = 'spam';
+      if (p.isDeleted === true || p.isDeleted === 'true') status = 'trash';
+
+      // Author Info
+      const authorName = p.author?.name || 'Anonymous';
+      const authorUsername = p.author?.username || 'anonymous';
+      // Disqus XML may omit emails for privacy, fallback to a dummy email
+      const authorEmail = p.author?.email || `${authorUsername}@guest.disqus.com`;
+
+      // Content (Disqus message is HTML)
+      const rawContent = p.message || '';
+      const safeHtmlContent = sanitizeHtml(rawContent);
+
+      // Parent ID
+      let parentDbId = null;
+      if (p.parent) {
+        const parentDsqId = typeof p.parent === 'string' ? p.parent : p.parent['@_dsq:id'];
+        if (parentDsqId && dsqPostIdMap[parentDsqId]) {
+          parentDbId = dsqPostIdMap[parentDsqId];
+        }
+      }
+
+      const createdAt = p.createdAt ? new Date(p.createdAt) : new Date();
+
+      // Check if comment exists to prevent duplicate imports
+      const existing = await db.select().from(comments)
+        .where(and(
+          eq(comments.threadId, targetThreadId),
+          eq(comments.authorEmail, authorEmail),
+          eq(comments.content, rawContent)
+        )).get();
+
+      if (!existing) {
+        const newCommentId = crypto.randomUUID();
+        dsqPostIdMap[dsqId] = newCommentId;
+
+        await db.insert(comments).values({
+          id: newCommentId,
+          threadId: targetThreadId,
+          parentId: parentDbId,
+          authorName,
+          authorEmail,
+          content: rawContent, // Store raw HTML in content since it's an import
+          htmlContent: safeHtmlContent,
+          status,
+          likesCount: 0,
+          createdAt
+        });
+      } else {
+        dsqPostIdMap[dsqId] = existing.id;
+      }
+    }
+    return true;
+  }
+
   static async togglePinComment(id: string, isPinned: boolean) {
     await db.update(comments)
       .set({ isPinned })

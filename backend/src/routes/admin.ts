@@ -62,6 +62,9 @@ adminRoutes.post('/import/:siteId', zValidator('json', z.object({
   })).max(10000).optional() 
 })), AdminController.importData);
 
+adminRoutes.post('/import-disqus/:siteId', AdminController.importDisqusData);
+
+
 adminRoutes.get('/users', AdminController.getWidgetUsers);
 adminRoutes.delete('/users/:id', AdminController.deleteWidgetUser);
 
