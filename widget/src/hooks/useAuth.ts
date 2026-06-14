@@ -3,7 +3,7 @@ import { useEffect } from 'preact/hooks';
 import { widgetToken, widgetUser, setWidgetAuth, logoutWidget, globalGuestName, globalGuestEmail, setGuestAuth, clearGuestAuth, globalIsGuestReady } from '../lib/auth';
 
 export function useAuth(apiUrl: string, requireLogin: boolean) {
-  const authMode = useSignal<'guest' | 'login' | 'register'>(requireLogin ? 'login' : 'guest');
+  const authMode = useSignal<'guest' | 'login' | 'register' | 'forgot_password' | 'reset_password'>(requireLogin ? 'login' : 'guest');
   const authError = useSignal('');
   
   const saveInfo = useSignal(true);
@@ -38,7 +38,7 @@ export function useAuth(apiUrl: string, requireLogin: boolean) {
       const res = await fetch(`${apiUrl}/widget/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, name, password, _diskus_trap: trap })
+        body: JSON.stringify({ email, name, password, _diskus_trap: trap, origin_url: window.location.href })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -62,6 +62,56 @@ export function useAuth(apiUrl: string, requireLogin: boolean) {
     }
   };
 
+  const forgotPassword = async (email: string): Promise<boolean> => {
+    authError.value = '';
+    try {
+      const res = await fetch(`${apiUrl}/widget/auth/forgot-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, origin_url: window.location.href })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      return true;
+    } catch (err: any) {
+      authError.value = err.message;
+      return false;
+    }
+  };
+
+  const resetPassword = async (token: string, newPassword: string): Promise<boolean> => {
+    authError.value = '';
+    try {
+      const res = await fetch(`${apiUrl}/widget/auth/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, newPassword })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      return true;
+    } catch (err: any) {
+      authError.value = err.message;
+      return false;
+    }
+  };
+
+  const resendVerification = async (): Promise<boolean> => {
+    try {
+      const res = await fetch(`${apiUrl}/widget/auth/resend-verification`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${widgetToken.value}`
+        },
+        body: JSON.stringify({ origin_url: window.location.href })
+      });
+      return res.ok;
+    } catch {
+      return false;
+    }
+  };
+
   return {
     authMode,
     authError,
@@ -73,6 +123,9 @@ export function useAuth(apiUrl: string, requireLogin: boolean) {
     login,
     register,
     logout: logoutWidget,
-    handleGuestSubmit
+    handleGuestSubmit,
+    forgotPassword,
+    resetPassword,
+    resendVerification
   };
 }

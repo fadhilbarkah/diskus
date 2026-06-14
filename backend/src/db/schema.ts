@@ -8,8 +8,6 @@ export const users = sqliteTable('users', {
   passwordHash: text('password_hash').notNull(),
   role: text('role', { enum: ['admin', 'user'] }).default('user').notNull(),
   tokenVersion: integer('token_version').default(0).notNull(),
-  resendApiKey: text('resend_api_key'),
-  resendSenderEmail: text('resend_sender_email'),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
 });
 
@@ -72,5 +70,9 @@ export const widgetUsers = sqliteTable('widget_users', {
   email: text('email').notNull().unique(),
   name: text('name').notNull(),
   passwordHash: text('password_hash').notNull(),
+  isVerified: integer('is_verified', { mode: 'boolean' }).default(false).notNull(),
+  verificationToken: text('verification_token'),
+  resetPasswordToken: text('reset_password_token'),
+  resetPasswordExpires: integer('reset_password_expires', { mode: 'timestamp' }),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
 });

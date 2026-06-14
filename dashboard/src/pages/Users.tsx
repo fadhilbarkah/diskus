@@ -84,6 +84,7 @@ export function Users() {
               <thead class="bg-gray-50/50 dark:bg-[#1f1f22] text-xs uppercase font-semibold text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-800">
                 <tr>
                   <th class="px-6 py-4">User</th>
+                  <th class="px-6 py-4">Status</th>
                   <th class="px-6 py-4">Joined</th>
                   <th class="px-6 py-4 text-right">Actions</th>
                 </tr>
@@ -101,6 +102,17 @@ export function Users() {
                           <div class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{user.email}</div>
                         </div>
                       </div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                      {user.isVerified ? (
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
+                          Verified
+                        </span>
+                      ) : (
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-400">
+                          Unverified
+                        </span>
+                      )}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-gray-500 dark:text-gray-400 font-medium">
                       {new Date(user.createdAt).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}

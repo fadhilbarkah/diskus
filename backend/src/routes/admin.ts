@@ -1,6 +1,6 @@
 import { Hono } from 'hono';
 import { z } from 'zod';
-import { zValidator } from '@hono/zod-validator';
+import { validate } from '../utils/validator';
 import { authMiddleware, AuthVariables } from '../middlewares/auth';
 import { AdminController } from '../controllers/admin.controller';
 
@@ -9,9 +9,9 @@ const adminRoutes = new Hono<{ Variables: AuthVariables }>();
 adminRoutes.use('*', authMiddleware);
 
 adminRoutes.get('/sites', AdminController.getSites);
-adminRoutes.post('/sites', zValidator('json', z.object({ domain: z.string().min(3).max(255) })), AdminController.createSite);
+adminRoutes.post('/sites', validate('json', z.object({ domain: z.string().min(3).max(255) })), AdminController.createSite);
 adminRoutes.delete('/sites/:id', AdminController.deleteSite);
-adminRoutes.patch('/sites/:id', zValidator('json', z.object({ 
+adminRoutes.patch('/sites/:id', validate('json', z.object({ 
   requireLogin: z.boolean().optional(), 
   enableEmail: z.boolean().optional(),
   commentsLimit: z.number().min(1).max(100).optional(),
@@ -21,27 +21,25 @@ adminRoutes.patch('/sites/:id', zValidator('json', z.object({
 adminRoutes.get('/analytics/summary', AdminController.getAnalyticsSummary);
 adminRoutes.get('/comments', AdminController.getComments);
 
-adminRoutes.patch('/comments/bulk', zValidator('json', z.object({ 
+adminRoutes.patch('/comments/bulk', validate('json', z.object({ 
   ids: z.array(z.string().max(100)).max(100), 
   status: z.enum(['approved', 'pending', 'spam', 'trash']) 
 })), AdminController.updateCommentsBulk);
-adminRoutes.patch('/comments/:id/pin', zValidator('json', z.object({ isPinned: z.boolean() })), AdminController.togglePinComment);
-adminRoutes.delete('/comments/bulk', zValidator('json', z.object({ 
+adminRoutes.patch('/comments/:id/pin', validate('json', z.object({ isPinned: z.boolean() })), AdminController.togglePinComment);
+adminRoutes.delete('/comments/bulk', validate('json', z.object({ 
   ids: z.array(z.string().max(100)).max(100) 
 })), AdminController.deleteCommentsBulk);
 
 adminRoutes.get('/account', AdminController.getAccount);
-adminRoutes.put('/account', zValidator('json', z.object({ 
+adminRoutes.put('/account', validate('json', z.object({ 
   name: z.string().max(100).optional(), 
   email: z.string().email().max(255).optional(), 
   currentPassword: z.string().max(128).optional(), 
-  newPassword: z.string().min(6).max(128).optional(), 
-  resendApiKey: z.string().max(500).optional(), 
-  resendSenderEmail: z.string().email().max(255).optional().or(z.literal('')) 
+  newPassword: z.string().min(6).max(128).optional()
 })), AdminController.updateAccount);
 
 adminRoutes.get('/export/:siteId', AdminController.exportData);
-adminRoutes.post('/import/:siteId', zValidator('json', z.object({ 
+adminRoutes.post('/import/:siteId', validate('json', z.object({ 
   threads: z.array(z.object({
     id: z.string().max(100),
     threadKey: z.string().max(500),

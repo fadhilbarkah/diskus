@@ -11,6 +11,8 @@ export type AuthVariables = {
     role: string;
     name?: string;
     tokenVersion?: number;
+    type?: string;
+    origin_url?: string;
   };
 };
 
@@ -36,7 +38,7 @@ export const authMiddleware = async (c: Context<{ Variables: AuthVariables }>, n
     }
   }
 
-  c.set('user', payload);
+  c.set('user', payload as any);
   await next();
 };
 
@@ -55,7 +57,7 @@ export const optionalAuthMiddleware = async (c: Context<{ Variables: AuthVariabl
           return;
         }
       }
-      c.set('user', payload);
+      c.set('user', payload as any);
     }
   }
   await next();

@@ -26,9 +26,12 @@ JWT_SECRET=${SECRET}
 DASHBOARD_ORIGIN=*
 SEED_DB=true
 
-# Optional: Set these for email notifications via Resend
-# RESEND_API_KEY=
-# RESEND_SENDER_EMAIL=
+# Optional: Set these for platform emails via SMTP
+# SMTP_HOST=
+# SMTP_PORT=
+# SMTP_USER=
+# SMTP_PASS=
+# SMTP_FROM=
 EOF
     echo "✅ Secure JWT_SECRET generated and saved to .env"
 else

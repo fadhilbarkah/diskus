@@ -411,6 +411,7 @@ export class AdminService {
       id: widgetUsers.id,
       name: widgetUsers.name,
       email: widgetUsers.email,
+      isVerified: widgetUsers.isVerified,
       createdAt: widgetUsers.createdAt
     }).from(widgetUsers).orderBy(desc(widgetUsers.createdAt)).all();
   }

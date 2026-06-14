@@ -7,7 +7,7 @@ import { widgetUser, globalShowAuthModal, globalAuthMode, globalAuthReason, glob
 interface Props {
   comment: Comment;
   repliesMap: Map<string, Comment[]>;
-  onReply: (content: string, name: string, email: string, parentId?: string, trap?: string) => Promise<void>;
+  onReply: (content: string, name: string, email: string, parentId?: string, trap?: string) => Promise<any>;
   onLike: (id: string, isUnlike: boolean) => Promise<boolean>;
   apiUrl: string;
   depth?: number;
@@ -31,7 +31,7 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
       if (likedComments.includes(comment.id)) {
         hasLiked.value = true;
       }
-    } catch (e) {}
+    } catch (e: any) { alert(e.message || 'Failed to update vote. Please try again.'); }
   }, [comment.id]);
 
   useEffect(() => {
@@ -57,7 +57,7 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
     let likedComments: string[] = [];
     try {
       likedComments = JSON.parse(localStorage.getItem('diskus_liked_comments') || '[]');
-    } catch (e) {}
+    } catch (e: any) { alert(e.message || 'Failed to delete comment.'); }
     
     if (hasLiked.value) {
       hasLiked.value = false;
@@ -67,7 +67,7 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
         try {
           const newLiked = likedComments.filter((id: string) => id !== comment.id);
           localStorage.setItem('diskus_liked_comments', JSON.stringify(newLiked));
-        } catch (e) {}
+        } catch (e: any) { alert(e.message || 'Failed to approve comment.'); }
       } else {
         hasLiked.value = true;
         localLikesCount.value++;
@@ -79,7 +79,7 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
       if (success) {
         try {
           localStorage.setItem('diskus_liked_comments', JSON.stringify([...likedComments, comment.id]));
-        } catch (e) {}
+        } catch (e: any) { alert(e.message || 'Failed to pin comment.'); }
       } else {
         hasLiked.value = false;
         localLikesCount.value = Math.max(0, localLikesCount.value - 1);
@@ -122,14 +122,14 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
             <div class="flex items-center gap-2 min-w-0">
               <span class="font-bold text-[15px] text-gray-900 dark:text-gray-100 truncate block">{comment.authorName}</span>
               {comment.isPinned && !isDeleted && (
-                <span class="bg-transparent text-blue-600 dark:text-blue-400 border border-blue-500/50 dark:border-blue-400/50 text-[11px] font-medium px-2 py-[1px] rounded-full flex items-center gap-1 shrink-0">
+                <span class="bg-transparent text-blue-700 dark:text-blue-400 border border-blue-600/50 dark:border-blue-400/50 text-[11px] font-medium px-2 py-[1px] rounded-full flex items-center gap-1 shrink-0">
                   <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
                   Pinned
                 </span>
               )}
-              {isAuthor && !isDeleted && <span class="bg-transparent border border-emerald-500/60 dark:border-emerald-500/50 text-emerald-600 dark:text-emerald-400 text-[11px] font-medium px-2 py-[1px] rounded-full shrink-0">Author</span>}
+              {isAuthor && !isDeleted && <span class="bg-transparent border border-emerald-600/60 dark:border-emerald-500/50 text-emerald-700 dark:text-emerald-400 text-[11px] font-medium px-2 py-[1px] rounded-full shrink-0">Author</span>}
             </div>
-            <div class="text-[13px] text-gray-400 dark:text-gray-500 mt-0.5 whitespace-nowrap">{timeAgo(comment.createdAt)}</div>
+            <div class="text-[13px] text-gray-500 dark:text-gray-400 mt-0.5 whitespace-nowrap">{timeAgo(comment.createdAt)}</div>
           </div>
           
           {widgetUser.value && !isDeleted && ((widgetUser.value.avatarSeed && widgetUser.value.avatarSeed === comment.avatarSeed) || widgetUser.value.role === 'admin' || widgetUser.value.role === 'user') && (

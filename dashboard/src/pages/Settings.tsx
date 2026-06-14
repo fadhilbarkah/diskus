@@ -19,8 +19,6 @@ export function Settings() {
 
   const name = useSignal('');
   const email = useSignal('');
-  const resendApiKey = useSignal('');
-  const resendSenderEmail = useSignal('');
 
   const currentPassword = useSignal('');
   const newPassword = useSignal('');
@@ -63,8 +61,6 @@ export function Settings() {
       const data = await api.getAccount();
       name.value = data.name || '';
       email.value = data.email || '';
-      resendApiKey.value = data.resendApiKey || '';
-      resendSenderEmail.value = data.resendSenderEmail || '';
 
       // Update global auth state to reflect new name
       updateUser({ name: data.name, email: data.email });
@@ -96,18 +92,6 @@ export function Settings() {
     }
   };
 
-  const handleUpdateIntegrations = async (e: Event) => {
-    e.preventDefault();
-    try {
-      savingIntegrations.value = true;
-      await api.updateAccount({ resendApiKey: resendApiKey.value, resendSenderEmail: resendSenderEmail.value });
-      showNotification('Integrations updated successfully', 'success');
-    } catch (err: any) {
-      showNotification(err.message, 'error');
-    } finally {
-      savingIntegrations.value = false;
-    }
-  };
 
   const handleUpdatePassword = async (e: Event) => {
     e.preventDefault();
@@ -286,38 +270,6 @@ export function Settings() {
               <div class="pt-4 mt-auto">
                 <Button type="submit" disabled={savingPassword.value} fullWidth>
                   {savingPassword.value ? 'Saving...' : 'Update Password'}
-                </Button>
-              </div>
-            </form>
-          </Card>
-          <Card>
-            <CardHeader
-              title="Integrations"
-              description="Connect external services for email notifications."
-              icon={<Mail class="w-5 h-5" />}
-            />
-
-            <form onSubmit={handleUpdateIntegrations} class="space-y-4 flex flex-col flex-1">
-              <Input
-                label="Resend API Key"
-                type="password"
-                placeholder="re_..."
-                value={resendApiKey.value}
-                onInput={(e) => resendApiKey.value = (e.target as HTMLInputElement).value}
-              />
-
-              <Input
-                label="Sender Email"
-                type="email"
-                placeholder="e.g. notifications@yourdomain.com"
-                value={resendSenderEmail.value}
-                onInput={(e) => resendSenderEmail.value = (e.target as HTMLInputElement).value}
-              />
-              <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Required if you want to enable Email Notifications in your Web Settings. The Sender Email must be verified in your <a href="https://resend.com" target="_blank" rel="noopener noreferrer" class="text-blue-600 dark:text-blue-400 hover:underline">Resend account</a>.</p>
-
-              <div class="pt-4 mt-auto">
-                <Button type="submit" disabled={savingIntegrations.value} fullWidth>
-                  {savingIntegrations.value ? 'Saving...' : 'Save Integrations'}
                 </Button>
               </div>
             </form>

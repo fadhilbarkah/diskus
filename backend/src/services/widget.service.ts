@@ -86,6 +86,59 @@ export class WidgetService {
     return newUser;
   }
 
+  static async updateVerificationToken(userId: string, token: string) {
+    await db.update(widgetUsers)
+      .set({ verificationToken: token })
+      .where(eq(widgetUsers.id, userId));
+  }
+
+  static async verifyEmailToken(token: string) {
+    const user = await db.select().from(widgetUsers).where(eq(widgetUsers.verificationToken, token)).get();
+    if (!user) return false;
+    
+    await db.update(widgetUsers)
+      .set({ isVerified: true, verificationToken: null })
+      .where(eq(widgetUsers.id, user.id));
+    return true;
+  }
+
+  static async generatePasswordResetToken(email: string) {
+    const user = await this.findWidgetUser(email);
+    if (!user) return null;
+
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    // 1 hour expiry
+    const expires = new Date(Date.now() + 60 * 60 * 1000);
+    
+    await db.update(widgetUsers)
+      .set({ resetPasswordToken: resetToken, resetPasswordExpires: expires })
+      .where(eq(widgetUsers.id, user.id));
+      
+    return { user, resetToken };
+  }
+
+  static async resetPasswordWithToken(token: string, newPasswordHash: string) {
+    const user = await db.select().from(widgetUsers)
+      .where(and(
+        eq(widgetUsers.resetPasswordToken, token),
+        isNotNull(widgetUsers.resetPasswordExpires)
+      )).get();
+      
+    if (!user || !user.resetPasswordExpires || new Date() > new Date(user.resetPasswordExpires)) {
+      return false; // Invalid or expired token
+    }
+    
+    await db.update(widgetUsers)
+      .set({ 
+        passwordHash: newPasswordHash, 
+        resetPasswordToken: null, 
+        resetPasswordExpires: null 
+      })
+      .where(eq(widgetUsers.id, user.id));
+      
+    return true;
+  }
+
   static async getComments(siteId: string, threadKey: string, limit: number, offset: number, title?: string) {
     let thread = await db.select().from(threads)
       .where(and(eq(threads.siteId, siteId), eq(threads.threadKey, threadKey)))
@@ -173,6 +226,10 @@ export class WidgetService {
     return await db.select().from(threads)
       .where(and(eq(threads.siteId, siteId), eq(threads.threadKey, threadKey)))
       .get();
+  }
+
+  static async getCommentById(id: string) {
+    return await db.select().from(comments).where(eq(comments.id, id)).get();
   }
 
   static async deleteComment(id: string, authorEmail?: string) {

@@ -6,6 +6,7 @@ export interface WidgetUser {
   name: string;
   role?: string;
   avatarSeed?: string;
+  isVerified?: boolean;
 }
 
 const storedToken = localStorage.getItem('diskus_widget_token');
@@ -26,7 +27,8 @@ export const globalGuestEmail = signal(storedGuestEmail);
 export const globalIsGuestReady = signal(!!(storedGuestName && storedGuestEmail));
 
 export const globalShowAuthModal = signal(false);
-export const globalAuthMode = signal<'login' | 'register' | 'guest'>('login');
+export const globalAuthMode = signal<'login' | 'register' | 'guest' | 'forgot_password' | 'reset_password'>('login');
+export const globalResetToken = signal<string | null>(null);
 export const globalAuthReason = signal<'comment' | 'like' | null>(null);
 export const globalAuthError = signal('');
 

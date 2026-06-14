@@ -104,7 +104,7 @@ export function useComments(apiUrl: string, apiKey: string, threadKey: string, t
       const res = await fetch(`${apiUrl}/widget/comments`, {
         method: 'POST',
         headers,
-        body: JSON.stringify({ api_key: apiKey, thread_key: threadKey, title, content, authorName, authorEmail, parentId, _diskus_trap: trap })
+        body: JSON.stringify({ api_key: apiKey, thread_key: threadKey, title, content, authorName, authorEmail, parentId, origin_url: window.location.href, _diskus_trap: trap })
       });
       if (res.ok) {
         const data = await res.json();
@@ -145,6 +145,7 @@ export function useComments(apiUrl: string, apiKey: string, threadKey: string, t
       }
     } catch (err) {
       console.error(err);
+      showNotification('Network error occurred.', 'error');
     }
   };
 
@@ -166,6 +167,7 @@ export function useComments(apiUrl: string, apiKey: string, threadKey: string, t
       }
     } catch (err) {
       console.error(err);
+      showNotification('Network error occurred.', 'error');
     }
   };
 

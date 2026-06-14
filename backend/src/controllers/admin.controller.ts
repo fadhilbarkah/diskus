@@ -39,13 +39,6 @@ export class AdminController {
     const id = c.req.param('id') as string;
     const { requireLogin, enableEmail, commentsLimit, requireModeration } = (c.req as any).valid('json');
     
-    if (enableEmail === true) {
-      const dbUser = await db.select().from(users).where(eq(users.id, user.userId)).get();
-      if (!dbUser?.resendApiKey || !dbUser?.resendSenderEmail) {
-        return c.json({ error: 'Configure Resend integrations in Account Settings first.' }, 400);
-      }
-    }
-
     const updateData: any = {};
     if (requireLogin !== undefined) updateData.requireLogin = requireLogin;
     if (enableEmail !== undefined) updateData.enableEmail = enableEmail;
@@ -120,14 +113,12 @@ export class AdminController {
       id: dbUser.id,
       name: dbUser.name || '',
       email: dbUser.email,
-      resendApiKey: maskApiKey(dbUser.resendApiKey),
-      resendSenderEmail: dbUser.resendSenderEmail || '',
     });
   }
 
   static async updateAccount(c: Context<{ Variables: AuthVariables }>) {
     const user = c.get('user')!;
-    const { name, email, currentPassword, newPassword, resendApiKey, resendSenderEmail } = (c.req as any).valid('json');
+    const { name, email, currentPassword, newPassword } = (c.req as any).valid('json');
 
     const dbUser = await AdminService.getUserAccount(user.userId);
     if (!dbUser) return c.json({ error: 'User not found' }, 404);
@@ -135,8 +126,6 @@ export class AdminController {
     const updateData: any = {};
     if (name !== undefined) updateData.name = name;
     if (email !== undefined) updateData.email = email;
-    if (resendApiKey !== undefined) updateData.resendApiKey = resendApiKey;
-    if (resendSenderEmail !== undefined) updateData.resendSenderEmail = resendSenderEmail;
 
     if (newPassword) {
       if (!currentPassword) return c.json({ error: 'Current password is required to set a new password' }, 400);

@@ -16,7 +16,7 @@ if (Bun.env.NODE_ENV === 'production' && DANGEROUS_DEFAULTS.includes(jwtSecret))
 
 export const JWT_SECRET = new TextEncoder().encode(jwtSecret);
 
-export async function signToken(payload: { userId: string; email: string; role: string; name?: string; tokenVersion?: number }) {
+export async function signToken(payload: { userId: string; email?: string; role?: string; name?: string; tokenVersion?: number; type?: string; origin_url?: string }) {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
@@ -27,7 +27,7 @@ export async function signToken(payload: { userId: string; email: string; role: 
 export async function verifyToken(token: string) {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload as { userId: string; email: string; role: string; name?: string; tokenVersion?: number };
+    return payload as { userId: string; email?: string; role?: string; name?: string; tokenVersion?: number; type?: string; origin_url?: string };
   } catch (err) {
     return null;
   }

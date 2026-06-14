@@ -4,6 +4,7 @@ import { CommentThread } from './CommentThread';
 import { AuthModal } from './AuthModal';
 import { useComments } from '../hooks/useComments';
 import { useTheme } from '../hooks/useTheme';
+import { widgetToken } from '../lib/auth';
 
 export interface Comment {
   id: string;
@@ -41,6 +42,31 @@ export function DiskusWidget({ apiKey, threadKey, apiUrl, title, embedToken: emb
 
   useEffect(() => {
     fetchComments();
+
+    if (widgetToken.value) {
+      fetch(`${apiUrl}/widget/auth/me`, {
+        headers: { 'Authorization': `Bearer ${widgetToken.value}` }
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data.user) {
+          import('../lib/auth').then(({ setWidgetAuth }) => {
+            setWidgetAuth(widgetToken.value!, data.user);
+          });
+        }
+      })
+      .catch(() => {});
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    const resetToken = urlParams.get('reset_token');
+    if (resetToken) {
+      import('../lib/auth').then(({ globalAuthMode, globalShowAuthModal, globalResetToken }) => {
+        globalResetToken.value = resetToken;
+        globalAuthMode.value = 'reset_password';
+        globalShowAuthModal.value = true;
+      });
+    }
   }, []);
 
   if (loading.value && page.value === 1) return <div class="p-4 text-gray-500">Loading comments...</div>;
@@ -92,7 +118,7 @@ export function DiskusWidget({ apiKey, threadKey, apiUrl, title, embedToken: emb
         
         {totalCount.value > 0 && (
           <div class="relative flex items-center group">
-            <select class="appearance-none bg-transparent font-semibold text-[14px] text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200 transition-colors outline-none cursor-pointer pr-5" value={sortBy.value} onInput={(e) => sortBy.value = (e.target as HTMLSelectElement).value as any}>
+            <select aria-label="Sort comments" class="appearance-none bg-transparent font-semibold text-[14px] text-gray-500 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-gray-200 transition-colors outline-none cursor-pointer pr-5" value={sortBy.value} onInput={(e) => sortBy.value = (e.target as HTMLSelectElement).value as any}>
               <option value="newest" class="text-gray-900 dark:bg-gray-800 dark:text-gray-100">Newest</option>
               <option value="oldest" class="text-gray-900 dark:bg-gray-800 dark:text-gray-100">Oldest</option>
             </select>
@@ -136,6 +162,14 @@ export function DiskusWidget({ apiKey, threadKey, apiUrl, title, embedToken: emb
           </button>
         </div>
       )}
+      
+      {/* Branding Footer */}
+      <div class="mt-6 pt-4 border-t border-gray-100 dark:border-gray-800 flex justify-end items-center">
+        <span class="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1">
+          Powered by <a href="https://diskus.pages.dev" target="_blank" rel="noopener noreferrer" class="font-semibold text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-500 transition-colors">Diskus</a>
+        </span>
+      </div>
+
       </div>
       <AuthModal apiUrl={apiUrl} requireLogin={requireLogin.value} />
     </div>

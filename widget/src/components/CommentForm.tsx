@@ -5,7 +5,7 @@ import { generateAvatarSeed } from '../lib/utils';
 import { globalIsGuestReady, globalShowAuthModal, globalAuthMode, globalAuthReason } from '../lib/auth';
 
 interface Props {
-  onSubmit: (content: string, name: string, email: string, parentId?: string, trap?: string) => Promise<void>;
+  onSubmit: (content: string, name: string, email: string, parentId?: string, trap?: string) => Promise<any>;
   parentId?: string;
   onCancel?: () => void;
   apiUrl: string;
@@ -18,6 +18,8 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
   const submitting = useSignal(false);
   const isExpanded = useSignal(!!parentId);
   const trap = useSignal('');
+  const resending = useSignal(false);
+  const resendSuccess = useSignal(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   
   const {
@@ -30,8 +32,19 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
     login,
     register,
     logout,
-    handleGuestSubmit
+    handleGuestSubmit,
+    resendVerification
   } = useAuth(apiUrl, !!requireLogin);
+
+  const handleResend = async () => {
+    resending.value = true;
+    const success = await resendVerification();
+    if (success) {
+      resendSuccess.value = true;
+      setTimeout(() => resendSuccess.value = false, 5000);
+    }
+    resending.value = false;
+  };
 
   const handleSubmit = async (e: Event) => {
     e.preventDefault();
@@ -120,6 +133,14 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
                       <strong class="text-[14px] min-[480px]:text-[15px] text-[#111827] dark:text-gray-100 font-semibold truncate">
                         {widgetUser.value ? widgetUser.value.name : `${guestName.value} (Guest)`}
                       </strong>
+                      {widgetUser.value && widgetUser.value.role === 'commenter' && widgetUser.value.isVerified === false && (
+                        <div class="flex items-center gap-2 ml-1">
+                          <span class="text-[11px] text-orange-600 bg-orange-50 border border-orange-200 dark:border-orange-900/30 dark:text-orange-400 dark:bg-orange-900/20 px-1.5 py-0.5 rounded-full whitespace-nowrap hidden sm:inline-block">Unverified</span>
+                          <button type="button" onClick={handleResend} disabled={resending.value || resendSuccess.value} class="text-[12px] text-blue-600 dark:text-blue-400 hover:underline disabled:opacity-50 disabled:no-underline whitespace-nowrap">
+                            {resendSuccess.value ? 'Sent!' : resending.value ? 'Sending...' : 'Resend Email'}
+                          </button>
+                        </div>
+                      )}
                     </div>
                     
                     <div class="flex items-center gap-3 min-[480px]:gap-4 shrink-0">
@@ -168,7 +189,7 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
                </button>
              </div>
           </div>
-          <div class="mt-4 sm:mt-5 pt-3 sm:pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-center gap-2 text-[12px] sm:text-[13px] text-gray-400 dark:text-gray-500">
+          <div class="mt-4 sm:mt-5 pt-3 sm:pt-4 border-t border-gray-100 dark:border-gray-800 flex items-center justify-center gap-2 text-[12px] sm:text-[13px] text-gray-500 dark:text-gray-400">
              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
              <span>{requireLogin ? 'Only signed-in users can comment' : 'Sign in or use a guest account to comment'}</span>
           </div>
