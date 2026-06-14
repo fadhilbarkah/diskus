@@ -14,6 +14,7 @@ services:
       # You should set these in a .env file at the root level, or export them in your shell
       - "JWT_SECRET=${JWT_SECRET:?FATAL: JWT_SECRET is required. Generate with openssl rand -hex 32}"
       - DASHBOARD_ORIGIN=${DASHBOARD_ORIGIN:-*}
+      - API_BASE_URL=${API_BASE_URL:-http://localhost:3000}
       - SMTP_HOST=${SMTP_HOST:-}
       - SMTP_PORT=${SMTP_PORT:-}
       - SMTP_USER=${SMTP_USER:-}
