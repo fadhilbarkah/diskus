@@ -16,7 +16,7 @@ A lightweight, self-hosted comments system built for modern web applications. Di
 - **Built-in Anti-Spam:** Native rate-limiting and invisible honeypot traps to prevent automated bot registrations without requiring intrusive CAPTCHAs.
 - **Server-side Sanitization:** Strict HTML sanitization (`isomorphic-dompurify`) and Markdown parsing are offloaded to the server to maintain a minimal client bundle.
 - **Data Portability:** Full JSON-based import and export capabilities for threads and comments.
-- **Email Notifications:** Configurable email alerts for new comments powered by Resend API integration.
+- **Email Notifications:** Configurable email alerts for new comments powered by standard SMTP integration.
 - **Modern Stack:** Built on Bun, Hono, Preact, and Drizzle ORM for maximum performance and type safety.
 
 ## Architecture
