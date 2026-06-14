@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import authRoutes from './routes/auth';
 import widgetRoutes from './routes/widget';
 import adminRoutes from './routes/admin';
+import oauthRoutes from './routes/oauth';
 import { securityHeadersMiddleware, widgetCorsMiddleware, adminCorsMiddleware } from './middlewares/security';
 import { demoMiddleware } from './middlewares/demo';
 
@@ -30,6 +31,7 @@ app.get('/api/v1/demo', (c) => c.json({ demo: process.env.DEMO_MODE === 'true' }
 app.use('*', demoMiddleware);
 
 app.route('/api/v1/auth', authRoutes);
+app.route('/api/v1/oauth', oauthRoutes);
 app.route('/api/v1/widget', widgetRoutes);
 app.route('/api/v1/admin', adminRoutes);
 

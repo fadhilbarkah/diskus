@@ -146,9 +146,16 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
                     <div class="flex items-center gap-3 min-[480px]:gap-4 shrink-0">
                       <div class="hidden min-[480px]:block w-px h-5 bg-gray-200 dark:bg-gray-700 shrink-0"></div>
                       {widgetUser.value ? (
+                        <>
+                        {widgetUser.value.hasPassword === false && (
+                          <button type="button" onClick={() => { globalAuthMode.value = 'set_password'; globalShowAuthModal.value = true; }} class="text-[12px] font-medium text-blue-600 dark:text-blue-400 hover:underline" title="Set a password to allow email login">
+                            Set Password
+                          </button>
+                        )}
                         <button type="button" onClick={logout} class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-colors flex items-center justify-center shrink-0" title="Logout">
                           <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
                         </button>
+                        </>
                       ) : (
                         <button type="button" onClick={() => { globalIsGuestReady.value = false; globalAuthReason.value = 'comment'; globalShowAuthModal.value = true; globalAuthMode.value = 'guest'; }} class="text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-colors flex items-center justify-center shrink-0 text-[13px] font-medium" title="Edit Guest Info">
                           Change

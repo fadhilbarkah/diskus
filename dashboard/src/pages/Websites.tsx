@@ -1,12 +1,13 @@
 import { useSignal } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
 import { api } from '../lib/api';
-import { userSites, selectedSiteId } from '../lib/store';
+import { userSites, selectedSiteId, globalSearchQuery } from '../lib/store';
 import { Globe, Key, Code, Plus, Trash2, Copy, Check, X, Settings as SettingsIcon, AlertTriangle } from 'lucide-preact';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
 import { Card } from '../components/ui/Card';
 import { PageHeader } from '../components/ui/PageHeader';
+import { WebsiteSettingsDetail } from './WebsiteSettingsDetail';
 
 export function Websites() {
   const sites = useSignal<any[]>([]);
@@ -28,36 +29,8 @@ export function Websites() {
   const copiedEmbed = useSignal<boolean>(false);
 
   const selectedSiteForSettings = useSignal<any | null>(null);
-  const requireLoginSetting = useSignal(false);
-  const enableEmailSetting = useSignal(false);
-  const commentsLimitSetting = useSignal(10);
-  const requireModerationSetting = useSignal(false);
-  const settingsLoading = useSignal(false);
-  
   const siteToDelete = useSignal<{id: string, domain: string} | null>(null);
   const deleteLoading = useSignal(false);
-
-  const handleUpdateSite = async (e: Event) => {
-    e.preventDefault();
-    if (!selectedSiteForSettings.value) return;
-    settingsLoading.value = true;
-    try {
-      await api.updateSite(selectedSiteForSettings.value.id, {
-        requireLogin: requireLoginSetting.value,
-        enableEmail: enableEmailSetting.value,
-        commentsLimit: commentsLimitSetting.value,
-        requireModeration: requireModerationSetting.value
-      });
-      selectedSiteForSettings.value = null;
-      await fetchSites();
-      showNotification('Settings updated successfully', 'success');
-    } catch (err: any) {
-      console.error(err);
-      showNotification(err.message || 'Failed to update website settings', 'error');
-    } finally {
-      settingsLoading.value = false;
-    }
-  };
 
   const fetchSites = async () => {
     loading.value = true;
@@ -138,6 +111,18 @@ export function Websites() {
     }, 2000);
   };
 
+  if (selectedSiteForSettings.value) {
+    return (
+      <WebsiteSettingsDetail 
+        site={selectedSiteForSettings.value} 
+        onBack={() => selectedSiteForSettings.value = null}
+        onUpdate={() => {
+          fetchSites();
+        }}
+      />
+    );
+  }
+
   return (
     <div class="max-w-7xl mx-auto space-y-8 relative">
       {notification.value && (
@@ -166,23 +151,37 @@ export function Websites() {
       />
 
       {/* Grid of sites */}
-      {loading.value ? (
-        <div class="text-center py-20 text-gray-400">Loading websites...</div>
-      ) : sites.value.length === 0 ? (
-        <Card class="text-center py-16 max-w-xl mx-auto flex flex-col items-center">
-          <div class="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mb-6">
-            <Globe class="w-8 h-8" />
-          </div>
-          <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">No websites yet</h3>
-          <p class="text-gray-500 dark:text-gray-400 text-sm mb-8">Add your first website to get an App ID and install the comment widget.</p>
-          <Button onClick={() => isAddModalOpen.value = true}>
-            Add Website
-          </Button>
-        </Card>
-      ) : (
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {sites.value.map(site => {
-            return (
+      {(() => {
+        const query = globalSearchQuery.value.toLowerCase();
+        const filteredSites = sites.value.filter(site => site.domain.toLowerCase().includes(query) || site.publicApiKey.toLowerCase().includes(query));
+
+        if (loading.value) {
+          return <div class="text-center py-20 text-gray-400">Loading websites...</div>;
+        }
+
+        if (sites.value.length === 0) {
+          return (
+            <Card class="text-center py-16 max-w-xl mx-auto flex flex-col items-center">
+              <div class="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mb-6">
+                <Globe class="w-8 h-8" />
+              </div>
+              <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">No websites yet</h3>
+              <p class="text-gray-500 dark:text-gray-400 text-sm mb-8">Add your first website to get an App ID and install the comment widget.</p>
+              <Button onClick={() => isAddModalOpen.value = true}>
+                Add Website
+              </Button>
+            </Card>
+          );
+        }
+
+        if (filteredSites.length === 0) {
+          return <div class="text-center py-20 text-gray-500">No websites match your search.</div>;
+        }
+
+        return (
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredSites.map(site => {
+              return (
               <Card key={site.id} class="flex flex-col justify-between hover:shadow-md transition-shadow group">
                 <div>
                   <div class="flex items-start justify-between">
@@ -230,13 +229,7 @@ export function Websites() {
                   <Button 
                     variant="ghost" 
                     class="flex-1"
-                    onClick={() => {
-                      selectedSiteForSettings.value = site;
-                      requireLoginSetting.value = site.requireLogin;
-                      enableEmailSetting.value = site.enableEmail;
-                      commentsLimitSetting.value = site.commentsLimit || 10;
-                      requireModerationSetting.value = site.requireModeration ?? true;
-                    }}
+                    onClick={() => selectedSiteForSettings.value = site}
                   >
                     <SettingsIcon class="w-4 h-4 mr-2" /> Settings
                   </Button>
@@ -252,8 +245,10 @@ export function Websites() {
             );
           })}
         </div>
-      )}
+      );
+      })()}
 
+      {/* Add Website Modal */}
       {isAddModalOpen.value && (
         <div class="fixed inset-0 bg-gray-900/50 z-50 flex items-center justify-center p-4">
           <Card class="max-w-md w-full shadow-lg" noPadding>
@@ -378,138 +373,7 @@ export function Websites() {
         </div>
       )}
 
-      {selectedSiteForSettings.value && (
-        <div class="fixed inset-0 bg-gray-900/50 z-50 flex items-center justify-center p-4">
-          <Card class="max-w-2xl w-full shadow-lg" noPadding>
-            <div class="flex justify-between items-center p-6 border-b border-gray-100 dark:border-gray-800">
-              <h3 class="font-bold text-gray-900 dark:text-gray-100 text-lg">Web Settings</h3>
-              <button 
-                onClick={() => selectedSiteForSettings.value = null}
-                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-[#27272a] transition-colors cursor-pointer"
-              >
-                <X class="w-5 h-5" />
-              </button>
-            </div>
-            <form onSubmit={handleUpdateSite} class="p-6 flex flex-col gap-6">
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                
-                {/* Column 1 */}
-                <div class="space-y-6">
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Authentication Mode</label>
-                    <div class="space-y-3">
-                      <label class={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${!requireLoginSetting.value ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-[#18181b] hover:bg-gray-50 dark:hover:bg-[#27272a]'}`}>
-                        <div class="pt-0.5">
-                          <input 
-                            type="radio" 
-                            name="auth_mode" 
-                            checked={!requireLoginSetting.value} 
-                            onChange={() => requireLoginSetting.value = false} 
-                            class="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 dark:bg-[#1f1f22] focus:ring-blue-500 cursor-pointer" 
-                          />
-                        </div>
-                        <div>
-                          <div class={`font-medium text-sm ${!requireLoginSetting.value ? 'text-blue-900 dark:text-blue-400' : 'text-gray-900 dark:text-gray-100'}`}>Guest & Login Allowed</div>
-                          <div class={`text-xs mt-1 ${!requireLoginSetting.value ? 'text-blue-700 dark:text-blue-300' : 'text-gray-500 dark:text-gray-400'}`}>Visitors can post comments as Guests without creating an account.</div>
-                        </div>
-                      </label>
-                      <label class={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${requireLoginSetting.value ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-[#18181b] hover:bg-gray-50 dark:hover:bg-[#27272a]'}`}>
-                        <div class="pt-0.5">
-                          <input 
-                            type="radio" 
-                            name="auth_mode" 
-                            checked={requireLoginSetting.value} 
-                            onChange={() => requireLoginSetting.value = true} 
-                            class="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 dark:bg-[#1f1f22] focus:ring-blue-500 cursor-pointer" 
-                          />
-                        </div>
-                        <div>
-                          <div class={`font-medium text-sm ${requireLoginSetting.value ? 'text-blue-900 dark:text-blue-400' : 'text-gray-900 dark:text-gray-100'}`}>Login Required</div>
-                          <div class={`text-xs mt-1 ${requireLoginSetting.value ? 'text-blue-700 dark:text-blue-300' : 'text-gray-500 dark:text-gray-400'}`}>Visitors must log in or register an account first to post comments.</div>
-                        </div>
-                      </label>
-                    </div>
-                  </div>
 
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Email Notifications</label>
-                    <div class="space-y-4">
-                      <label class={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${enableEmailSetting.value ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-[#18181b] hover:bg-gray-50 dark:hover:bg-[#27272a]'}`}>
-                        <div class="pt-0.5">
-                          <input 
-                            type="checkbox" 
-                            checked={enableEmailSetting.value} 
-                            onChange={(e) => enableEmailSetting.value = (e.target as HTMLInputElement).checked} 
-                            class="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 dark:bg-[#1f1f22] rounded focus:ring-blue-500 cursor-pointer" 
-                          />
-                        </div>
-                        <div>
-                          <div class={`font-medium text-sm ${enableEmailSetting.value ? 'text-blue-900 dark:text-blue-400' : 'text-gray-900 dark:text-gray-100'}`}>Notify on New Comments</div>
-                          <div class={`text-xs mt-1 ${enableEmailSetting.value ? 'text-blue-700 dark:text-blue-300' : 'text-gray-500 dark:text-gray-400'}`}>Receive an email whenever someone posts a new comment.</div>
-                        </div>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Column 2 */}
-                <div class="space-y-6">
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Moderation Mode</label>
-                    <div class="space-y-3">
-                      <label class={`flex items-start gap-3 p-3 rounded-xl border cursor-pointer transition-colors ${requireModerationSetting.value ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/30' : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-[#18181b] hover:bg-gray-50 dark:hover:bg-[#27272a]'}`}>
-                        <div class="pt-0.5">
-                          <input 
-                            type="checkbox" 
-                            checked={requireModerationSetting.value} 
-                            onChange={(e) => requireModerationSetting.value = (e.target as HTMLInputElement).checked} 
-                            class="w-4 h-4 text-blue-600 border-gray-300 dark:border-gray-600 dark:bg-[#1f1f22] rounded focus:ring-blue-500 cursor-pointer" 
-                          />
-                        </div>
-                        <div>
-                          <div class={`font-medium text-sm ${requireModerationSetting.value ? 'text-blue-900 dark:text-blue-400' : 'text-gray-900 dark:text-gray-100'}`}>Require Moderation</div>
-                          <div class={`text-xs mt-1 ${requireModerationSetting.value ? 'text-blue-700 dark:text-blue-300' : 'text-gray-500 dark:text-gray-400'}`}>New comments from visitors will be pending until you approve them.</div>
-                        </div>
-                      </label>
-                    </div>
-                  </div>
-
-                  <div>
-                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Comments Limit</label>
-                    <div class="space-y-3">
-                      <input 
-                        type="number" 
-                        min="1"
-                        value={commentsLimitSetting.value} 
-                        onInput={(e) => commentsLimitSetting.value = parseInt((e.target as HTMLInputElement).value, 10)} 
-                        class="block w-full py-2.5 px-3 bg-white dark:bg-[#18181b] border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-gray-100 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 transition-colors" 
-                      />
-                      <div class="text-xs text-gray-500 dark:text-gray-400">Number of root comments to display initially before showing the "Load More" button.</div>
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-
-              <div class="flex gap-3 justify-end pt-4 border-t border-gray-100 dark:border-gray-800">
-                <Button 
-                  type="button" 
-                  variant="secondary"
-                  onClick={() => selectedSiteForSettings.value = null}
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={settingsLoading.value}
-                >
-                  {settingsLoading.value ? 'Saving...' : 'Save Changes'}
-                </Button>
-              </div>
-            </form>
-          </Card>
-        </div>
-      )}
 
       {siteToDelete.value && (
         <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-all duration-300">

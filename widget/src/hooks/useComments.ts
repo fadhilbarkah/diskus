@@ -1,6 +1,6 @@
 import { useSignal } from '@preact/signals';
 import { Comment } from '../components/DiskusWidget';
-import { widgetToken } from '../lib/auth';
+import { widgetToken, globalEnabledSocialLogins } from '../lib/auth';
 import { embedToken } from '../lib/embed';
 
 function resolveEmbedToken(explicit?: string | null): string | null {
@@ -85,6 +85,9 @@ export function useComments(apiUrl: string, apiKey: string, threadKey: string, t
         }
         if (data.config?.requireLogin !== undefined) {
           requireLogin.value = data.config.requireLogin;
+        }
+        if (data.config?.enabledSocialLogins) {
+          globalEnabledSocialLogins.value = data.config.enabledSocialLogins;
         }
       }
     } catch (err: any) {

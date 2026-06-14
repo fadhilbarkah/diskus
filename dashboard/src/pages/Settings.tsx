@@ -1,8 +1,8 @@
 import { useEffect } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
-import { User, Lock, Database, Mail, Palette, Moon, Sun, Monitor } from 'lucide-preact';
+import { User, Lock, Palette, Moon, Sun, Monitor } from 'lucide-preact';
 import { api } from '../lib/api';
-import { selectedSiteId, theme, Theme } from '../lib/store';
+import { theme, Theme, globalSearchQuery } from '../lib/store';
 import { authState, updateUser } from '../lib/auth';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
@@ -14,8 +14,6 @@ export function Settings() {
   const savingProfile = useSignal(false);
   const savingPassword = useSignal(false);
   const savingIntegrations = useSignal(false);
-  const exporting = useSignal(false);
-  const importing = useSignal(false);
 
   const name = useSignal('');
   const email = useSignal('');
@@ -120,44 +118,6 @@ export function Settings() {
     }
   };
 
-  const handleExport = async () => {
-    if (!selectedSiteId.value) return;
-    exporting.value = true;
-    try {
-      const data = await api.exportComments(selectedSiteId.value);
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `diskus-export-${selectedSiteId.value}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-      showNotification('Export successful', 'success');
-    } catch (err: any) {
-      showNotification(err.message, 'error');
-    } finally {
-      exporting.value = false;
-    }
-  };
-
-  const handleImport = async (e: Event) => {
-    if (!selectedSiteId.value) return;
-    const file = (e.target as HTMLInputElement).files?.[0];
-    if (!file) return;
-
-    importing.value = true;
-    try {
-      const text = await file.text();
-      const data = JSON.parse(text);
-      await api.importComments(selectedSiteId.value, data);
-      showNotification('Import successful', 'success');
-    } catch (err: any) {
-      showNotification(err.message, 'error');
-    } finally {
-      importing.value = false;
-      (e.target as HTMLInputElement).value = '';
-    }
-  };
 
   if (loading.value) {
     return (
@@ -190,8 +150,20 @@ export function Settings() {
           description="Manage your preferences and profile details"
         />
 
-        <div class="space-y-6">
-          <Card>
+        {(() => {
+          const q = globalSearchQuery.value.toLowerCase();
+          const showProfile = !q || 'profile information avatar email name'.includes(q);
+          const showPassword = !q || 'change password current new confirm'.includes(q);
+          const showAppearance = !q || 'appearance theme dark light system color'.includes(q);
+
+          if (!showProfile && !showPassword && !showAppearance) {
+            return <div class="text-center py-20 text-gray-500">No settings match your search.</div>;
+          }
+
+          return (
+            <div class="space-y-6">
+              {showProfile && (
+                <Card>
             <CardHeader
               title="Profile Information"
               description="Update your account's profile information and email address."
@@ -232,9 +204,11 @@ export function Settings() {
               </div>
             </form>
           </Card>
+          )}
 
-          <Card>
-            <CardHeader
+          {showPassword && (
+            <Card>
+              <CardHeader
               title="Change Password"
               description="Ensure your account is using a long, random password."
               icon={<Lock class="w-5 h-5" />}
@@ -274,59 +248,11 @@ export function Settings() {
               </div>
             </form>
           </Card>
+          )}
 
-          <Card>
-            <CardHeader
-              title="Data Management"
-              description="Export or Import comments for the currently selected website."
-              icon={<Database class="w-5 h-5" />}
-            />
-            <div class="space-y-6 flex flex-col flex-1">
-              <div class={`p-4 border rounded-xl text-sm ${selectedSiteId.value ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-100 dark:border-blue-900/50 text-blue-800 dark:text-blue-300' : 'bg-orange-50 dark:bg-orange-900/30 border-orange-100 dark:border-orange-900/50 text-orange-800 dark:text-orange-300'}`}>
-                {selectedSiteId.value ? "These actions will only apply to the currently selected website." : "Please select a website from the top header to enable data management."}
-              </div>
-
-              <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-auto pt-4">
-                <Button onClick={handleExport} disabled={!selectedSiteId.value || exporting.value} type="button" fullWidth style={{ backgroundColor: 'transparent', color: 'currentColor', border: '1px solid currentColor' }} class="text-gray-600 dark:text-gray-400 border-gray-200 dark:border-gray-700">
-                  {exporting.value ? 'Exporting...' : 'Export Data (JSON)'}
-                </Button>
-
-                <div class="relative">
-                  <input title="Import JSON" type="file" accept=".json" onChange={handleImport} disabled={!selectedSiteId.value || importing.value} class="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed" />
-                  <Button type="button" disabled={!selectedSiteId.value || importing.value} fullWidth>
-                    {importing.value ? 'Importing...' : 'Import Data (JSON)'}
-                  </Button>
-                </div>
-
-                <div class="relative">
-                  <input title="Import Disqus XML" type="file" accept=".xml,.gz,.xml.gz" onChange={async (e) => {
-                    if (!selectedSiteId.value) return;
-                    const file = (e.target as HTMLInputElement).files?.[0];
-                    if (!file) return;
-
-                    importing.value = true;
-                    try {
-                      const formData = new FormData();
-                      formData.append('file', file);
-                      await api.importDisqusComments(selectedSiteId.value, formData);
-                      showNotification('Disqus XML import successful', 'success');
-                    } catch (err: any) {
-                      showNotification(err.message, 'error');
-                    } finally {
-                      importing.value = false;
-                      (e.target as HTMLInputElement).value = '';
-                    }
-                  }} disabled={!selectedSiteId.value || importing.value} class="absolute inset-0 w-full h-full opacity-0 cursor-pointer disabled:cursor-not-allowed" />
-                  <Button type="button" disabled={!selectedSiteId.value || importing.value} fullWidth style={{ backgroundColor: '#2e9fff' }} class="text-white hover:bg-[#1d82db]">
-                    {importing.value ? 'Importing...' : 'Import from Disqus'}
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card>
-            <CardHeader
+          {showAppearance && (
+            <Card>
+              <CardHeader
               title="Appearance"
               description="Customize the look and feel of your dashboard."
               icon={<Palette class="w-5 h-5" />}
@@ -353,11 +279,14 @@ export function Settings() {
                 class={`flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all cursor-pointer ${theme.value === 'system' ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-600' : 'border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 text-gray-500 dark:text-gray-400'}`}
               >
                 <Monitor class="w-6 h-6 mb-2" />
-                <span class="text-sm font-medium">System</span>
-              </button>
+                  <span class="text-sm font-medium">System</span>
+                </button>
+              </div>
+            </Card>
+          )}
             </div>
-          </Card>
-        </div>
+          );
+        })()}
       </div>
     </div>
   );

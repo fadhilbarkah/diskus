@@ -15,7 +15,8 @@ adminRoutes.patch('/sites/:id', validate('json', z.object({
   requireLogin: z.boolean().optional(), 
   enableEmail: z.boolean().optional(),
   commentsLimit: z.number().min(1).max(100).optional(),
-  requireModeration: z.boolean().optional()
+  requireModeration: z.boolean().optional(),
+  enabledSocialLogins: z.array(z.string()).optional()
 })), AdminController.updateSite);
 
 adminRoutes.get('/analytics/summary', AdminController.getAnalyticsSummary);

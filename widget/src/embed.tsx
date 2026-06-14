@@ -6,6 +6,33 @@ import { embedToken as embedTokenSignal } from './lib/embed';
 import styles from './index.css?inline';
 
 (function() {
+  // OAUTH POPUP REDIRECT HANDLER (For browsers blocking window.opener like Brave)
+  if (typeof window !== 'undefined' && window.location.hash.includes('diskus_oauth_token=')) {
+    try {
+      const hash = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
+      const token = params.get('diskus_oauth_token');
+      const userStr = params.get('user');
+      if (token && userStr) {
+        const user = JSON.parse(decodeURIComponent(userStr));
+        localStorage.setItem('diskus_oauth_result', JSON.stringify({ token, user }));
+
+        // Clear sensitive token data from URL immediately (Finding #4)
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+
+        if (window.opener) {
+          // Post to same origin only (Finding #3)
+          window.opener.postMessage({ type: 'DISKUS_OAUTH_SUCCESS', token, user }, window.location.origin);
+        }
+        window.close();
+        document.body.innerHTML = 'Authentication successful! You can close this window.';
+        return; // Halt widget execution
+      }
+    } catch(e) {
+      console.warn('[Diskus] Failed to process OAuth redirect:', e);
+    }
+  }
+
   const pendingInits = new WeakMap<HTMLElement, Promise<void>>();
 
   function getContainerSignature(el: HTMLElement): string {

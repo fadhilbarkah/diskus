@@ -1,5 +1,5 @@
 import { db } from '../db';
-import { sites, threads, comments, widgetUsers, users, commentLikes } from '../db/schema';
+import { sites, threads, comments, widgetUsers, users, commentLikes, oauthAccounts } from '../db/schema';
 import { eq, and, desc, sql, isNull, isNotNull } from 'drizzle-orm';
 import { simpleMarkdownToHtml, sanitizeHtml } from '../utils/html';
 import { hashEmail } from '../utils/hash';
@@ -79,10 +79,45 @@ export class WidgetService {
     return await db.select().from(widgetUsers).where(eq(widgetUsers.email, email)).get();
   }
 
+  static async findWidgetUserById(id: string) {
+    return await db.select().from(widgetUsers).where(eq(widgetUsers.id, id)).get();
+  }
+
   static async registerWidgetUser(email: string, name: string, passwordHash: string) {
     const [newUser] = await db.insert(widgetUsers).values({
       id: crypto.randomUUID(), email, name, passwordHash
     }).returning();
+    return newUser;
+  }
+
+  static async findOAuthAccount(providerId: string, providerUserId: string) {
+    return await db.select().from(oauthAccounts)
+      .where(and(eq(oauthAccounts.providerId, providerId), eq(oauthAccounts.providerUserId, providerUserId)))
+      .get();
+  }
+
+  static async linkOAuthAccount(providerId: string, providerUserId: string, widgetUserId: string) {
+    await db.insert(oauthAccounts).values({
+      providerId, providerUserId, widgetUserId
+    });
+  }
+
+  static async registerOAuthUser(email: string, name: string, providerId: string, providerUserId: string) {
+    const userId = crypto.randomUUID();
+    const [newUser] = await db.insert(widgetUsers).values({
+      id: userId,
+      email,
+      name,
+      passwordHash: '[OAUTH_ACCOUNT]',
+      isVerified: true,
+    }).returning();
+
+    await db.insert(oauthAccounts).values({
+      providerId,
+      providerUserId,
+      widgetUserId: userId,
+    });
+
     return newUser;
   }
 
@@ -100,6 +135,12 @@ export class WidgetService {
       .set({ isVerified: true, verificationToken: null })
       .where(eq(widgetUsers.id, user.id));
     return true;
+  }
+
+  static async markUserAsVerified(userId: string) {
+    await db.update(widgetUsers)
+      .set({ isVerified: true, verificationToken: null })
+      .where(eq(widgetUsers.id, userId));
   }
 
   static async generatePasswordResetToken(email: string) {

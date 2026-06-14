@@ -45,6 +45,14 @@ widgetRoutes.post(
 );
 
 widgetRoutes.post(
+  '/auth/set-password',
+  authMiddleware,
+  rateLimitMiddleware(5, 60 * 60 * 1000),
+  validate('json', z.object({ newPassword: z.string().min(6).max(128) })),
+  WidgetController.setPassword
+);
+
+widgetRoutes.post(
   '/auth/login',
   rateLimitMiddleware(10, 15 * 60 * 1000), // Max 10 login attempts per IP per 15 minutes
   validate('json', z.object({

@@ -1,9 +1,9 @@
 import { Search, ChevronLeft, ChevronRight, MoreHorizontal, ChevronDown, Pin, PinOff } from 'lucide-preact';
-import { useSignal } from '@preact/signals';
+import { useSignal, useComputed } from '@preact/signals';
 import { useEffect } from 'preact/hooks';
 import { api } from '../lib/api';
 import { authState } from '../lib/auth';
-import { selectedSiteId } from '../lib/store';
+import { selectedSiteId, userSites, globalSearchQuery } from '../lib/store';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Card } from '../components/ui/Card';
 
@@ -17,7 +17,6 @@ export function Moderation() {
   const openMenuId = useSignal<string | null>(null);
   
   // Filters
-  const searchQuery = useSignal('');
   const filterPost = useSignal('All Posts');
   const sortBy = useSignal('newest');
 
@@ -45,12 +44,32 @@ export function Moderation() {
     }
   };
 
+  const fetchGlobalSites = async () => {
+    try {
+      const res = await api.getSites();
+      userSites.value = res.sites;
+      
+      const siteExists = res.sites.some((s: any) => s.id === selectedSiteId.value);
+      if ((!selectedSiteId.value || !siteExists) && res.sites.length > 0) {
+        selectedSiteId.value = res.sites[0].id;
+      } else if (!siteExists) {
+        selectedSiteId.value = null;
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     selectedIds.value = [];
     bulkAction.value = '';
     openMenuId.value = null;
-    fetchData();
-  }, [activeTab.value, selectedSiteId.value]);
+    if (userSites.value.length === 0) {
+      fetchGlobalSites();
+    } else {
+      fetchData();
+    }
+  }, [activeTab.value, selectedSiteId.value, userSites.value.length]);
 
   const toggleSelect = (id: string) => {
     if (selectedIds.value.includes(id)) {
@@ -63,10 +82,15 @@ export function Moderation() {
   const handleBulkAction = async () => {
     if (!bulkAction.value || selectedIds.value.length === 0) return;
     try {
-      if (bulkAction.value === 'delete') {
-        await api.deleteComments(selectedIds.value);
-      } else {
-        await api.bulkUpdateComments(selectedIds.value, bulkAction.value);
+      const ids = [...selectedIds.value];
+      const chunkSize = 100;
+      for (let i = 0; i < ids.length; i += chunkSize) {
+        const chunk = ids.slice(i, i + chunkSize);
+        if (bulkAction.value === 'delete') {
+          await api.deleteComments(chunk);
+        } else {
+          await api.bulkUpdateComments(chunk, bulkAction.value);
+        }
       }
       selectedIds.value = [];
       bulkAction.value = '';
@@ -99,21 +123,12 @@ export function Moderation() {
     }
   };
 
-  const toggleSelectAll = (e: any) => {
-    if (e.target.checked) {
-      selectedIds.value = comments.value.map(c => c.id);
-    } else {
-      selectedIds.value = [];
-    }
-  };
-
-  // Build comment tree for visual hierarchy
-  const renderComments = () => {
+  const filteredComments = useComputed(() => {
     let listToRender = comments.value;
     
     // Apply filters
-    if (searchQuery.value) {
-      const q = searchQuery.value.toLowerCase();
+    if (globalSearchQuery.value) {
+      const q = globalSearchQuery.value.toLowerCase();
       listToRender = listToRender.filter(c => 
         c.authorName.toLowerCase().includes(q) || 
         c.authorEmail.toLowerCase().includes(q) || 
@@ -127,13 +142,26 @@ export function Moderation() {
     }
     
     // Sort
-    listToRender = [...listToRender].sort((a, b) => {
+    return [...listToRender].sort((a, b) => {
       const timeA = new Date(a.createdAt).getTime();
       const timeB = new Date(b.createdAt).getTime();
       return sortBy.value === 'newest' ? timeB - timeA : timeA - timeB;
     });
+  });
 
-    const isFiltering = searchQuery.value !== '' || filterPost.value !== 'All Posts';
+  const toggleSelectAll = (e: any) => {
+    if (e.target.checked) {
+      selectedIds.value = filteredComments.value.map(c => c.id);
+    } else {
+      selectedIds.value = [];
+    }
+  };
+
+  // Build comment tree for visual hierarchy
+  const renderComments = () => {
+    let listToRender = filteredComments.value;
+
+    const isFiltering = globalSearchQuery.value !== '' || filterPost.value !== 'All Posts';
     
     // Find comments whose parents are not in the current list
     const orphans = listToRender.filter(c => c.parentId && !listToRender.some(p => p.id === c.parentId));
@@ -263,16 +291,24 @@ export function Moderation() {
         title="Comments"
         description="Manage all incoming comments"
         action={
-          <div class="relative">
-            <Search class="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500" />
-            <input 
-              type="text" 
-              placeholder="Search comments..." 
-              value={searchQuery.value} 
-              onInput={(e) => searchQuery.value = (e.target as HTMLInputElement).value} 
-              class="pl-10 pr-10 py-2.5 bg-white dark:bg-[#1f1f22] border border-gray-100 dark:border-gray-800 rounded-xl text-sm w-full md:w-72 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-500 transition-all text-gray-900 dark:text-gray-100 shadow-sm" 
-            />
-            <span class="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-gray-400 dark:text-gray-500 border border-gray-100 dark:border-gray-800 px-1.5 py-0.5 rounded-md bg-gray-50 dark:bg-[#27272a] font-medium hidden sm:inline-block">⌘K</span>
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+            <div class="relative">
+              <select
+                class="w-full sm:w-48 appearance-none border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 pr-10 bg-white dark:bg-[#18181b] font-semibold text-gray-700 dark:text-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-500 transition-all cursor-pointer"
+                value={selectedSiteId.value || ''}
+                onChange={(e) => selectedSiteId.value = (e.target as HTMLSelectElement).value}
+              >
+                {userSites.value.length === 0 && <option value="">No Websites</option>}
+                {userSites.value.map(site => (
+                  <option key={site.id} value={site.id}>
+                    {site.domain}
+                  </option>
+                ))}
+              </select>
+              <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                <ChevronDown class="w-4 h-4" />
+              </div>
+            </div>
           </div>
         }
       />
@@ -322,7 +358,7 @@ export function Moderation() {
           {/* Table Actions */}
           <div class="px-4 py-4 flex items-center justify-between border-b border-gray-100 dark:border-gray-800">
             <div class="flex items-center gap-4">
-              <input type="checkbox" onChange={toggleSelectAll} checked={selectedIds.value.length === comments.value.length && comments.value.length > 0} class="w-4 h-4 rounded border-gray-300 dark:border-gray-600 dark:bg-[#1f1f22] text-blue-600 focus:ring-blue-500 cursor-pointer" />
+              <input type="checkbox" onChange={toggleSelectAll} checked={selectedIds.value.length === filteredComments.value.length && filteredComments.value.length > 0} class="w-4 h-4 rounded border-gray-300 dark:border-gray-600 dark:bg-[#1f1f22] text-blue-600 focus:ring-blue-500 cursor-pointer" />
               <select class="border border-gray-200 dark:border-gray-700 rounded-lg text-sm px-3 py-2 bg-white dark:bg-[#18181b] outline-none font-medium text-gray-700 dark:text-gray-300 shadow-sm cursor-pointer" value={bulkAction.value} onChange={(e) => { bulkAction.value = (e.target as HTMLSelectElement).value; handleBulkAction(); }}>
                 <option value="">Bulk Actions</option>
                 <option value="approved">Approve</option>
@@ -333,7 +369,7 @@ export function Moderation() {
               </select>
             </div>
             <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400 font-medium">
-              <span>{comments.value.length} items</span>
+              <span>{filteredComments.value.length} items</span>
               <div class="flex items-center gap-1">
                 <button class="p-1.5 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-[#27272a] text-gray-600 dark:text-gray-400 cursor-pointer"><ChevronLeft class="w-4 h-4" /></button>
                 <button class="p-1.5 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-[#27272a] text-gray-600 dark:text-gray-400 cursor-pointer"><ChevronRight class="w-4 h-4" /></button>
@@ -345,7 +381,7 @@ export function Moderation() {
           <div class="flex-1 overflow-y-auto pb-4">
             {loading.value ? (
               <div class="text-center py-10 text-gray-400">Loading comments...</div>
-            ) : comments.value.length === 0 ? (
+            ) : filteredComments.value.length === 0 ? (
               <div class="text-center py-10 text-gray-400">No comments found.</div>
             ) : (
               <div class="flex flex-col">

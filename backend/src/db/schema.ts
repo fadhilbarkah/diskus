@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer, index, uniqueIndex } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, integer, index, uniqueIndex, primaryKey } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
 
 export const users = sqliteTable('users', {
@@ -20,6 +20,7 @@ export const sites = sqliteTable('sites', {
   enableEmail: integer('enable_email', { mode: 'boolean' }).default(false).notNull(),
   commentsLimit: integer('comments_limit').default(10).notNull(),
   requireModeration: integer('require_moderation', { mode: 'boolean' }).default(true).notNull(),
+  enabledSocialLogins: text('enabled_social_logins', { mode: 'json' }).$type<string[]>().default([]).notNull(),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
 }, (table) => ({
   userIdIdx: index('sites_user_id_idx').on(table.userId),
@@ -76,3 +77,13 @@ export const widgetUsers = sqliteTable('widget_users', {
   resetPasswordExpires: integer('reset_password_expires', { mode: 'timestamp' }),
   createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
 });
+
+export const oauthAccounts = sqliteTable('oauth_accounts', {
+  providerId: text('provider_id').notNull(),
+  providerUserId: text('provider_user_id').notNull(),
+  widgetUserId: text('widget_user_id').notNull().references(() => widgetUsers.id, { onDelete: 'cascade' }),
+  createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.providerId, table.providerUserId] }),
+  widgetUserIdIdx: index('oauth_accounts_widget_user_id_idx').on(table.widgetUserId),
+}));

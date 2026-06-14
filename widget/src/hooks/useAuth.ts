@@ -96,6 +96,27 @@ export function useAuth(apiUrl: string, requireLogin: boolean) {
     }
   };
 
+  const setPassword = async (newPassword: string): Promise<boolean> => {
+    authError.value = '';
+    try {
+      const res = await fetch(`${apiUrl}/widget/auth/set-password`, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${widgetToken.peek()}`
+        },
+        body: JSON.stringify({ newPassword })
+      });
+      if (res.ok) return true;
+      const data = await res.json();
+      authError.value = data.error || 'Failed to set password';
+      return false;
+    } catch (err: any) {
+      authError.value = err.message;
+      return false;
+    }
+  };
+
   const resendVerification = async (): Promise<boolean> => {
     try {
       const res = await fetch(`${apiUrl}/widget/auth/resend-verification`, {
@@ -126,6 +147,7 @@ export function useAuth(apiUrl: string, requireLogin: boolean) {
     handleGuestSubmit,
     forgotPassword,
     resetPassword,
+    setPassword,
     resendVerification
   };
 }

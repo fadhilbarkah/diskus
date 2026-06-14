@@ -1,4 +1,7 @@
 import { Context } from 'hono';
+import { db } from '../db';
+import { widgetUsers } from '../db/schema';
+import { eq } from 'drizzle-orm';
 import { WidgetService } from '../services/widget.service';
 import { AdminService } from '../services/admin.service';
 import { NotificationService } from '../services/notification.service';
@@ -67,9 +70,14 @@ export class WidgetController {
     }
 
     const user = await WidgetService.findWidgetUser(email);
+    
+    if (user && user.passwordHash === '[OAUTH_ACCOUNT]') {
+      return c.json({ error: 'Please login using your connected Social Media account' }, 401);
+    }
+    
     if (user && await WidgetService.verifyPassword(password, user.passwordHash)) {
       const token = await signToken({ userId: user.id, email: user.email, name: user.name, role: 'commenter' });
-      return c.json({ token, user: { id: user.id, email: user.email, name: user.name, role: 'commenter', avatarSeed: hashEmail(user.email), isVerified: user.isVerified } });
+      return c.json({ token, user: { id: user.id, email: user.email, name: user.name, role: 'commenter', avatarSeed: hashEmail(user.email), isVerified: user.isVerified, hasPassword: user.passwordHash !== '[OAUTH_ACCOUNT]' } });
     }
     
     return c.json({ error: 'Invalid email or password' }, 401);
@@ -131,13 +139,28 @@ export class WidgetController {
 
   static async resetPassword(c: Context) {
     const { token, newPassword } = (c.req as any).valid('json');
+    const hash = await WidgetService.hashPassword(newPassword);
     
+    const success = await WidgetService.resetPasswordWithToken(token, hash);
+    if (!success) return c.json({ error: 'Invalid or expired token' }, 400);
+
+    return c.json({ success: true });
+  }
+
+  static async setPassword(c: Context) {
+    const user = c.get('user');
+    const { newPassword } = (c.req as any).valid('json');
+    if (!user || user.role !== 'commenter') return c.json({ error: 'Unauthorized' }, 401);
+
+    const dbUser = await WidgetService.findWidgetUser(user.email);
+    if (!dbUser) return c.json({ error: 'User not found' }, 404);
+    if (dbUser.passwordHash !== '[OAUTH_ACCOUNT]') return c.json({ error: 'User already has a password set' }, 400);
+
     const passwordHash = await WidgetService.hashPassword(newPassword);
-    const success = await WidgetService.resetPasswordWithToken(token, passwordHash);
     
-    if (!success) {
-      return c.json({ error: 'Invalid or expired token' }, 400);
-    }
+    await db.update(widgetUsers)
+      .set({ passwordHash })
+      .where(eq(widgetUsers.id, dbUser.id));
 
     return c.json({ success: true });
   }
@@ -156,7 +179,8 @@ export class WidgetController {
         name: dbUser.name,
         role: 'commenter',
         avatarSeed: hashEmail(dbUser.email),
-        isVerified: dbUser.isVerified
+        isVerified: dbUser.isVerified,
+        hasPassword: dbUser.passwordHash !== '[OAUTH_ACCOUNT]'
       }
     });
   }
@@ -204,7 +228,7 @@ export class WidgetController {
       return { ...safeComment, isAuthor, avatarSeed };
     });
 
-    return c.json({ comments: enrichedComments, hasMore, total, config: { requireLogin: site.requireLogin } });
+    return c.json({ comments: enrichedComments, hasMore, total, config: { requireLogin: site.requireLogin, enabledSocialLogins: site.enabledSocialLogins } });
   }
 
   static async postComment(c: Context<{ Variables: AuthVariables }>) {
