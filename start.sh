@@ -32,6 +32,14 @@ SEED_DB=true
 # SMTP_USER=
 # SMTP_PASS=
 # SMTP_FROM=
+
+# Optional: OAuth Configuration for Social Login
+# IMPORTANT: API_URL is required when using OAuth
+# API_URL=https://api.yourdomain.com
+# GOOGLE_CLIENT_ID=
+# GOOGLE_CLIENT_SECRET=
+# GITHUB_CLIENT_ID=
+# GITHUB_CLIENT_SECRET=
 EOF
     echo "✅ Secure JWT_SECRET generated and saved to .env"
 else
