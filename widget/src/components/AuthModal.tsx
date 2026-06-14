@@ -23,6 +23,7 @@ export function AuthModal({ apiUrl, requireLogin }: Props) {
     handleGuestSubmit,
     forgotPassword,
     resetPassword,
+    setPassword,
     authError
   } = useAuth(apiUrl, !!requireLogin);
 
@@ -162,35 +163,41 @@ export function AuthModal({ apiUrl, requireLogin }: Props) {
 
   return (
     <div class="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-transparent backdrop-blur-sm animate-in fade-in duration-200">
-      <div class="relative w-full min-w-0 max-w-[700px] max-h-[95vh] overflow-y-auto bg-white dark:bg-[#121212] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl flex flex-col min-[480px]:flex-row animate-in zoom-in-95 duration-200">
+      <div class={`relative w-full min-w-0 ${globalAuthMode.value === 'invalid_reset_token' ? 'max-w-[400px]' : 'max-w-[700px] min-[480px]:flex-row'} max-h-[95vh] overflow-y-auto bg-white dark:bg-[#121212] border border-gray-200 dark:border-gray-800 rounded-2xl shadow-2xl flex flex-col animate-in zoom-in-95 duration-200`}>
         <button onClick={() => globalShowAuthModal.value = false} class="absolute top-4 right-4 z-10 p-1 text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors rounded-lg bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
         
-        <div class="w-full min-[480px]:w-[45%] bg-gray-50/50 dark:bg-[#161616] p-6 min-[480px]:p-8 flex flex-col justify-center border-b min-[480px]:border-b-0 min-[480px]:border-r border-gray-100 dark:border-gray-800/60">
+        <div class={`w-full ${globalAuthMode.value === 'invalid_reset_token' ? '' : 'min-[480px]:w-[45%] min-[480px]:border-b-0 min-[480px]:border-r'} bg-gray-50/50 dark:bg-[#161616] p-6 min-[480px]:p-8 flex flex-col justify-center border-b border-gray-100 dark:border-gray-800/60`}>
             <div class="mt-2 min-[480px]:mt-0">
               <h3 class="text-[20px] font-bold text-gray-900 dark:text-white leading-tight">
-                {globalAuthMode.value === 'login' ? 'Welcome back 👋' : globalAuthMode.value === 'register' ? 'Create account ✨' : globalAuthMode.value === 'forgot_password' ? 'Reset password 🔑' : globalAuthMode.value === 'reset_password' ? 'New password 🔐' : globalAuthMode.value === 'set_password' ? 'Set password 🔐' : (globalAuthReason.value === 'like' ? 'Login required 🔒' : 'Leave a comment ✍️')}
+                {globalAuthMode.value === 'login' ? 'Welcome back 👋' : globalAuthMode.value === 'register' ? 'Create account ✨' : globalAuthMode.value === 'forgot_password' ? 'Reset password 🔑' : globalAuthMode.value === 'reset_password' ? 'New password 🔐' : globalAuthMode.value === 'set_password' ? 'Set password 🔐' : globalAuthMode.value === 'invalid_reset_token' ? 'Link expired ⚠️' : (globalAuthReason.value === 'like' ? 'Login required 🔒' : 'Leave a comment ✍️')}
               </h3>
               <p class="text-[14px] text-gray-500 dark:text-gray-400 mt-2.5">
-                {globalAuthMode.value === 'login' ? (globalAuthReason.value === 'like' ? 'Sign in to like this comment.' : 'Sign in to leave a comment.') : globalAuthMode.value === 'register' ? 'Join our community.' : globalAuthMode.value === 'forgot_password' ? 'Enter your email to receive a reset link.' : globalAuthMode.value === 'reset_password' ? 'Enter your new password below.' : globalAuthMode.value === 'set_password' ? 'Set a password for your account to login with email.' : 'Fill in your details to comment as a guest.'}
+                {globalAuthMode.value === 'login' ? (globalAuthReason.value === 'like' ? 'Sign in to like this comment.' : 'Sign in to leave a comment.') : globalAuthMode.value === 'register' ? 'Join our community.' : globalAuthMode.value === 'forgot_password' ? 'Enter your email to receive a reset link.' : globalAuthMode.value === 'reset_password' ? 'Enter your new password below.' : globalAuthMode.value === 'set_password' ? 'Set a password for your account to login with email.' : globalAuthMode.value === 'invalid_reset_token' ? 'This password reset link is invalid or has expired.' : 'Fill in your details to comment as a guest.'}
               </p>
             </div>
             
             <div class="mt-8 flex flex-col gap-3 text-[14px]">
-              {globalAuthMode.value !== 'login' && globalAuthMode.value !== 'reset_password' && globalAuthMode.value !== 'set_password' && (
+              {globalAuthMode.value === 'invalid_reset_token' && (
+                <button type="button" onClick={() => { globalAuthMode.value = 'forgot_password'; authSuccess.value = ''; globalAuthError.value = ''; }} class="w-full mt-2 py-3 bg-gray-100 dark:bg-[#27272a] text-gray-900 dark:text-gray-100 text-[14px] font-semibold rounded-xl hover:bg-gray-200 dark:hover:bg-[#3f3f46] transition-all shadow-sm">
+                  Request new link
+                </button>
+              )}
+              {globalAuthMode.value !== 'login' && globalAuthMode.value !== 'reset_password' && globalAuthMode.value !== 'set_password' && globalAuthMode.value !== 'invalid_reset_token' && (
                 <div class="text-gray-500 dark:text-gray-400">Already have an account? <button type="button" onClick={() => { globalAuthMode.value = 'login'; authSuccess.value = ''; }} class="text-blue-600 dark:text-blue-400 font-medium hover:text-blue-700 dark:hover:text-blue-300">Sign in</button></div>
               )}
-              {globalAuthMode.value !== 'register' && globalAuthMode.value !== 'reset_password' && globalAuthMode.value !== 'set_password' && (
+              {globalAuthMode.value !== 'register' && globalAuthMode.value !== 'reset_password' && globalAuthMode.value !== 'set_password' && globalAuthMode.value !== 'invalid_reset_token' && (
                 <div class="text-gray-500 dark:text-gray-400">Don't have an account? <button type="button" onClick={() => { globalAuthMode.value = 'register'; authSuccess.value = ''; }} class="text-blue-600 dark:text-blue-400 font-medium hover:text-blue-700 dark:hover:text-blue-300">Register</button></div>
               )}
-              {globalAuthMode.value !== 'guest' && !requireLogin && globalAuthReason.value !== 'like' && globalAuthMode.value !== 'reset_password' && globalAuthMode.value !== 'set_password' && (
+              {globalAuthMode.value !== 'guest' && !requireLogin && globalAuthReason.value !== 'like' && globalAuthMode.value !== 'reset_password' && globalAuthMode.value !== 'set_password' && globalAuthMode.value !== 'invalid_reset_token' && (
                 <div class="text-gray-500 dark:text-gray-400 mt-3 pt-4 border-t border-gray-200 dark:border-gray-800">Or just want to <button type="button" onClick={() => { globalAuthMode.value = 'guest'; authSuccess.value = ''; }} class="text-gray-900 dark:text-white font-medium hover:underline">comment as Guest</button></div>
               )}
             </div>
         </div>
 
-        <div class="w-full min-[480px]:w-[55%] p-6 min-[480px]:p-8 min-[480px]:pt-12">
+        {globalAuthMode.value !== 'invalid_reset_token' && (
+          <div class="w-full min-[480px]:w-[55%] p-6 min-[480px]:p-8 min-[480px]:pt-12">
             <form onSubmit={handleModalSubmit} class="flex flex-col gap-4">
               <input type="text" name="_diskus_trap" value={trap.value} onInput={(e) => trap.value = (e.target as HTMLInputElement).value} style={{ display: 'none', position: 'absolute', opacity: 0 }} tabIndex={-1} autoComplete="off" />
               
@@ -257,7 +264,8 @@ export function AuthModal({ apiUrl, requireLogin }: Props) {
                   {submitting.value ? 'Please wait...' : globalAuthMode.value === 'login' ? 'Login' : globalAuthMode.value === 'register' ? 'Register' : globalAuthMode.value === 'forgot_password' ? 'Send reset link' : globalAuthMode.value === 'reset_password' ? 'Reset password' : globalAuthMode.value === 'set_password' ? 'Save password' : 'Continue as Guest'}
               </button>
             </form>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

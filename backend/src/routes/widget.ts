@@ -37,6 +37,12 @@ widgetRoutes.post(
   WidgetController.forgotPassword
 );
 
+widgetRoutes.get(
+  '/auth/reset-password/validate',
+  validate('query', z.object({ token: z.string().max(500) })),
+  WidgetController.validateResetPasswordToken
+);
+
 widgetRoutes.post(
   '/auth/reset-password',
   rateLimitMiddleware(5, 60 * 60 * 1000),

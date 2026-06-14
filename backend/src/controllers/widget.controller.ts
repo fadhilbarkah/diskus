@@ -137,6 +137,13 @@ export class WidgetController {
     return c.json({ success: true });
   }
 
+  static async validateResetPasswordToken(c: Context) {
+    const { token } = (c.req as any).valid('query');
+    const isValid = await WidgetService.validateResetToken(token);
+    if (!isValid) return c.json({ valid: false }, 400);
+    return c.json({ valid: true });
+  }
+
   static async resetPassword(c: Context) {
     const { token, newPassword } = (c.req as any).valid('json');
     const hash = await WidgetService.hashPassword(newPassword);

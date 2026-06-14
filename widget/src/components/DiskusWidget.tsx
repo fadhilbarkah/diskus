@@ -62,9 +62,21 @@ export function DiskusWidget({ apiKey, threadKey, apiUrl, title, embedToken: emb
     const resetToken = urlParams.get('reset_token');
     if (resetToken) {
       import('../lib/auth').then(({ globalAuthMode, globalShowAuthModal, globalResetToken }) => {
-        globalResetToken.value = resetToken;
-        globalAuthMode.value = 'reset_password';
-        globalShowAuthModal.value = true;
+        fetch(`${apiUrl}/widget/auth/reset-password/validate?token=${resetToken}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.valid) {
+              globalResetToken.value = resetToken;
+              globalAuthMode.value = 'reset_password';
+            } else {
+              globalAuthMode.value = 'invalid_reset_token';
+            }
+            globalShowAuthModal.value = true;
+          })
+          .catch(() => {
+            globalAuthMode.value = 'invalid_reset_token';
+            globalShowAuthModal.value = true;
+          });
       });
     }
   }, []);

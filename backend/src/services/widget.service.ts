@@ -158,6 +158,19 @@ export class WidgetService {
     return { user, resetToken };
   }
 
+  static async validateResetToken(token: string) {
+    const user = await db.select().from(widgetUsers)
+      .where(and(
+        eq(widgetUsers.resetPasswordToken, token),
+        isNotNull(widgetUsers.resetPasswordExpires)
+      )).get();
+      
+    if (!user || !user.resetPasswordExpires || new Date() > new Date(user.resetPasswordExpires)) {
+      return false;
+    }
+    return true;
+  }
+
   static async resetPasswordWithToken(token: string, newPasswordHash: string) {
     const user = await db.select().from(widgetUsers)
       .where(and(
