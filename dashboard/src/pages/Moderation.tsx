@@ -6,6 +6,7 @@ import { authState } from '../lib/auth';
 import { selectedSiteId, userSites, globalSearchQuery } from '../lib/store';
 import { PageHeader } from '../components/ui/PageHeader';
 import { Card } from '../components/ui/Card';
+import DomainSelect from '../components/ui/DomainSelect';
 
 export function Moderation() {
   const activeTab = useSignal('all');
@@ -293,21 +294,11 @@ export function Moderation() {
         action={
           <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
             <div class="relative">
-              <select
-                class="w-full sm:w-48 appearance-none border border-gray-200 dark:border-gray-700 rounded-xl px-4 py-2.5 pr-10 bg-white dark:bg-[#18181b] font-semibold text-gray-700 dark:text-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:focus:ring-blue-500/20 focus:border-blue-500 dark:focus:border-blue-500 transition-all cursor-pointer"
-                value={selectedSiteId.value || ''}
-                onChange={(e) => selectedSiteId.value = (e.target as HTMLSelectElement).value}
-              >
-                {userSites.value.length === 0 && <option value="">No Websites</option>}
-                {userSites.value.map(site => (
-                  <option key={site.id} value={site.id}>
-                    {site.domain}
-                  </option>
-                ))}
-              </select>
-              <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
-                <ChevronDown class="w-4 h-4" />
-              </div>
+              <DomainSelect 
+                sites={userSites.value} 
+                selectedId={selectedSiteId.value} 
+                onSelect={(id) => selectedSiteId.value = id} 
+              />
             </div>
           </div>
         }
