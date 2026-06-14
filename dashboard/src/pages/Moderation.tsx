@@ -213,11 +213,11 @@ export function Moderation() {
       };
 
       return (
-        <div key={c.id} class={`relative ${depth === 0 ? 'border-b border-gray-100 dark:border-gray-800 last:border-0' : ''} ${openMenuId.value === c.id ? 'z-50' : 'z-0'}`}>
+        <div key={c.id} class={`relative ${depth === 0 ? 'border-b border-gray-100 dark:border-gray-800 last:border-0' : ''} ${openMenuId.value === c.id ? 'z-50' : ''}`}>
           {replies.length > 0 && (
             <div class="absolute w-px bg-gray-200 dark:bg-gray-700 z-0" style={{ left: `${depth * 32 + 68}px`, top: '36px', bottom: '24px' }}></div>
           )}
-          <div class={`flex items-start gap-4 p-4 hover:bg-gray-50/50 dark:hover:bg-[#1f1f22] group relative ${openMenuId.value === c.id ? 'z-50' : 'z-0'}`}>
+          <div class={`flex items-start gap-4 p-4 hover:bg-gray-50/50 dark:hover:bg-[#1f1f22] group relative ${openMenuId.value === c.id ? 'z-50' : ''}`}>
             <div class="pt-1 shrink-0 z-10 bg-white dark:bg-[#18181b]">
               <input type="checkbox" checked={isSelected} onChange={() => toggleSelect(c.id)} class="w-4 h-4 rounded border-gray-300 dark:border-gray-600 dark:bg-[#1f1f22] text-blue-600 focus:ring-blue-500 cursor-pointer" />
             </div>
