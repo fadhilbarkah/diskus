@@ -110,9 +110,9 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
 
   return (
     <div class={`relative ${depth > 0 ? 'mt-6' : ''}`}>
-      <div class="flex gap-4">
+      <div class="flex gap-3">
         {/* Avatar */}
-        <div class={`w-10 h-10 rounded-full shrink-0 overflow-hidden bg-gray-100 dark:bg-gray-800 mt-1 border border-gray-200 dark:border-gray-700 relative z-10 ${isDeleted ? 'opacity-40 grayscale' : ''}`}>
+        <div class={`w-8 h-8 rounded-full shrink-0 overflow-hidden bg-gray-100 dark:bg-gray-800 mt-1 border border-gray-200 dark:border-gray-700 relative z-10 ${isDeleted ? 'opacity-40 grayscale' : ''}`}>
            <img src={dicebearUrl} alt={comment.authorName} class="w-full h-full object-cover opacity-90 dark:opacity-80" />
         </div>
         
@@ -160,7 +160,7 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
                 <span class={hasLiked.value ? 'font-medium' : ''}>{localLikesCount.value}</span>
               </button>
             )}
-            {!isDeleted && depth < 2 && (
+            {!isDeleted && (
               <>
                 <div class="w-px h-[14px] bg-gray-200 dark:bg-gray-700"></div>
                 <button onClick={() => globalActiveReplyId.value = isReplying ? null : comment.id} class="text-[14px] text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-colors">
@@ -173,13 +173,13 @@ export function CommentThread({ comment, repliesMap, onReply, onLike, apiUrl, de
       </div>
 
       {isReplying && (
-        <div class="mt-4 mb-2 md:ml-14">
-          <CommentForm onSubmit={onReply} parentId={comment.id} onCancel={() => globalActiveReplyId.value = null} apiUrl={apiUrl} requireLogin={requireLogin} />
+        <div class="mt-4 mb-2 ml-11">
+          <CommentForm onSubmit={onReply} parentId={depth >= 2 ? (comment.parentId || comment.id) : comment.id} onCancel={() => globalActiveReplyId.value = null} apiUrl={apiUrl} requireLogin={requireLogin} />
         </div>
       )}
 
       {replies.length > 0 && depth < 2 && (
-        <div class="mt-6 ml-5 pl-4 md:pl-6 border-l-2 border-gray-200 dark:border-gray-800 relative pb-2 transition-colors duration-300">
+        <div class="mt-6 ml-4 pl-2 md:pl-3 border-l-2 border-gray-200 dark:border-gray-800 relative pb-2 transition-colors duration-300">
           <div class="space-y-6">
             {replies.map((reply) => (
               <div key={reply.id} class="relative">
