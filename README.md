@@ -11,8 +11,8 @@
 
 Diskus is designed to be a fast, privacy-respecting alternative to Disqus and other bloated third-party commenting services.
 
-[![Live Demo](https://img.shields.io/badge/🚀_Try_the_Live_Demo-2ea44f?style=for-the-badge)](https://diskus.pages.dev/)
-[![Documentation](https://img.shields.io/badge/📖_Read_the_Docs-0366d6?style=for-the-badge)](https://diskus.pages.dev/)
+[![Live Demo](https://img.shields.io/badge/🚀_Try_the_Live_Demo-2ea44f?style=for-the-badge)](https://diskus.pages.dev/demo)
+[![Documentation](https://img.shields.io/badge/📖_Read_the_Docs-0366d6?style=for-the-badge)](https://diskus.pages.dev/docs)
 ## Screenshots
 
 <div align="center">
@@ -27,7 +27,7 @@ Diskus is designed to be a fast, privacy-respecting alternative to Disqus and ot
 
 ## Features
 
-- **Ultra-lightweight Widget:** The entire widget is bundled into a single lightweight script (`embed.js`), with a total footprint of ~24.1KB (gzipped), ensuring zero impact on your Core Web Vitals.
+- **Ultra-lightweight Widget:** The entire widget is bundled into a single lightweight script (`embed.js`), with a total footprint of ~27.5KB (gzipped), ensuring zero impact on your Core Web Vitals.
 - **100% CSS Isolation:** Runs within a native `Shadow DOM`, ensuring your website's CSS never conflicts with the widget's design and vice-versa, without the heavy performance overhead of traditional iframes.
 - **Multi-tenant Architecture:** Manage comments across multiple domains and websites from a single centralized dashboard.
 - **Built-in Anti-Spam:** Native rate-limiting and invisible honeypot traps to prevent automated bot registrations without requiring intrusive CAPTCHAs.
