@@ -13,8 +13,8 @@ export const demoMiddleware = async (c: Context, next: Next) => {
   }
 
   if (method === 'POST') {
-    // Allow public comment submission
-    if (path.endsWith('/comments')) {
+    // Allow public comment submission, liking, and unliking
+    if (path.endsWith('/comments') || path.endsWith('/like') || path.endsWith('/unlike')) {
       return next();
     }
     // Allow login so the dashboard can be accessed
