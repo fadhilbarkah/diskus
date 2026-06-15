@@ -1,12 +1,29 @@
-# Diskus
+<div align="center">
+  <img src="public/assets/logo.png" alt="Diskus Logo" width="120" />
+  <h1>Diskus</h1>
+</div>
+
+**A lightweight, self-hosted comments system built for modern web applications.**
 
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![Bun](https://img.shields.io/badge/Bun-%23000000.svg?logo=bun&logoColor=white)](https://bun.sh)
 [![Preact](https://img.shields.io/badge/Preact-673AB8?logo=preact&logoColor=white)](https://preactjs.com/)
 
-A lightweight, self-hosted comments system built for modern web applications. Diskus is designed to be a fast, privacy-respecting alternative to Disqus and other bloated third-party commenting services.
+Diskus is designed to be a fast, privacy-respecting alternative to Disqus and other bloated third-party commenting services.
 
-**[📖 Read the documentation & try the live demo](https://diskus.pages.dev/)**
+[![Live Demo](https://img.shields.io/badge/🚀_Try_the_Live_Demo-2ea44f?style=for-the-badge)](https://diskus.pages.dev/)
+[![Documentation](https://img.shields.io/badge/📖_Read_the_Docs-0366d6?style=for-the-badge)](https://diskus.pages.dev/)
+## Screenshots
+
+<div align="center">
+  <img src="public/assets/Diskus_Dashboard.png" alt="Diskus Dashboard" width="800" />
+  <p><em>Diskus Centralized Admin Dashboard</em></p>
+  
+  <br />
+
+  <img src="public/assets/Diskus_Widget.png" alt="Diskus Widget" width="800" />
+  <p><em>Diskus Lightweight Widget</em></p>
+</div>
 
 ## Features
 
@@ -14,6 +31,7 @@ A lightweight, self-hosted comments system built for modern web applications. Di
 - **100% CSS Isolation:** Runs within a native `Shadow DOM`, ensuring your website's CSS never conflicts with the widget's design and vice-versa, without the heavy performance overhead of traditional iframes.
 - **Multi-tenant Architecture:** Manage comments across multiple domains and websites from a single centralized dashboard.
 - **Built-in Anti-Spam:** Native rate-limiting and invisible honeypot traps to prevent automated bot registrations without requiring intrusive CAPTCHAs.
+- **Social Login:** Seamless Google OAuth integration allowing commenters to sign in quickly and securely without managing additional passwords.
 - **Server-side Sanitization:** Strict HTML sanitization (`isomorphic-dompurify`) and Markdown parsing are offloaded to the server to maintain a minimal client bundle.
 - **Data Portability:** Full JSON-based import and export capabilities for threads and comments.
 - **Email Notifications:** Configurable email alerts for new comments powered by standard SMTP integration.
