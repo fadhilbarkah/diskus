@@ -1,5 +1,5 @@
-import { Context } from 'hono';
-import { extractHostnameFromOrigin } from './domain';
+import type { Context } from "hono";
+import { extractHostnameFromOrigin } from "./domain";
 
 /**
  * Resolves the parent page origin for embed-token issuance.
@@ -7,10 +7,10 @@ import { extractHostnameFromOrigin } from './domain';
  * can strip Referer — so we fall back to Host + Sec-Fetch-Site when appropriate.
  */
 export function getParentOriginFromRequest(c: Context): string | undefined {
-  const origin = c.req.header('origin');
-  if (origin && origin !== 'null') return origin;
+  const origin = c.req.header("origin");
+  if (origin && origin !== "null") return origin;
 
-  const referer = c.req.header('referer');
+  const referer = c.req.header("referer");
   if (referer) {
     try {
       return new URL(referer).origin;
@@ -19,13 +19,13 @@ export function getParentOriginFromRequest(c: Context): string | undefined {
     }
   }
 
-  const secFetchSite = c.req.header('sec-fetch-site');
-  if (secFetchSite === 'cross-site') return undefined;
+  const secFetchSite = c.req.header("sec-fetch-site");
+  if (secFetchSite === "cross-site") return undefined;
 
-  const host = c.req.header('host')?.split(',')[0]?.trim();
+  const host = c.req.header("host")?.split(",")[0]?.trim();
   if (!host) return undefined;
 
-  const proto = c.req.header('x-forwarded-proto')?.split(',')[0]?.trim() || 'https';
+  const proto = c.req.header("x-forwarded-proto")?.split(",")[0]?.trim() || "https";
   return `${proto}://${host}`;
 }
 

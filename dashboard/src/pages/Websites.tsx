@@ -1,27 +1,40 @@
-import { useSignal } from '@preact/signals';
-import { useEffect } from 'preact/hooks';
-import { api } from '../lib/api';
-import { userSites, selectedSiteId, globalSearchQuery } from '../lib/store';
-import { Globe, Key, Code, Plus, Trash2, Copy, Check, X, Settings as SettingsIcon, AlertTriangle } from 'lucide-preact';
-import { Button } from '../components/ui/Button';
-import { Input } from '../components/ui/Input';
-import { Card } from '../components/ui/Card';
-import { PageHeader } from '../components/ui/PageHeader';
-import { WebsiteSettingsDetail } from './WebsiteSettingsDetail';
+import { useSignal } from "@preact/signals";
+import {
+  AlertTriangle,
+  Check,
+  Code,
+  Copy,
+  Globe,
+  Key,
+  Plus,
+  Settings as SettingsIcon,
+  Trash2,
+  X,
+} from "lucide-preact";
+import { useEffect } from "preact/hooks";
+import { Button } from "../components/ui/Button";
+import { Card } from "../components/ui/Card";
+import { Input } from "../components/ui/Input";
+import { PageHeader } from "../components/ui/PageHeader";
+import { api } from "../lib/api";
+import { globalSearchQuery, selectedSiteId, userSites } from "../lib/store";
+import { WebsiteSettingsDetail } from "./WebsiteSettingsDetail";
 
 export function Websites() {
   const sites = useSignal<any[]>([]);
   const loading = useSignal(true);
-  const notification = useSignal<{message: string, type: 'success'|'error'} | null>(null);
+  const notification = useSignal<{ message: string; type: "success" | "error" } | null>(null);
 
-  const showNotification = (message: string, type: 'success' | 'error') => {
+  const showNotification = (message: string, type: "success" | "error") => {
     notification.value = { message, type };
-    setTimeout(() => { notification.value = null; }, 4000);
+    setTimeout(() => {
+      notification.value = null;
+    }, 4000);
   };
-  
+
   // Modals / Dialogs state
   const isAddModalOpen = useSignal(false);
-  const newDomain = useSignal('');
+  const newDomain = useSignal("");
   const addLoading = useSignal(false);
 
   const selectedSiteForEmbed = useSignal<any | null>(null);
@@ -29,7 +42,7 @@ export function Websites() {
   const copiedEmbed = useSignal<boolean>(false);
 
   const selectedSiteForSettings = useSignal<any | null>(null);
-  const siteToDelete = useSignal<{id: string, domain: string} | null>(null);
+  const siteToDelete = useSignal<{ id: string; domain: string } | null>(null);
   const deleteLoading = useSignal(false);
 
   const fetchSites = async () => {
@@ -52,21 +65,21 @@ export function Websites() {
   const handleAddSite = async (e: Event) => {
     e.preventDefault();
     if (!newDomain.value.trim()) return;
-    
+
     addLoading.value = true;
     try {
       // clean domain input (strip http:// or https:// and trailing slashes)
       let domain = newDomain.value.trim().toLowerCase();
-      domain = domain.replace(/^(https?:\/\/)?(www\.)?/, '').split('/')[0];
-      
+      domain = domain.replace(/^(https?:\/\/)?(www\.)?/, "").split("/")[0];
+
       await api.createSite(domain);
-      newDomain.value = '';
+      newDomain.value = "";
       isAddModalOpen.value = false;
       await fetchSites();
-      showNotification('Website added successfully', 'success');
+      showNotification("Website added successfully", "success");
     } catch (err: any) {
       console.error(err);
-      showNotification(err.message || 'Failed to add website', 'error');
+      showNotification(err.message || "Failed to add website", "error");
     } finally {
       addLoading.value = false;
     }
@@ -86,10 +99,10 @@ export function Websites() {
       }
       siteToDelete.value = null;
       await fetchSites();
-      showNotification('Website deleted successfully', 'success');
+      showNotification("Website deleted successfully", "success");
     } catch (err: any) {
       console.error(err);
-      showNotification(err.message || 'Failed to delete website', 'error');
+      showNotification(err.message || "Failed to delete website", "error");
     } finally {
       deleteLoading.value = false;
     }
@@ -113,9 +126,9 @@ export function Websites() {
 
   if (selectedSiteForSettings.value) {
     return (
-      <WebsiteSettingsDetail 
-        site={selectedSiteForSettings.value} 
-        onBack={() => selectedSiteForSettings.value = null}
+      <WebsiteSettingsDetail
+        site={selectedSiteForSettings.value}
+        onBack={() => (selectedSiteForSettings.value = null)}
         onUpdate={() => {
           fetchSites();
         }}
@@ -126,8 +139,10 @@ export function Websites() {
   return (
     <div class="max-w-7xl mx-auto space-y-8 relative">
       {notification.value && (
-        <div class={`fixed top-6 right-6 z-[100] flex items-center gap-3 px-5 py-3 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border transition-all duration-300 transform translate-y-0 opacity-100 ${notification.value.type === 'success' ? 'bg-white dark:bg-[#18181b] border-green-100 dark:border-green-900/30 text-gray-800 dark:text-gray-100' : 'bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-900/30 text-red-800 dark:text-red-300'}`}>
-          {notification.value.type === 'success' ? (
+        <div
+          class={`fixed top-6 right-6 z-[100] flex items-center gap-3 px-5 py-3 rounded-2xl shadow-[0_8px_30px_rgba(0,0,0,0.12)] border transition-all duration-300 transform translate-y-0 opacity-100 ${notification.value.type === "success" ? "bg-white dark:bg-[#18181b] border-green-100 dark:border-green-900/30 text-gray-800 dark:text-gray-100" : "bg-red-50 dark:bg-red-900/20 border-red-100 dark:border-red-900/30 text-red-800 dark:text-red-300"}`}
+        >
+          {notification.value.type === "success" ? (
             <div class="w-8 h-8 rounded-full bg-green-50 text-green-500 flex items-center justify-center shrink-0">
               <Check class="w-4 h-4" strokeWidth={3} />
             </div>
@@ -140,11 +155,11 @@ export function Websites() {
         </div>
       )}
 
-      <PageHeader 
-        title="Websites" 
+      <PageHeader
+        title="Websites"
         description="List of websites using your Diskus comment widget"
         action={
-          <Button onClick={() => isAddModalOpen.value = true}>
+          <Button onClick={() => (isAddModalOpen.value = true)}>
             <Plus class="w-4 h-4 mr-2" /> Add Website
           </Button>
         }
@@ -153,7 +168,11 @@ export function Websites() {
       {/* Grid of sites */}
       {(() => {
         const query = globalSearchQuery.value.toLowerCase();
-        const filteredSites = sites.value.filter(site => site.domain.toLowerCase().includes(query) || site.publicApiKey.toLowerCase().includes(query));
+        const filteredSites = sites.value.filter(
+          (site) =>
+            site.domain.toLowerCase().includes(query) ||
+            site.publicApiKey.toLowerCase().includes(query),
+        );
 
         if (loading.value) {
           return <div class="text-center py-20 text-gray-400">Loading websites...</div>;
@@ -165,11 +184,13 @@ export function Websites() {
               <div class="w-16 h-16 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-full flex items-center justify-center mb-6">
                 <Globe class="w-8 h-8" />
               </div>
-              <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">No websites yet</h3>
-              <p class="text-gray-500 dark:text-gray-400 text-sm mb-8">Add your first website to get an App ID and install the comment widget.</p>
-              <Button onClick={() => isAddModalOpen.value = true}>
-                Add Website
-              </Button>
+              <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                No websites yet
+              </h3>
+              <p class="text-gray-500 dark:text-gray-400 text-sm mb-8">
+                Add your first website to get an App ID and install the comment widget.
+              </p>
+              <Button onClick={() => (isAddModalOpen.value = true)}>Add Website</Button>
             </Card>
           );
         }
@@ -180,72 +201,81 @@ export function Websites() {
 
         return (
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredSites.map(site => {
+            {filteredSites.map((site) => {
               return (
-              <Card key={site.id} class="flex flex-col justify-between hover:shadow-md transition-shadow group">
-                <div>
-                  <div class="flex items-start justify-between">
-                    <div class="flex items-center gap-3">
-                      <div class="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center shrink-0">
-                        <Globe class="w-6 h-6" />
+                <Card
+                  key={site.id}
+                  class="flex flex-col justify-between hover:shadow-md transition-shadow group"
+                >
+                  <div>
+                    <div class="flex items-start justify-between">
+                      <div class="flex items-center gap-3">
+                        <div class="w-12 h-12 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl flex items-center justify-center shrink-0">
+                          <Globe class="w-6 h-6" />
+                        </div>
+                        <div>
+                          <h3 class="font-bold text-gray-900 dark:text-gray-100 truncate max-w-[150px]">
+                            {site.domain}
+                          </h3>
+                          <p class="text-xs text-gray-400 dark:text-gray-500">
+                            Added {new Date(site.createdAt).toLocaleDateString("id-ID")}
+                          </p>
+                        </div>
                       </div>
+                      <button
+                        onClick={() => handleDeleteSite(site.id, site.domain)}
+                        class="text-gray-400 hover:text-red-600 dark:hover:text-red-400 p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
+                        title="Delete Website"
+                      >
+                        <Trash2 class="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div class="mt-8 space-y-3">
                       <div>
-                        <h3 class="font-bold text-gray-900 dark:text-gray-100 truncate max-w-[150px]">{site.domain}</h3>
-                        <p class="text-xs text-gray-400 dark:text-gray-500">Added {new Date(site.createdAt).toLocaleDateString('id-ID')}</p>
+                        <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-2">
+                          App ID
+                        </label>
+                        <div class="flex items-center gap-2 bg-gray-50 dark:bg-[#1f1f22] border border-gray-100 dark:border-gray-800 rounded-xl px-4 py-2.5 text-xs text-gray-600 dark:text-gray-300 font-mono select-all overflow-x-auto">
+                          <Key class="w-4 h-4 shrink-0 text-gray-400" />
+                          <span class="truncate">{site.publicApiKey}</span>
+                          <button
+                            onClick={() => handleCopyKey(site.publicApiKey)}
+                            class="ml-auto text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 shrink-0 transition-colors cursor-pointer bg-white dark:bg-[#27272a] p-1.5 rounded-md border border-gray-200 dark:border-gray-700 shadow-sm"
+                            title="Copy App ID"
+                          >
+                            {copiedKey.value === site.publicApiKey ? (
+                              <Check class="w-3.5 h-3.5 text-green-500" />
+                            ) : (
+                              <Copy class="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                        </div>
                       </div>
                     </div>
-                    <button 
-                      onClick={() => handleDeleteSite(site.id, site.domain)}
-                      class="text-gray-400 hover:text-red-600 dark:hover:text-red-400 p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors cursor-pointer opacity-0 group-hover:opacity-100"
-                      title="Delete Website"
+                  </div>
+
+                  <div class="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800 flex gap-2">
+                    <Button
+                      variant="ghost"
+                      class="flex-1"
+                      onClick={() => (selectedSiteForSettings.value = site)}
                     >
-                      <Trash2 class="w-4 h-4" />
-                    </button>
+                      <SettingsIcon class="w-4 h-4 mr-2" /> Settings
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      class="flex-1"
+                      onClick={() => (selectedSiteForEmbed.value = site)}
+                    >
+                      <Code class="w-4 h-4 mr-2" /> Embed
+                    </Button>
                   </div>
-
-                  <div class="mt-8 space-y-3">
-                    <div>
-                      <label class="text-xs font-semibold text-gray-400 uppercase tracking-wider block mb-2">App ID</label>
-                      <div class="flex items-center gap-2 bg-gray-50 dark:bg-[#1f1f22] border border-gray-100 dark:border-gray-800 rounded-xl px-4 py-2.5 text-xs text-gray-600 dark:text-gray-300 font-mono select-all overflow-x-auto">
-                        <Key class="w-4 h-4 shrink-0 text-gray-400" />
-                        <span class="truncate">{site.publicApiKey}</span>
-                        <button 
-                          onClick={() => handleCopyKey(site.publicApiKey)}
-                          class="ml-auto text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 shrink-0 transition-colors cursor-pointer bg-white dark:bg-[#27272a] p-1.5 rounded-md border border-gray-200 dark:border-gray-700 shadow-sm"
-                          title="Copy App ID"
-                        >
-                          {copiedKey.value === site.publicApiKey ? (
-                            <Check class="w-3.5 h-3.5 text-green-500" />
-                          ) : (
-                            <Copy class="w-3.5 h-3.5" />
-                          )}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="mt-6 pt-6 border-t border-gray-100 dark:border-gray-800 flex gap-2">
-                  <Button 
-                    variant="ghost" 
-                    class="flex-1"
-                    onClick={() => selectedSiteForSettings.value = site}
-                  >
-                    <SettingsIcon class="w-4 h-4 mr-2" /> Settings
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    class="flex-1"
-                    onClick={() => selectedSiteForEmbed.value = site}
-                  >
-                    <Code class="w-4 h-4 mr-2" /> Embed
-                  </Button>
-                </div>
-              </Card>
-            );
-          })}
-        </div>
-      );
+                </Card>
+              );
+            })}
+          </div>
+        );
       })()}
 
       {/* Add Website Modal */}
@@ -254,8 +284,11 @@ export function Websites() {
           <Card class="max-w-md w-full shadow-lg" noPadding>
             <div class="flex justify-between items-center p-6 border-b border-gray-100 dark:border-gray-800">
               <h3 class="font-bold text-gray-900 dark:text-gray-100 text-lg">Add Website</h3>
-              <button 
-                onClick={() => { isAddModalOpen.value = false; newDomain.value = ''; }}
+              <button
+                onClick={() => {
+                  isAddModalOpen.value = false;
+                  newDomain.value = "";
+                }}
                 class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-[#27272a] transition-colors cursor-pointer"
               >
                 <X class="w-5 h-5" />
@@ -263,29 +296,31 @@ export function Websites() {
             </div>
             <form onSubmit={handleAddSite} class="p-6 space-y-6">
               <div>
-                <Input 
+                <Input
                   label="Domain Name"
-                  type="text" 
-                  placeholder="e.g. myblog.com" 
+                  type="text"
+                  placeholder="e.g. myblog.com"
                   required
                   value={newDomain.value}
-                  onInput={(e) => newDomain.value = (e.target as HTMLInputElement).value}
+                  onInput={(e) => (newDomain.value = (e.target as HTMLInputElement).value)}
                 />
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Enter your domain name without http:// or https://</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                  Enter your domain name without http:// or https://
+                </p>
               </div>
               <div class="flex gap-3 justify-end pt-4 border-t border-gray-100 dark:border-gray-800">
-                <Button 
-                  type="button" 
+                <Button
+                  type="button"
                   variant="secondary"
-                  onClick={() => { isAddModalOpen.value = false; newDomain.value = ''; }}
+                  onClick={() => {
+                    isAddModalOpen.value = false;
+                    newDomain.value = "";
+                  }}
                 >
                   Cancel
                 </Button>
-                <Button 
-                  type="submit" 
-                  disabled={addLoading.value}
-                >
-                  {addLoading.value ? 'Adding...' : 'Add Website'}
+                <Button type="submit" disabled={addLoading.value}>
+                  {addLoading.value ? "Adding..." : "Add Website"}
                 </Button>
               </div>
             </form>
@@ -301,10 +336,12 @@ export function Websites() {
                 <div class="p-2 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
                   <Code class="w-5 h-5" />
                 </div>
-                <h3 class="font-bold text-gray-900 dark:text-gray-100 text-lg">Embed Code — {selectedSiteForEmbed.value.domain}</h3>
+                <h3 class="font-bold text-gray-900 dark:text-gray-100 text-lg">
+                  Embed Code — {selectedSiteForEmbed.value.domain}
+                </h3>
               </div>
-              <button 
-                onClick={() => selectedSiteForEmbed.value = null}
+              <button
+                onClick={() => (selectedSiteForEmbed.value = null)}
                 class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-[#27272a] transition-colors cursor-pointer"
               >
                 <X class="w-5 h-5" />
@@ -312,19 +349,24 @@ export function Websites() {
             </div>
             <div class="p-8 space-y-8">
               <p class="text-sm text-gray-600 leading-relaxed">
-                Copy the code below and paste it into your website's HTML wherever you want the Diskus comment widget to appear.
+                Copy the code below and paste it into your website's HTML wherever you want the
+                Diskus comment widget to appear.
               </p>
-              
+
               <div class="space-y-2">
                 <div class="flex justify-between items-center">
-                  <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">HTML Embed Code</span>
-                  <button 
+                  <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                    HTML Embed Code
+                  </span>
+                  <button
                     onClick={() => {
-                      const defaultApiUrl = 'http://localhost:3000/api/v1';
-                      const apiUrl = import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== defaultApiUrl
-                        ? import.meta.env.VITE_API_URL
-                        : `${window.location.origin}/api/v1`;
-                      
+                      const defaultApiUrl = "http://localhost:3000/api/v1";
+                      const apiUrl =
+                        import.meta.env.VITE_API_URL &&
+                        import.meta.env.VITE_API_URL !== defaultApiUrl
+                          ? import.meta.env.VITE_API_URL
+                          : `${window.location.origin}/api/v1`;
+
                       handleCopyEmbed(`<!-- Diskus Comment Widget Embed -->
 <div id="diskus-thread"
   data-app-id="${selectedSiteForEmbed.value.publicApiKey}"
@@ -348,62 +390,69 @@ export function Websites() {
                     )}
                   </button>
                 </div>
-                
+
                 <pre class="bg-gray-900 text-gray-100 rounded-lg p-4 text-xs font-mono overflow-x-auto leading-relaxed border shadow-inner">
-{`<!-- Diskus Comment Widget Embed -->
+                  {`<!-- Diskus Comment Widget Embed -->
 <div id="diskus-thread"
   data-app-id="${selectedSiteForEmbed.value.publicApiKey}"
   data-thread-key="YOUR_PAGE_SLUG"
-  data-api-url="${import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== 'http://localhost:3000/api/v1' ? import.meta.env.VITE_API_URL : `${window.location.origin}/api/v1`}">
+  data-api-url="${import.meta.env.VITE_API_URL && import.meta.env.VITE_API_URL !== "http://localhost:3000/api/v1" ? import.meta.env.VITE_API_URL : `${window.location.origin}/api/v1`}">
 </div>
 <script async defer src="${window.location.origin}/widget/dist/embed.js"></script>`}
                 </pre>
               </div>
 
               <div class="bg-blue-50 border border-blue-100 rounded-lg p-4 flex gap-3">
-                <div class="w-5 h-5 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shrink-0 text-xs font-bold">!</div>
+                <div class="w-5 h-5 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center shrink-0 text-xs font-bold">
+                  !
+                </div>
                 <div class="text-xs text-blue-800 leading-relaxed">
                   <strong class="block mb-0.5">Configuration Guide:</strong>
-                  Replace <code class="bg-blue-100/50 px-1 py-0.5 rounded font-mono">YOUR_PAGE_SLUG</code> with the unique identifier for the page (e.g., URL slug or article ID) so comments for different pages don't mix.
+                  Replace{" "}
+                  <code class="bg-blue-100/50 px-1 py-0.5 rounded font-mono">YOUR_PAGE_SLUG</code>{" "}
+                  with the unique identifier for the page (e.g., URL slug or article ID) so comments
+                  for different pages don't mix.
                 </div>
               </div>
             </div>
-
           </Card>
         </div>
       )}
 
-
-
       {siteToDelete.value && (
         <div class="fixed inset-0 bg-gray-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4 transition-all duration-300">
-          <Card class="max-w-md w-full shadow-2xl animate-in fade-in zoom-in-95 duration-200" noPadding>
+          <Card
+            class="max-w-md w-full shadow-2xl animate-in fade-in zoom-in-95 duration-200"
+            noPadding
+          >
             <div class="p-8 text-center">
               <div class="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-5 ring-8 ring-red-50/50">
                 <AlertTriangle class="w-8 h-8" strokeWidth={2.5} />
               </div>
               <h3 class="text-xl font-bold text-gray-900 mb-3">Delete Website?</h3>
               <p class="text-gray-500 text-sm mb-8 leading-relaxed">
-                Are you sure you want to delete the website <span class="font-bold text-gray-800">{siteToDelete.value.domain}</span>? 
-                All comment data associated with this website will be <b>permanently deleted</b> and cannot be recovered.
+                Are you sure you want to delete the website{" "}
+                <span class="font-bold text-gray-800">{siteToDelete.value.domain}</span>? All
+                comment data associated with this website will be <b>permanently deleted</b> and
+                cannot be recovered.
               </p>
-              
+
               <div class="flex gap-3 justify-center w-full">
-                <Button 
+                <Button
                   variant="secondary"
                   class="flex-1"
-                  onClick={() => siteToDelete.value = null}
+                  onClick={() => (siteToDelete.value = null)}
                   disabled={deleteLoading.value}
                 >
                   Cancel
                 </Button>
-                <Button 
+                <Button
                   variant="destructive"
                   class="flex-1"
                   onClick={confirmDeleteSite}
                   disabled={deleteLoading.value}
                 >
-                  {deleteLoading.value ? 'Deleting...' : 'Yes, Delete'}
+                  {deleteLoading.value ? "Deleting..." : "Yes, Delete"}
                 </Button>
               </div>
             </div>

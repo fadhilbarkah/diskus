@@ -1,26 +1,38 @@
-import { useSignal } from '@preact/signals';
-import { useEffect } from 'preact/hooks';
-import { widgetToken, widgetUser, setWidgetAuth, logoutWidget, globalGuestName, globalGuestEmail, setGuestAuth, clearGuestAuth, globalIsGuestReady } from '../lib/auth';
+import { useSignal } from "@preact/signals";
+import { useEffect } from "preact/hooks";
+import {
+  clearGuestAuth,
+  globalGuestEmail,
+  globalGuestName,
+  globalIsGuestReady,
+  logoutWidget,
+  setGuestAuth,
+  setWidgetAuth,
+  widgetToken,
+  widgetUser,
+} from "../lib/auth";
 
 export function useAuth(apiUrl: string, requireLogin: boolean) {
-  const authMode = useSignal<'guest' | 'login' | 'register' | 'forgot_password' | 'reset_password'>(requireLogin ? 'login' : 'guest');
-  const authError = useSignal('');
-  
+  const authMode = useSignal<"guest" | "login" | "register" | "forgot_password" | "reset_password">(
+    requireLogin ? "login" : "guest",
+  );
+  const authError = useSignal("");
+
   const saveInfo = useSignal(true);
 
   useEffect(() => {
-    if (requireLogin && authMode.value === 'guest') {
-      authMode.value = 'login';
+    if (requireLogin && authMode.value === "guest") {
+      authMode.value = "login";
     }
   }, [requireLogin]);
 
   const login = async (email: string, password: string): Promise<boolean> => {
-    authError.value = '';
+    authError.value = "";
     try {
       const res = await fetch(`${apiUrl}/widget/auth/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -32,13 +44,24 @@ export function useAuth(apiUrl: string, requireLogin: boolean) {
     }
   };
 
-  const register = async (email: string, name: string, password: string, trap: string): Promise<boolean> => {
-    authError.value = '';
+  const register = async (
+    email: string,
+    name: string,
+    password: string,
+    trap: string,
+  ): Promise<boolean> => {
+    authError.value = "";
     try {
       const res = await fetch(`${apiUrl}/widget/auth/register`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, name, password, _diskus_trap: trap, origin_url: window.location.href })
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          name,
+          password,
+          _diskus_trap: trap,
+          origin_url: window.location.href,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -63,12 +86,12 @@ export function useAuth(apiUrl: string, requireLogin: boolean) {
   };
 
   const forgotPassword = async (email: string): Promise<boolean> => {
-    authError.value = '';
+    authError.value = "";
     try {
       const res = await fetch(`${apiUrl}/widget/auth/forgot-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, origin_url: window.location.href })
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, origin_url: window.location.href }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -80,12 +103,12 @@ export function useAuth(apiUrl: string, requireLogin: boolean) {
   };
 
   const resetPassword = async (token: string, newPassword: string): Promise<boolean> => {
-    authError.value = '';
+    authError.value = "";
     try {
       const res = await fetch(`${apiUrl}/widget/auth/reset-password`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token, newPassword })
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token, newPassword }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error);
@@ -97,19 +120,19 @@ export function useAuth(apiUrl: string, requireLogin: boolean) {
   };
 
   const setPassword = async (newPassword: string): Promise<boolean> => {
-    authError.value = '';
+    authError.value = "";
     try {
       const res = await fetch(`${apiUrl}/widget/auth/set-password`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${widgetToken.peek()}`
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${widgetToken.peek()}`,
         },
-        body: JSON.stringify({ newPassword })
+        body: JSON.stringify({ newPassword }),
       });
       if (res.ok) return true;
       const data = await res.json();
-      authError.value = data.error || 'Failed to set password';
+      authError.value = data.error || "Failed to set password";
       return false;
     } catch (err: any) {
       authError.value = err.message;
@@ -120,12 +143,12 @@ export function useAuth(apiUrl: string, requireLogin: boolean) {
   const resendVerification = async (): Promise<boolean> => {
     try {
       const res = await fetch(`${apiUrl}/widget/auth/resend-verification`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${widgetToken.value}`
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${widgetToken.value}`,
         },
-        body: JSON.stringify({ origin_url: window.location.href })
+        body: JSON.stringify({ origin_url: window.location.href }),
       });
       return res.ok;
     } catch {
@@ -148,6 +171,6 @@ export function useAuth(apiUrl: string, requireLogin: boolean) {
     forgotPassword,
     resetPassword,
     setPassword,
-    resendVerification
+    resendVerification,
   };
 }

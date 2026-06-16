@@ -1,8 +1,8 @@
 /** Local/dev hostnames that skip domain whitelist checks */
-const DEV_HOSTNAMES = new Set(['localhost', '127.0.0.1', '::1']);
+const DEV_HOSTNAMES = new Set(["localhost", "127.0.0.1", "::1"]);
 
 export function normalizeHostname(hostname: string): string {
-  return hostname.trim().toLowerCase().replace(/\.$/, '');
+  return hostname.trim().toLowerCase().replace(/\.$/, "");
 }
 
 export function isDevHostname(hostname: string): boolean {
@@ -14,7 +14,7 @@ export function isDevHostname(hostname: string): boolean {
  * Registered domains are stored without protocol or www prefix (see dashboard).
  */
 function stripWww(hostname: string): string {
-  return hostname.startsWith('www.') ? hostname.slice(4) : hostname;
+  return hostname.startsWith("www.") ? hostname.slice(4) : hostname;
 }
 
 export function isHostnameAllowed(hostname: string, allowedDomain: string): boolean {

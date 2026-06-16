@@ -1,13 +1,15 @@
 @import "tailwindcss";
 
-@variant dark (&:where(.dark, .dark *));
+@variant dark
+(
+&:where(.dark, .dark *));
 
 :root {
   /* Provide empty defaults if needed */
 }
 
 :host {
-  background-color: transparent !important;
+  background-color: transparent;
   color-scheme: light dark;
   font-family: ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }

@@ -1,6 +1,6 @@
-import { db } from '../db';
-import { users } from '../db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { eq, sql } from "drizzle-orm";
+import { db } from "../db";
+import { users } from "../db/schema";
 
 async function main() {
   const emailArg = process.argv[2];
@@ -19,25 +19,26 @@ async function main() {
   }
 
   const confirm = prompt(`Are you sure you want to reset the password for ${email}? [y/N]: `);
-  
-  if (confirm?.toLowerCase() !== 'y') {
+
+  if (confirm?.toLowerCase() !== "y") {
     console.log("Password reset cancelled.");
     process.exit(0);
   }
 
   // Generate a random 12-character alphanumeric password
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
-  let newPassword = '';
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
+  let newPassword = "";
   for (let i = 0; i < 12; i++) {
     newPassword += chars.charAt(Math.floor(Math.random() * chars.length));
   }
 
   const passwordHash = await Bun.password.hash(newPassword);
 
-  await db.update(users)
-    .set({ 
-      passwordHash, 
-      tokenVersion: sql`${users.tokenVersion} + 1` 
+  await db
+    .update(users)
+    .set({
+      passwordHash,
+      tokenVersion: sql`${users.tokenVersion} + 1`,
     })
     .where(eq(users.email, email));
 
@@ -53,7 +54,7 @@ async function main() {
   process.exit(0);
 }
 
-main().catch(err => {
+main().catch((err) => {
   console.error("An error occurred:", err);
   process.exit(1);
 });

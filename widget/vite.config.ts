@@ -1,19 +1,21 @@
-import { defineConfig } from 'vite';
-import preact from '@preact/preset-vite';
-import tailwindcss from '@tailwindcss/vite';
+/// <reference types="vitest" />
+
+import preact from "@preact/preset-vite";
+import tailwindcss from "@tailwindcss/vite";
+import { defineConfig } from "vite";
 
 export default defineConfig({
   plugins: [preact(), tailwindcss()],
   publicDir: false,
   build: {
-    target: 'esnext',
-    outDir: 'dist',
+    target: "esnext",
+    outDir: "dist",
     emptyOutDir: true,
     lib: {
-      entry: 'src/embed.tsx',
-      name: 'DiskusEmbed',
-      fileName: () => 'embed.js',
-      formats: ['iife'],
+      entry: "src/embed.tsx",
+      name: "DiskusEmbed",
+      fileName: () => "embed.js",
+      formats: ["iife"],
     },
     rollupOptions: {
       output: {
@@ -22,7 +24,7 @@ export default defineConfig({
     },
     sourcemap: true,
     cssCodeSplit: false,
-    minify: 'terser',
+    minify: "terser",
     terserOptions: {
       compress: {
         passes: 3,
@@ -32,10 +34,17 @@ export default defineConfig({
       },
       format: {
         comments: false,
-      }
+      },
     },
   },
   define: {
-    'process.env.NODE_ENV': '"production"',
+    "process.env.NODE_ENV": '"production"',
+  },
+  test: {
+    environment: "happy-dom",
+    coverage: {
+      include: ["src/lib/**"],
+      thresholds: { lines: 80 },
+    },
   },
 });

@@ -1,22 +1,29 @@
-import { db } from '../db';
-import { users } from '../db/schema';
-import { eq, sql } from 'drizzle-orm';
+import { eq, sql } from "drizzle-orm";
+import { db } from "../db";
+import { users } from "../db/schema";
 
 export class AuthService {
-  static async hashPassword(password: string) { return await Bun.password.hash(password); }
-  static async verifyPassword(password: string, hash: string) { return await Bun.password.verify(password, hash); }
+  static async hashPassword(password: string) {
+    return await Bun.password.hash(password);
+  }
+  static async verifyPassword(password: string, hash: string) {
+    return await Bun.password.verify(password, hash);
+  }
 
   static async getUserByEmail(email: string) {
     return await db.select().from(users).where(eq(users.email, email)).get();
   }
 
-  static async registerUser(email: string, passwordHash: string, role: 'admin' | 'user' = 'user') {
-    const [newUser] = await db.insert(users).values({ 
-      id: crypto.randomUUID(), 
-      email, 
-      passwordHash,
-      role
-    }).returning();
+  static async registerUser(email: string, passwordHash: string, role: "admin" | "user" = "user") {
+    const [newUser] = await db
+      .insert(users)
+      .values({
+        id: crypto.randomUUID(),
+        email,
+        passwordHash,
+        role,
+      })
+      .returning();
     return newUser;
   }
 
@@ -28,7 +35,8 @@ export class AuthService {
 
   /** Increments the user's tokenVersion, invalidating all existing JWTs */
   static async incrementTokenVersion(userId: string): Promise<number> {
-    const [updated] = await db.update(users)
+    const [updated] = await db
+      .update(users)
       .set({ tokenVersion: sql`${users.tokenVersion} + 1` })
       .where(eq(users.id, userId))
       .returning({ tokenVersion: users.tokenVersion });

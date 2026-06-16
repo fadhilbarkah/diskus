@@ -1,9 +1,9 @@
-import { Context } from "hono";
-import { getCookie, setCookie, deleteCookie } from "hono/cookie";
-import { WidgetService } from "../services/widget.service";
+import type { Context } from "hono";
+import { deleteCookie, getCookie, setCookie } from "hono/cookie";
 import { sign } from "hono/jwt";
 import { db } from "../db";
 import { sites } from "../db/schema";
+import { WidgetService } from "../services/widget.service";
 
 // ---------------------------------------------------------------------------
 // PKCE Helpers (RFC 7636)
@@ -70,13 +70,10 @@ async function isOriginAllowed(origin: string): Promise<boolean> {
     // Always allow localhost in development
     if (originHost === "localhost" || originHost === "127.0.0.1") return true;
 
-    const allSites = await db
-      .select({ domain: sites.domain })
-      .from(sites)
-      .all();
+    const allSites = await db.select({ domain: sites.domain }).from(sites).all();
     return allSites.some((s) => {
       const siteDomain = s.domain.toLowerCase().replace(/^www\./, "");
-      return originHost === siteDomain || originHost.endsWith("." + siteDomain);
+      return originHost === siteDomain || originHost.endsWith(`.${siteDomain}`);
     });
   } catch {
     return false;
@@ -98,8 +95,7 @@ export class OAuthController {
    */
   static async redirect(c: Context) {
     // --- Rate limit ---
-    const ip =
-      c.req.header("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const ip = c.req.header("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     if (isRateLimited(ip)) {
       return c.text("Too many requests. Please try again later.", 429);
     }
@@ -121,9 +117,7 @@ export class OAuthController {
       const codeVerifier = generateCodeVerifier();
       const codeChallenge = await generateCodeChallenge(codeVerifier);
 
-      const state = Buffer.from(
-        JSON.stringify({ origin, csrf: csrfToken }),
-      ).toString("base64");
+      const state = Buffer.from(JSON.stringify({ origin, csrf: csrfToken })).toString("base64");
 
       const isSecure = process.env.NODE_ENV === "production";
 
@@ -153,9 +147,7 @@ export class OAuthController {
         code_challenge_method: "S256",
       });
 
-      return c.redirect(
-        `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`,
-      );
+      return c.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`);
     } else if (provider === "github") {
       const clientId = process.env.GITHUB_CLIENT_ID?.trim();
       if (!clientId) {
@@ -163,9 +155,7 @@ export class OAuthController {
       }
 
       const csrfToken = crypto.randomUUID();
-      const state = Buffer.from(
-        JSON.stringify({ origin, csrf: csrfToken }),
-      ).toString("base64");
+      const state = Buffer.from(JSON.stringify({ origin, csrf: csrfToken })).toString("base64");
       const isSecure = process.env.NODE_ENV === "production";
 
       setCookie(c, "diskus_oauth_csrf", csrfToken, {
@@ -183,9 +173,7 @@ export class OAuthController {
         state,
       });
 
-      return c.redirect(
-        `https://github.com/login/oauth/authorize?${params.toString()}`,
-      );
+      return c.redirect(`https://github.com/login/oauth/authorize?${params.toString()}`);
     }
 
     return c.json({ error: "Provider not supported" }, 400);
@@ -204,8 +192,7 @@ export class OAuthController {
    */
   static async callback(c: Context) {
     // --- Rate limit ---
-    const ip =
-      c.req.header("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const ip = c.req.header("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     if (isRateLimited(ip)) {
       return c.text("Too many requests. Please try again later.", 429);
     }
@@ -230,9 +217,7 @@ export class OAuthController {
     }
 
     try {
-      const decoded = JSON.parse(
-        Buffer.from(stateQuery, "base64").toString("utf-8"),
-      );
+      const decoded = JSON.parse(Buffer.from(stateQuery, "base64").toString("utf-8"));
       origin = decoded.origin || "";
 
       const csrfCookie = getCookie(c, "diskus_oauth_csrf");
@@ -296,59 +281,43 @@ export class OAuthController {
       const tokenData = (await tokenRes.json()) as any;
       if (!tokenData.access_token) {
         // Finding #7 — informative error logging
-        console.error(
-          "[OAuth] Google token exchange failed:",
-          JSON.stringify(tokenData),
-        );
+        console.error("[OAuth] Google token exchange failed:", JSON.stringify(tokenData));
         return c.text("Failed to get token from Google", 400);
       }
 
       accessTokenToRevoke = tokenData.access_token;
 
-      const userRes = await fetch(
-        "https://www.googleapis.com/oauth2/v2/userinfo",
-        {
-          headers: { Authorization: `Bearer ${tokenData.access_token}` },
-        },
-      );
+      const userRes = await fetch("https://www.googleapis.com/oauth2/v2/userinfo", {
+        headers: { Authorization: `Bearer ${tokenData.access_token}` },
+      });
       const googleUserData = (await userRes.json()) as any;
 
       if (!googleUserData.email) {
-        console.error(
-          "[OAuth] Google userinfo missing email:",
-          JSON.stringify(googleUserData),
-        );
+        console.error("[OAuth] Google userinfo missing email:", JSON.stringify(googleUserData));
         return c.text("Email scope missing", 400);
       }
 
       email = googleUserData.email;
-      name =
-        googleUserData.name || googleUserData.given_name || email.split("@")[0];
+      name = googleUserData.name || googleUserData.given_name || email.split("@")[0];
       providerUserId = googleUserData.id;
     } else if (provider === "github") {
-      const tokenRes = await fetch(
-        "https://github.com/login/oauth/access_token",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          body: JSON.stringify({
-            client_id: process.env.GITHUB_CLIENT_ID?.trim() || "",
-            client_secret: process.env.GITHUB_CLIENT_SECRET?.trim() || "",
-            code,
-            redirect_uri: redirectUri,
-          }),
+      const tokenRes = await fetch("https://github.com/login/oauth/access_token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
         },
-      );
+        body: JSON.stringify({
+          client_id: process.env.GITHUB_CLIENT_ID?.trim() || "",
+          client_secret: process.env.GITHUB_CLIENT_SECRET?.trim() || "",
+          code,
+          redirect_uri: redirectUri,
+        }),
+      });
 
       const tokenData = (await tokenRes.json()) as any;
       if (!tokenData.access_token) {
-        console.error(
-          "[OAuth] GitHub token exchange failed:",
-          JSON.stringify(tokenData),
-        );
+        console.error("[OAuth] GitHub token exchange failed:", JSON.stringify(tokenData));
         return c.text("Failed to get token from GitHub", 400);
       }
 
@@ -378,10 +347,7 @@ export class OAuthController {
       }
 
       if (!primaryEmail) {
-        console.error(
-          "[OAuth] GitHub userinfo missing email:",
-          JSON.stringify(githubUserData),
-        );
+        console.error("[OAuth] GitHub userinfo missing email:", JSON.stringify(githubUserData));
         return c.text("Email scope missing or no email found", 400);
       }
 
@@ -396,15 +362,10 @@ export class OAuthController {
     // Revoke Google access_token — we only needed it once (Finding #10)
     // -----------------------------------------------------------------------
     if (accessTokenToRevoke) {
-      fetch(
-        `https://oauth2.googleapis.com/revoke?token=${accessTokenToRevoke}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        },
-      ).catch((err) =>
-        console.warn("[OAuth] Failed to revoke Google token:", err),
-      );
+      fetch(`https://oauth2.googleapis.com/revoke?token=${accessTokenToRevoke}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      }).catch((err) => console.warn("[OAuth] Failed to revoke Google token:", err));
     }
 
     // -----------------------------------------------------------------------
@@ -413,10 +374,7 @@ export class OAuthController {
     let user = null;
 
     // 1. Check if OAuth account already exists
-    const existingOAuth = await WidgetService.findOAuthAccount(
-      provider,
-      providerUserId,
-    );
+    const existingOAuth = await WidgetService.findOAuthAccount(provider, providerUserId);
 
     if (existingOAuth) {
       user = await WidgetService.findWidgetUserById(existingOAuth.widgetUserId);
@@ -435,12 +393,7 @@ export class OAuthController {
         }
       } else {
         // 3. Create brand‑new user + link OAuth account
-        user = await WidgetService.registerOAuthUser(
-          email,
-          name,
-          provider,
-          providerUserId,
-        );
+        user = await WidgetService.registerOAuthUser(email, name, provider, providerUserId);
       }
     }
 

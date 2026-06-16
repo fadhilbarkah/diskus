@@ -1,35 +1,38 @@
-import { render } from 'preact';
-import { DiskusWidget } from './components/DiskusWidget';
-import { applyHostTheme, HostTheme } from './lib/theme';
-import { embedToken as embedTokenSignal } from './lib/embed';
-// @ts-ignore
-import styles from './index.css?inline';
+import { render } from "preact";
+import { DiskusWidget } from "./components/DiskusWidget";
+// @ts-expect-error
+import styles from "./index.css?inline";
+import { embedToken as embedTokenSignal } from "./lib/embed";
+import { applyHostTheme, type HostTheme } from "./lib/theme";
 
-(function() {
+(() => {
   // OAUTH POPUP REDIRECT HANDLER (For browsers blocking window.opener like Brave)
-  if (typeof window !== 'undefined' && window.location.hash.includes('diskus_oauth_token=')) {
+  if (typeof window !== "undefined" && window.location.hash.includes("diskus_oauth_token=")) {
     try {
       const hash = window.location.hash.substring(1);
       const params = new URLSearchParams(hash);
-      const token = params.get('diskus_oauth_token');
-      const userStr = params.get('user');
+      const token = params.get("diskus_oauth_token");
+      const userStr = params.get("user");
       if (token && userStr) {
         const user = JSON.parse(decodeURIComponent(userStr));
-        localStorage.setItem('diskus_oauth_result', JSON.stringify({ token, user }));
+        localStorage.setItem("diskus_oauth_result", JSON.stringify({ token, user }));
 
         // Clear sensitive token data from URL immediately (Finding #4)
-        history.replaceState(null, '', window.location.pathname + window.location.search);
+        history.replaceState(null, "", window.location.pathname + window.location.search);
 
         if (window.opener) {
           // Post to same origin only (Finding #3)
-          window.opener.postMessage({ type: 'DISKUS_OAUTH_SUCCESS', token, user }, window.location.origin);
+          window.opener.postMessage(
+            { type: "DISKUS_OAUTH_SUCCESS", token, user },
+            window.location.origin,
+          );
         }
         window.close();
-        document.body.innerHTML = 'Authentication successful! You can close this window.';
+        document.body.innerHTML = "Authentication successful! You can close this window.";
         return; // Halt widget execution
       }
-    } catch(e) {
-      console.warn('[Diskus] Failed to process OAuth redirect:', e);
+    } catch (e) {
+      console.warn("[Diskus] Failed to process OAuth redirect:", e);
     }
   }
 
@@ -37,16 +40,16 @@ import styles from './index.css?inline';
 
   function getContainerSignature(el: HTMLElement): string {
     return [
-      el.getAttribute('data-app-id'),
-      el.getAttribute('data-thread-key'),
-      el.getAttribute('data-api-url'),
-      el.getAttribute('data-title'),
-    ].join('|');
+      el.getAttribute("data-app-id"),
+      el.getAttribute("data-thread-key"),
+      el.getAttribute("data-api-url"),
+      el.getAttribute("data-title"),
+    ].join("|");
   }
 
   function needsInit(el: HTMLElement): boolean {
     if (!el.isConnected) return false;
-    if (!el.getAttribute('data-app-id') || !el.getAttribute('data-thread-key')) return false;
+    if (!el.getAttribute("data-app-id") || !el.getAttribute("data-thread-key")) return false;
     const sig = getContainerSignature(el);
     if (el.dataset.diskusInit === sig && el.shadowRoot) return false;
     return true;
@@ -54,7 +57,7 @@ import styles from './index.css?inline';
 
   function findContainers(): HTMLElement[] {
     return Array.from(
-      document.querySelectorAll<HTMLElement>('#diskus-thread, [data-diskus-embed]')
+      document.querySelectorAll<HTMLElement>("#diskus-thread, [data-diskus-embed]"),
     );
   }
 
@@ -73,25 +76,28 @@ import styles from './index.css?inline';
     if (existing) return existing;
 
     const initPromise = (async () => {
-      const apiKey = rootElement.getAttribute('data-app-id');
-      const threadKey = rootElement.getAttribute('data-thread-key');
-      const apiUrl = rootElement.getAttribute('data-api-url') || 'http://localhost:3000/api/v1';
+      const apiKey = rootElement.getAttribute("data-app-id");
+      const threadKey = rootElement.getAttribute("data-thread-key");
+      const apiUrl = rootElement.getAttribute("data-api-url") || "http://localhost:3000/api/v1";
 
       if (!apiKey || !threadKey) {
-        console.error('Diskus Widget: Missing data-app-id or data-thread-key attributes.');
+        console.error("Diskus Widget: Missing data-app-id or data-thread-key attributes.");
         return;
       }
 
-      let embedToken = '';
+      let embedToken = "";
       try {
-        const tokenRes = await fetch(`${apiUrl}/widget/embed-token?api_key=${encodeURIComponent(apiKey)}`, {
-          credentials: 'omit',
-        });
+        const tokenRes = await fetch(
+          `${apiUrl}/widget/embed-token?api_key=${encodeURIComponent(apiKey)}`,
+          {
+            credentials: "omit",
+          },
+        );
         if (!tokenRes.ok) {
           const errData = await tokenRes.json().catch(() => ({}));
           showEmbedError(
             rootElement,
-            errData.error || 'Comments are not available on this domain.'
+            errData.error || "Comments are not available on this domain.",
           );
           return;
         }
@@ -99,61 +105,61 @@ import styles from './index.css?inline';
         embedToken = tokenData.token;
         embedTokenSignal.value = embedToken;
       } catch (err) {
-        console.error('Diskus Widget: Failed to obtain embed token.', err);
-        showEmbedError(rootElement, 'Unable to load comments. Please try again later.');
+        console.error("Diskus Widget: Failed to obtain embed token.", err);
+        showEmbedError(rootElement, "Unable to load comments. Please try again later.");
         return;
       }
 
       // Re-check after async work
       if (!rootElement.isConnected || !needsInit(rootElement)) return;
 
-      const getHostTheme = (): 'light' | 'dark' => {
+      const getHostTheme = (): "light" | "dark" => {
         const html = document.documentElement;
         const body = document.body || html;
 
         // 1. Check explicit container theme override (if developer wants to force a theme)
-        const forcedTheme = rootElement.getAttribute('data-theme');
-        if (forcedTheme === 'dark' || forcedTheme === 'light') return forcedTheme;
+        const forcedTheme = rootElement.getAttribute("data-theme");
+        if (forcedTheme === "dark" || forcedTheme === "light") return forcedTheme;
 
         // 2. Check standard theme classes
-        if (html.classList.contains('dark') || body.classList.contains('dark')) return 'dark';
-        if (html.classList.contains('light') || body.classList.contains('light')) return 'light';
+        if (html.classList.contains("dark") || body.classList.contains("dark")) return "dark";
+        if (html.classList.contains("light") || body.classList.contains("light")) return "light";
 
         // 3. Check data-theme attributes
-        const htmlTheme = html.getAttribute('data-theme');
-        const bodyTheme = body.getAttribute('data-theme');
-        if (htmlTheme === 'dark' || bodyTheme === 'dark') return 'dark';
-        if (htmlTheme === 'light' || bodyTheme === 'light') return 'light';
+        const htmlTheme = html.getAttribute("data-theme");
+        const bodyTheme = body.getAttribute("data-theme");
+        if (htmlTheme === "dark" || bodyTheme === "dark") return "dark";
+        if (htmlTheme === "light" || bodyTheme === "light") return "light";
 
         // 4. Check computed color scheme
         const colorScheme = getComputedStyle(html).colorScheme;
-        if (colorScheme === 'dark') return 'dark';
-        if (colorScheme === 'light') return 'light';
+        if (colorScheme === "dark") return "dark";
+        if (colorScheme === "light") return "light";
 
         // 5. Bulletproof fallback: Check actual background color brightness
         try {
           let bg = getComputedStyle(body).backgroundColor;
-          if (bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent') {
+          if (bg === "rgba(0, 0, 0, 0)" || bg === "transparent") {
             bg = getComputedStyle(html).backgroundColor;
           }
-          if (bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent') {
+          if (bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent") {
             const match = bg.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
             if (match) {
-              const r = parseInt(match[1]);
-              const g = parseInt(match[2]);
-              const b = parseInt(match[3]);
+              const r = parseInt(match[1], 10);
+              const g = parseInt(match[2], 10);
+              const b = parseInt(match[3], 10);
               const brightness = Math.sqrt(0.299 * r * r + 0.587 * g * g + 0.114 * b * b);
-              return brightness > 127.5 ? 'light' : 'dark';
+              return brightness > 127.5 ? "light" : "dark";
             }
           }
-        } catch (e) {}
+        } catch (_e) {}
 
         // 6. Last resort: System preference
-        if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) return 'dark';
-        return 'light';
+        if (window.matchMedia?.("(prefers-color-scheme: dark)").matches) return "dark";
+        return "light";
       };
 
-      const providedTitle = rootElement.getAttribute('data-title');
+      const providedTitle = rootElement.getAttribute("data-title");
       const finalTitle = providedTitle || document.title;
       const initialTheme = getHostTheme();
 
@@ -161,35 +167,35 @@ import styles from './index.css?inline';
 
       // Create Shadow DOM
       if (!rootElement.shadowRoot) {
-        rootElement.attachShadow({ mode: 'open' });
+        rootElement.attachShadow({ mode: "open" });
       }
       const shadow = rootElement.shadowRoot!;
-      shadow.innerHTML = ''; // Clear previous content if any
+      shadow.innerHTML = ""; // Clear previous content if any
 
       // Extract and inject @property rules into the host document <head>
       // This is required because browsers ignore @property definitions inside a Shadow DOM.
       const propertyRegex = /@property\s+--[\w-]+\s*\{[^}]+\}/g;
       const propertyRules = styles.match(propertyRegex) || [];
       if (propertyRules.length > 0) {
-        const headStyle = document.createElement('style');
-        headStyle.id = 'diskus-properties';
-        headStyle.textContent = propertyRules.join('\n');
-        if (!document.getElementById('diskus-properties')) {
+        const headStyle = document.createElement("style");
+        headStyle.id = "diskus-properties";
+        headStyle.textContent = propertyRules.join("\n");
+        if (!document.getElementById("diskus-properties")) {
           document.head.appendChild(headStyle);
         }
       }
 
       // Inject Tailwind CSS into Shadow DOM
-      const styleTag = document.createElement('style');
-      styleTag.textContent = styles.replace(/:root/g, ':host');
+      const styleTag = document.createElement("style");
+      styleTag.textContent = styles.replace(/:root/g, ":host");
       shadow.appendChild(styleTag);
 
       // Create App Container
-      const appContainer = document.createElement('div');
-      appContainer.id = 'app';
+      const appContainer = document.createElement("div");
+      appContainer.id = "app";
       // Pass the current theme down as class
-      if (initialTheme === 'dark') {
-        appContainer.classList.add('dark');
+      if (initialTheme === "dark") {
+        appContainer.classList.add("dark");
       }
       shadow.appendChild(appContainer);
 
@@ -199,25 +205,40 @@ import styles from './index.css?inline';
         if (newTheme !== currentTheme) {
           currentTheme = newTheme;
           applyHostTheme(newTheme as HostTheme);
-          if (newTheme === 'dark') {
-            appContainer.classList.add('dark');
+          if (newTheme === "dark") {
+            appContainer.classList.add("dark");
           } else {
-            appContainer.classList.remove('dark');
+            appContainer.classList.remove("dark");
           }
         }
       };
 
       const themeObserver = new MutationObserver(syncTheme);
-      themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class', 'data-theme', 'style'] });
+      themeObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ["class", "data-theme", "style"],
+      });
       if (document.body) {
-        themeObserver.observe(document.body, { attributes: true, attributeFilter: ['class', 'data-theme', 'style'] });
+        themeObserver.observe(document.body, {
+          attributes: true,
+          attributeFilter: ["class", "data-theme", "style"],
+        });
       }
 
-      const darkMq = window.matchMedia?.('(prefers-color-scheme: dark)');
-      darkMq?.addEventListener('change', syncTheme);
+      const darkMq = window.matchMedia?.("(prefers-color-scheme: dark)");
+      darkMq?.addEventListener("change", syncTheme);
 
       // Render Preact App
-      render(<DiskusWidget apiKey={apiKey} threadKey={threadKey} apiUrl={apiUrl} title={finalTitle} embedToken={embedToken} />, appContainer);
+      render(
+        <DiskusWidget
+          apiKey={apiKey}
+          threadKey={threadKey}
+          apiUrl={apiUrl}
+          title={finalTitle}
+          embedToken={embedToken}
+        />,
+        appContainer,
+      );
 
       rootElement.dataset.diskusInit = getContainerSignature(rootElement);
     })();
@@ -241,15 +262,15 @@ import styles from './index.css?inline';
   }
 
   function scanAndInit() {
-    findContainers().forEach(el => initDiskusWidget(el));
+    findContainers().forEach((el) => initDiskusWidget(el));
   }
 
   function setupSpaSupport() {
     const spaObserver = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
-        if (mutation.type === 'attributes') {
+        if (mutation.type === "attributes") {
           const target = mutation.target as HTMLElement;
-          if (target.id === 'diskus-thread' || target.hasAttribute('data-diskus-embed')) {
+          if (target.id === "diskus-thread" || target.hasAttribute("data-diskus-embed")) {
             scheduleScan();
             return;
           }
@@ -257,7 +278,11 @@ import styles from './index.css?inline';
         if (mutation.addedNodes.length > 0) {
           for (const node of mutation.addedNodes) {
             if (node instanceof HTMLElement) {
-              if (node.id === 'diskus-thread' || node.hasAttribute('data-diskus-embed') || node.querySelector('#diskus-thread, [data-diskus-embed]')) {
+              if (
+                node.id === "diskus-thread" ||
+                node.hasAttribute("data-diskus-embed") ||
+                node.querySelector("#diskus-thread, [data-diskus-embed]")
+              ) {
                 scheduleScan();
                 return;
               }
@@ -272,16 +297,16 @@ import styles from './index.css?inline';
         childList: true,
         subtree: true,
         attributes: true,
-        attributeFilter: ['data-thread-key', 'data-app-id', 'data-title', 'data-api-url'],
+        attributeFilter: ["data-thread-key", "data-app-id", "data-title", "data-api-url"],
       });
     }
 
     // Framework-specific hooks
-    document.addEventListener('astro:page-load', scheduleScan);
-    document.addEventListener('astro:after-swap', scheduleScan);
+    document.addEventListener("astro:page-load", scheduleScan);
+    document.addEventListener("astro:after-swap", scheduleScan);
 
     // Universal SPA support
-    window.addEventListener('popstate', scheduleScan);
+    window.addEventListener("popstate", scheduleScan);
     const originalPushState = history.pushState.bind(history);
     const originalReplaceState = history.replaceState.bind(history);
     history.pushState = (...args) => {
@@ -300,8 +325,8 @@ import styles from './index.css?inline';
   }
 
   scheduleScan();
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', scheduleScan);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", scheduleScan);
   }
   setupSpaSupport();
 

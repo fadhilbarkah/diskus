@@ -1,17 +1,17 @@
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
 
 export class EmailService {
   private static transporter: nodemailer.Transporter | null = null;
 
   private static getTransporter() {
-    if (this.transporter) return this.transporter;
+    if (EmailService.transporter) return EmailService.transporter;
 
     if (!process.env.SMTP_HOST) {
-      console.warn('SMTP_HOST is not configured. Emails will not be sent.');
+      console.warn("SMTP_HOST is not configured. Emails will not be sent.");
       return null;
     }
 
-    this.transporter = nodemailer.createTransport({
+    EmailService.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT) || 587,
       secure: Number(process.env.SMTP_PORT) === 465, // true for 465, false for other ports
@@ -21,14 +21,14 @@ export class EmailService {
       },
     });
 
-    return this.transporter;
+    return EmailService.transporter;
   }
 
   static async sendEmail(to: string, subject: string, html: string) {
-    const transporter = this.getTransporter();
+    const transporter = EmailService.getTransporter();
     if (!transporter) return false;
 
-    const from = process.env.SMTP_FROM || 'Diskus <noreply@diskus.com>';
+    const from = process.env.SMTP_FROM || "Diskus <noreply@diskus.com>";
 
     try {
       await transporter.sendMail({
@@ -39,7 +39,7 @@ export class EmailService {
       });
       return true;
     } catch (error) {
-      console.error('Failed to send email:', error);
+      console.error("Failed to send email:", error);
       return false;
     }
   }
@@ -87,7 +87,7 @@ export class EmailService {
   }
 
   static async sendVerificationEmail(to: string, name: string, token: string) {
-    const apiBaseUrl = process.env.API_BASE_URL || 'http://localhost:3000/api/v1';
+    const apiBaseUrl = process.env.API_BASE_URL || "http://localhost:3000/api/v1";
     const verifyUrl = `${apiBaseUrl}/widget/auth/verify-email?token=${token}`;
 
     const contentHtml = `
@@ -108,12 +108,15 @@ export class EmailService {
       </p>
     `;
 
-    const finalHtml = this.getEmailLayout('Verify your email address - Diskus', contentHtml);
-    return this.sendEmail(to, 'Verify your email address - Diskus', finalHtml);
+    const finalHtml = EmailService.getEmailLayout(
+      "Verify your email address - Diskus",
+      contentHtml,
+    );
+    return EmailService.sendEmail(to, "Verify your email address - Diskus", finalHtml);
   }
 
   static async sendPasswordResetEmail(to: string, name: string, token: string, originUrl: string) {
-    const separator = originUrl.includes('?') ? '&' : '?';
+    const separator = originUrl.includes("?") ? "&" : "?";
     const resetUrl = `${originUrl}${separator}reset_token=${token}`;
 
     const contentHtml = `
@@ -134,7 +137,7 @@ export class EmailService {
       </p>
     `;
 
-    const finalHtml = this.getEmailLayout('Reset your password - Diskus', contentHtml);
-    return this.sendEmail(to, 'Reset your password - Diskus', finalHtml);
+    const finalHtml = EmailService.getEmailLayout("Reset your password - Diskus", contentHtml);
+    return EmailService.sendEmail(to, "Reset your password - Diskus", finalHtml);
   }
 }

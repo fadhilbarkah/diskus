@@ -1,28 +1,36 @@
-import { Hono } from 'hono';
-import { z } from 'zod';
-import { validate } from '../utils/validator';
-import { AuthController } from '../controllers/auth.controller';
-import { rateLimitMiddleware } from '../middlewares/ratelimit';
+import { Hono } from "hono";
+import { z } from "zod";
+import { AuthController } from "../controllers/auth.controller";
+import { rateLimitMiddleware } from "../middlewares/ratelimit";
+import { validate } from "../utils/validator";
 
 const authRoutes = new Hono();
-authRoutes.get('/setup-status', AuthController.setupStatus);
+authRoutes.get("/setup-status", AuthController.setupStatus);
 
-authRoutes.post('/register',
+authRoutes.post(
+  "/register",
   rateLimitMiddleware(5, 60 * 60 * 1000), // Max 5 registrations per IP per hour
-  validate('json', z.object({ 
-    email: z.string().email("Please enter a valid email address").max(255), 
-    password: z.string().min(6, "Password must be at least 6 characters").max(128) 
-  })),
-  AuthController.register
+  validate(
+    "json",
+    z.object({
+      email: z.string().email("Please enter a valid email address").max(255),
+      password: z.string().min(6, "Password must be at least 6 characters").max(128),
+    }),
+  ),
+  AuthController.register,
 );
 
-authRoutes.post('/login',
+authRoutes.post(
+  "/login",
   rateLimitMiddleware(10, 15 * 60 * 1000), // Max 10 login attempts per IP per 15 minutes
-  validate('json', z.object({ 
-    email: z.string().email("Please enter a valid email address").max(255), 
-    password: z.string().min(1, "Password is required").max(128) 
-  })),
-  AuthController.login
+  validate(
+    "json",
+    z.object({
+      email: z.string().email("Please enter a valid email address").max(255),
+      password: z.string().min(1, "Password is required").max(128),
+    }),
+  ),
+  AuthController.login,
 );
 
 export default authRoutes;

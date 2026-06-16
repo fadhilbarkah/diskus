@@ -1,16 +1,16 @@
-import { authState, logout } from './auth';
+import { authState, logout } from "./auth";
 
-const API_BASE = import.meta.env.VITE_API_URL || '/api/v1';
+const API_BASE = import.meta.env.VITE_API_URL || "/api/v1";
 
 async function fetchWithAuth(url: string, options: RequestInit = {}) {
   const token = authState.token.value;
-  
+
   const headers = new Headers(options.headers || {});
   if (token) {
-    headers.set('Authorization', `Bearer ${token}`);
+    headers.set("Authorization", `Bearer ${token}`);
   }
-  if (!headers.has('Content-Type') && !(options.body instanceof FormData)) {
-    headers.set('Content-Type', 'application/json');
+  if (!headers.has("Content-Type") && !(options.body instanceof FormData)) {
+    headers.set("Content-Type", "application/json");
   }
 
   const res = await fetch(`${API_BASE}${url}`, {
@@ -20,7 +20,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 
   if (res.status === 401) {
     logout();
-    throw new Error('Unauthorized');
+    throw new Error("Unauthorized");
   }
 
   const text = await res.text();
@@ -31,14 +31,14 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
     const msg = err instanceof Error ? err.message : String(err);
     throw new Error(`Invalid JSON response: ${text.substring(0, 50)}... (${msg})`);
   }
-  
+
   if (!res.ok) {
     if (res.status === 403 && data?.demo) {
-      const { showToast } = await import('../components/ui/Toast');
+      const { showToast } = await import("../components/ui/Toast");
       showToast("This action is disabled in demo mode");
     }
-    let errMsg = 'API Error';
-    if (typeof data.error === 'string') errMsg = data.error;
+    let errMsg = "API Error";
+    if (typeof data.error === "string") errMsg = data.error;
     else if (data.error?.issues?.[0]?.message) errMsg = data.error.issues[0].message;
     else if (data.message) errMsg = data.message;
     throw new Error(errMsg);
@@ -48,37 +48,47 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 
 export const api = {
   // Auth
-  login: (email: string, password: string) => 
-    fetchWithAuth('/auth/login', { method: 'POST', body: JSON.stringify({ email, password }) }),
-  register: (email: string, password: string) => 
-    fetchWithAuth('/auth/register', { method: 'POST', body: JSON.stringify({ email, password }) }),
-  getSetupStatus: () => fetchWithAuth('/auth/setup-status'),
-    
-  // Admin
-  getAnalytics: (siteId?: string | null) => fetchWithAuth(`/admin/analytics/summary${siteId ? `?siteId=${siteId}` : ''}`),
-  getComments: (status: string, siteId?: string | null) => fetchWithAuth(`/admin/comments?status=${status}${siteId ? `&siteId=${siteId}` : ''}`),
-  bulkUpdateComments: (ids: string[], status: string) => 
-    fetchWithAuth('/admin/comments/bulk', { method: 'PATCH', body: JSON.stringify({ ids, status }) }),
-  togglePinComment: (id: string, isPinned: boolean) =>
-    fetchWithAuth(`/admin/comments/${id}/pin`, { method: 'PATCH', body: JSON.stringify({ isPinned }) }),
-  deleteComments: (ids: string[]) => 
-    fetchWithAuth('/admin/comments/bulk', { method: 'DELETE', body: JSON.stringify({ ids }) }),
-  getSites: () => fetchWithAuth('/admin/sites'),
-  createSite: (domain: string) => 
-    fetchWithAuth('/admin/sites', { method: 'POST', body: JSON.stringify({ domain }) }),
-  updateSite: (id: string, data: any) => 
-    fetchWithAuth(`/admin/sites/${id}`, { method: 'PATCH', body: JSON.stringify(data) }),
-  deleteSite: (id: string) => 
-    fetchWithAuth(`/admin/sites/${id}`, { method: 'DELETE' }),
+  login: (email: string, password: string) =>
+    fetchWithAuth("/auth/login", { method: "POST", body: JSON.stringify({ email, password }) }),
+  register: (email: string, password: string) =>
+    fetchWithAuth("/auth/register", { method: "POST", body: JSON.stringify({ email, password }) }),
+  getSetupStatus: () => fetchWithAuth("/auth/setup-status"),
 
-  getAccount: () => fetchWithAuth('/admin/account'),
-  updateAccount: (data: any) => fetchWithAuth('/admin/account', { method: 'PUT', body: JSON.stringify(data) }),
+  // Admin
+  getAnalytics: (siteId?: string | null) =>
+    fetchWithAuth(`/admin/analytics/summary${siteId ? `?siteId=${siteId}` : ""}`),
+  getComments: (status: string, siteId?: string | null) =>
+    fetchWithAuth(`/admin/comments?status=${status}${siteId ? `&siteId=${siteId}` : ""}`),
+  bulkUpdateComments: (ids: string[], status: string) =>
+    fetchWithAuth("/admin/comments/bulk", {
+      method: "PATCH",
+      body: JSON.stringify({ ids, status }),
+    }),
+  togglePinComment: (id: string, isPinned: boolean) =>
+    fetchWithAuth(`/admin/comments/${id}/pin`, {
+      method: "PATCH",
+      body: JSON.stringify({ isPinned }),
+    }),
+  deleteComments: (ids: string[]) =>
+    fetchWithAuth("/admin/comments/bulk", { method: "DELETE", body: JSON.stringify({ ids }) }),
+  getSites: () => fetchWithAuth("/admin/sites"),
+  createSite: (domain: string) =>
+    fetchWithAuth("/admin/sites", { method: "POST", body: JSON.stringify({ domain }) }),
+  updateSite: (id: string, data: any) =>
+    fetchWithAuth(`/admin/sites/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
+  deleteSite: (id: string) => fetchWithAuth(`/admin/sites/${id}`, { method: "DELETE" }),
+
+  getAccount: () => fetchWithAuth("/admin/account"),
+  updateAccount: (data: any) =>
+    fetchWithAuth("/admin/account", { method: "PUT", body: JSON.stringify(data) }),
 
   // Data Management
   exportComments: (siteId: string) => fetchWithAuth(`/admin/export/${siteId}`),
-  importComments: (siteId: string, data: any) => fetchWithAuth(`/admin/import/${siteId}`, { method: 'POST', body: JSON.stringify(data) }),
-  importDisqusComments: (siteId: string, formData: FormData) => fetchWithAuth(`/admin/import-disqus/${siteId}`, { method: 'POST', body: formData }),
+  importComments: (siteId: string, data: any) =>
+    fetchWithAuth(`/admin/import/${siteId}`, { method: "POST", body: JSON.stringify(data) }),
+  importDisqusComments: (siteId: string, formData: FormData) =>
+    fetchWithAuth(`/admin/import-disqus/${siteId}`, { method: "POST", body: formData }),
 
-  getUsers: () => fetchWithAuth('/admin/users'),
-  deleteUser: (id: string) => fetchWithAuth(`/admin/users/${id}`, { method: 'DELETE' }),
+  getUsers: () => fetchWithAuth("/admin/users"),
+  deleteUser: (id: string) => fetchWithAuth(`/admin/users/${id}`, { method: "DELETE" }),
 };
