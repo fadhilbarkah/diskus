@@ -9,8 +9,13 @@
   ],
   "scripts": {
     "dev": "cd backend && bun run dev & cd dashboard && bun run dev & cd widget && bun run dev",
+    "build": "bun run build:dashboard && bun run build:widget && bun run copy:widget",
+    "start": "bun run dashboard/server.ts",
+    "start:frontend": "bun run dashboard/server.ts",
+    "start:backend": "cd backend && bun run db:migrate && bun run src/index.ts",
     "build:widget": "cd widget && bun run build",
     "build:dashboard": "cd dashboard && bun run build",
+    "copy:widget": "rm -rf dashboard/dist/widget && mkdir -p dashboard/dist/widget/dist && cp -R widget/dist/* dashboard/dist/widget/dist/",
     "reset-password": "cd backend && bun run reset-password"
   },
   "dependencies": {

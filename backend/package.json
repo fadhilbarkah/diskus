@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "start": "bun run db:migrate && bun run src/index.ts",
     "dev": "bun --watch src/index.ts",
     "db:push": "drizzle-kit push",
     "db:migrate": "bun run src/db/migrate.ts",
