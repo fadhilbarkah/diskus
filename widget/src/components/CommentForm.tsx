@@ -119,6 +119,7 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
               ? (e) => {
                   e.preventDefault();
                   globalAuthReason.value = "comment";
+                  globalAuthMode.value = "login";
                   globalShowAuthModal.value = true;
                 }
               : handleSubmit
@@ -142,6 +143,7 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
               !canComment
                 ? () => {
                     globalAuthReason.value = "comment";
+                    globalAuthMode.value = "login";
                     globalShowAuthModal.value = true;
                   }
                 : undefined
@@ -302,6 +304,7 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
                         !canComment
                           ? () => {
                               globalAuthReason.value = "comment";
+                              globalAuthMode.value = "login";
                               globalShowAuthModal.value = true;
                             }
                           : undefined
@@ -345,6 +348,7 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
                 type="button"
                 onClick={() => {
                   globalAuthReason.value = "comment";
+                  globalAuthMode.value = "login";
                   globalShowAuthModal.value = true;
                 }}
                 class="px-4 py-2 sm:px-5 sm:py-2.5 bg-blue-600 text-white text-[13px] sm:text-[14px] font-medium rounded-xl hover:bg-blue-700 transition-all shadow-sm"

@@ -405,9 +405,10 @@ export class OAuthController {
     // Generate JWT — with issuer claim (Finding #8)
     // -----------------------------------------------------------------------
     const jwtPayload = {
-      id: user.id,
+      userId: user.id,
       email: user.email,
       name: user.name,
+      role: "commenter",
       iss: "diskus",
       exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7, // 7 days
     };

@@ -86,4 +86,5 @@ export const logoutWidget = () => {
   localStorage.removeItem("diskus_widget_user");
   widgetToken.value = null;
   widgetUser.value = null;
+  globalAuthMode.value = "login";
 };

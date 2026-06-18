@@ -130,7 +130,12 @@ export function useAuth(apiUrl: string, requireLogin: boolean) {
         },
         body: JSON.stringify({ newPassword }),
       });
-      if (res.ok) return true;
+      if (res.ok) {
+        if (widgetUser.value) {
+          setWidgetAuth(widgetToken.peek()!, { ...widgetUser.value, hasPassword: true });
+        }
+        return true;
+      }
       const data = await res.json();
       authError.value = data.error || "Failed to set password";
       return false;

@@ -22,8 +22,9 @@ export const rateLimitMiddleware = (limit: number, windowMs: number) => {
       c.req.header("x-real-ip") ||
       "unknown-ip";
     const now = Date.now();
+    const key = `${c.req.path}-${ip}`;
 
-    let record = rateLimits.get(ip);
+    let record = rateLimits.get(key);
 
     if (!record || record.resetAt < now) {
       record = { count: 0, resetAt: now + windowMs };
@@ -34,7 +35,7 @@ export const rateLimitMiddleware = (limit: number, windowMs: number) => {
     }
 
     record.count++;
-    rateLimits.set(ip, record);
+    rateLimits.set(key, record);
 
     await next();
   };
