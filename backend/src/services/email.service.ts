@@ -58,7 +58,7 @@ export class EmailService {
     <!-- Logo -->
     <div style="text-align: center; margin-bottom: 32px;">
       <div style="display: inline-flex; align-items: center; justify-content: center; gap: 12px;">
-        <span style="display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background-color: #2563eb; color: #ffffff; border-radius: 8px; font-weight: 800; font-size: 20px; line-height: 1;">D</span>
+        <img src="https://raw.githubusercontent.com/fadhilbarkah/diskus/refs/heads/main/public/assets/logo.png" alt="Diskus Logo" style="width: 32px; height: 32px; object-fit: contain;" />
         <span style="color: #2563eb; font-weight: 800; font-size: 26px; letter-spacing: -0.5px; line-height: 1;">Diskus</span>
       </div>
     </div>
