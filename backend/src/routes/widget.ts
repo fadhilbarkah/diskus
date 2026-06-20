@@ -85,6 +85,7 @@ widgetRoutes.get("/auth/me", authMiddleware, WidgetController.getMe);
 widgetRoutes.get("/embed-token", WidgetController.getEmbedToken);
 
 widgetRoutes.get("/comments", WidgetController.getComments);
+widgetRoutes.get("/comments/:parentId/replies", WidgetController.getReplies);
 
 widgetRoutes.post(
   "/comments",

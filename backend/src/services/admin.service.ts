@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { and, desc, eq, inArray, not } from "drizzle-orm";
+import { aliasedTable, and, desc, eq, inArray, not } from "drizzle-orm";
 import { db } from "../db";
 import { comments, sites, threads, users, widgetUsers } from "../db/schema";
 import { sanitizeHtml } from "../utils/html";
@@ -71,12 +71,21 @@ export class AdminService {
     };
   }
 
-  static async getComments(userId: string, role: string, statusFilter?: string, siteId?: string) {
+  static async getComments(
+    userId: string,
+    role: string,
+    statusFilter?: string,
+    siteId?: string,
+    limit: number = 50,
+    offset: number = 0
+  ) {
     const conditions = [];
     if (statusFilter && statusFilter !== "all")
       conditions.push(eq(comments.status, statusFilter as any));
     if (role !== "admin") conditions.push(eq(sites.userId, userId));
     if (siteId) conditions.push(eq(sites.id, siteId));
+
+    const parentComments = aliasedTable(comments, "parentComments");
 
     let q = db
       .select({
@@ -91,13 +100,33 @@ export class AdminService {
         isPinned: comments.isPinned,
         threadTitle: threads.title,
         threadKey: threads.threadKey,
+        parentContent: parentComments.content,
       })
       .from(comments)
       .leftJoin(threads, eq(comments.threadId, threads.id))
-      .leftJoin(sites, eq(threads.siteId, sites.id));
+      .leftJoin(sites, eq(threads.siteId, sites.id))
+      .leftJoin(parentComments, eq(comments.parentId, parentComments.id));
 
-    if (conditions.length > 0) q = q.where(and(...conditions)) as any;
-    return await q.orderBy(desc(comments.createdAt)).all();
+    if (conditions.length > 0) {
+      q = q.where(and(...conditions)) as typeof q;
+    }
+
+    const result = await q.orderBy(desc(comments.createdAt)).limit(limit).offset(offset).all();
+    
+    return result as {
+      id: string;
+      authorName: string;
+      authorEmail: string;
+      content: string;
+      htmlContent: string;
+      status: string;
+      createdAt: Date | string;
+      parentId: string | null;
+      isPinned: boolean;
+      threadTitle: string | null;
+      threadKey: string | null;
+      parentContent: string | null;
+    }[];
   }
 
   static async updateCommentsStatus(ids: string[], status: any, userId: string, role: string) {

@@ -15,6 +15,8 @@ export function Moderation() {
   const selectedIds = useSignal<string[]>([]);
   const bulkAction = useSignal("");
   const openMenuId = useSignal<string | null>(null);
+  const currentPage = useSignal(1);
+  const itemsPerPage = useSignal(50);
 
   // Filters
   const filterPost = useSignal("All Posts");
@@ -33,7 +35,7 @@ export function Moderation() {
     try {
       const [statsRes, commentsRes] = await Promise.all([
         api.getAnalytics(selectedSiteId.value),
-        api.getComments(activeTab.value, selectedSiteId.value),
+        api.getComments(activeTab.value, selectedSiteId.value, currentPage.value, itemsPerPage.value),
       ]);
       stats.value = statsRes;
       comments.value = commentsRes.comments;
@@ -61,6 +63,10 @@ export function Moderation() {
   };
 
   useEffect(() => {
+    currentPage.value = 1;
+  }, [activeTab.value, selectedSiteId.value]);
+
+  useEffect(() => {
     selectedIds.value = [];
     bulkAction.value = "";
     openMenuId.value = null;
@@ -69,7 +75,7 @@ export function Moderation() {
     } else {
       fetchData();
     }
-  }, [activeTab.value, selectedSiteId.value, userSites.value.length]);
+  }, [activeTab.value, selectedSiteId.value, userSites.value.length, currentPage.value]);
 
   const toggleSelect = (id: string) => {
     if (selectedIds.value.includes(id)) {
@@ -158,34 +164,11 @@ export function Moderation() {
     }
   };
 
-  // Build comment tree for visual hierarchy
+  // Build comment list (Flat List)
   const renderComments = () => {
     const listToRender = filteredComments.value;
 
-    const isFiltering = globalSearchQuery.value !== "" || filterPost.value !== "All Posts";
-
-    // Find comments whose parents are not in the current list
-    const orphans = listToRender.filter(
-      (c) => c.parentId && !listToRender.some((p) => p.id === c.parentId),
-    );
-
-    // Treat true roots and orphans as root comments
-    const rootComments = isFiltering
-      ? listToRender
-      : listToRender.filter((c) => !c.parentId || orphans.includes(c));
-    const repliesMap = new Map<string, any[]>();
-
-    if (!isFiltering) {
-      listToRender.forEach((c) => {
-        if (c.parentId && !orphans.includes(c)) {
-          const list = repliesMap.get(c.parentId) || [];
-          list.push(c);
-          repliesMap.set(c.parentId, list);
-        }
-      });
-    }
-
-    const renderNode = (c: any, depth: number = 0) => {
+    return listToRender.map((c) => {
       const diffInMs = Math.max(0, Date.now() - new Date(c.createdAt).getTime());
       const diffInSecs = Math.floor(diffInMs / 1000);
       let timeStr = "Just now";
@@ -207,7 +190,6 @@ export function Moderation() {
       } else if (diffInSecs > 10) {
         timeStr = `${diffInSecs} secs ago`;
       }
-      const replies = repliesMap.get(c.id) || [];
       const isSelected = selectedIds.value.includes(c.id);
 
       const statusColors: Record<string, string> = {
@@ -218,17 +200,20 @@ export function Moderation() {
         spam: "bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 border-transparent",
       };
 
+      // Strip HTML for parent snippet
+      let parentSnippet = "";
+      if (c.parentContent) {
+        const tmp = document.createElement("DIV");
+        tmp.innerHTML = c.parentContent;
+        parentSnippet = tmp.textContent || tmp.innerText || "";
+        if (parentSnippet.length > 50) parentSnippet = parentSnippet.substring(0, 50) + "...";
+      }
+
       return (
         <div
           key={c.id}
-          class={`relative ${depth === 0 ? "border-b border-gray-100 dark:border-gray-800 last:border-0" : ""} ${openMenuId.value === c.id ? "z-50" : ""}`}
+          class={`relative border-b border-gray-100 dark:border-gray-800 last:border-0 ${openMenuId.value === c.id ? "z-50" : ""}`}
         >
-          {replies.length > 0 && (
-            <div
-              class="absolute w-px bg-gray-200 dark:bg-gray-700 z-0"
-              style={{ left: `${depth * 32 + 68}px`, top: "36px", bottom: "24px" }}
-            ></div>
-          )}
           <div
             class={`flex items-start gap-4 p-4 hover:bg-gray-50/50 dark:hover:bg-[#1f1f22] group relative ${openMenuId.value === c.id ? "z-50" : ""}`}
           >
@@ -241,20 +226,8 @@ export function Moderation() {
               />
             </div>
 
-            <div
-              class="flex flex-1 min-w-0 items-start gap-4 relative"
-              style={{ marginLeft: `${depth * 32}px` }}
-            >
-              {depth > 0 && (
-                <div
-                  class="absolute h-px bg-gray-200 dark:bg-gray-700"
-                  style={{ left: "-12px", top: "20px", width: "12px" }}
-                ></div>
-              )}
-
-              <div
-                class={`w-10 h-10 rounded-full overflow-hidden shrink-0 flex items-center justify-center text-white relative z-10 ${depth > 0 ? "bg-cyan-100" : "bg-blue-900"}`}
-              >
+            <div class="flex flex-1 min-w-0 items-start gap-4 relative">
+              <div class="w-10 h-10 rounded-full overflow-hidden shrink-0 flex items-center justify-center text-white relative z-10 bg-blue-900">
                 <img
                   src={`https://api.dicebear.com/10.x/thumbs/svg?seed=${encodeURIComponent(c.authorEmail.trim().toLowerCase())}`}
                   alt={c.authorName}
@@ -293,7 +266,7 @@ export function Moderation() {
                       {c.status}
                     </span>
                     <div class="relative flex items-center">
-                      {depth === 0 && c.status === "approved" && (
+                      {c.status === "approved" && (
                         <button
                           onClick={() => handleTogglePin(c.id, !c.isPinned)}
                           class={`p-1.5 rounded-md transition-colors cursor-pointer mr-1 ${c.isPinned ? "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30 hover:bg-blue-100 dark:hover:bg-blue-900/50" : "text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-[#27272a]"}`}
@@ -355,6 +328,11 @@ export function Moderation() {
                     </div>
                   </div>
                 </div>
+                {c.parentId && c.parentContent && (
+                  <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 mb-2 pl-2 border-l-2 border-gray-200 dark:border-gray-700 italic">
+                    ↳ Replying to: "{parentSnippet}"
+                  </div>
+                )}
                 <div
                   class="diskus-prose text-sm text-gray-700 dark:text-gray-300 mt-1.5 leading-relaxed break-words"
                   dangerouslySetInnerHTML={{ __html: c.htmlContent || c.content }}
@@ -362,15 +340,9 @@ export function Moderation() {
               </div>
             </div>
           </div>
-
-          {replies.length > 0 && (
-            <div class="relative pb-2">{replies.map((reply) => renderNode(reply, depth + 1))}</div>
-          )}
         </div>
       );
-    };
-
-    return rootComments.map((c) => renderNode(c));
+    });
   };
 
   return (
@@ -468,12 +440,35 @@ export function Moderation() {
             </select>
           </div>
           <div class="flex items-center gap-3 text-sm text-gray-500 dark:text-gray-400 font-medium">
-            <span>{filteredComments.value.length} items</span>
+            <span>
+              {filteredComments.value.length === 0
+                ? "0 items"
+                : `${(currentPage.value - 1) * itemsPerPage.value + 1}-${Math.min(
+                    currentPage.value * itemsPerPage.value,
+                    tabs.find((t) => t.id === activeTab.value)?.count() || 0
+                  )} of ${tabs.find((t) => t.id === activeTab.value)?.count() || 0}`}
+            </span>
             <div class="flex items-center gap-1">
-              <button class="p-1.5 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-[#27272a] text-gray-600 dark:text-gray-400 cursor-pointer">
+              <button
+                onClick={() => {
+                  if (currentPage.value > 1) currentPage.value--;
+                }}
+                disabled={currentPage.value === 1}
+                class="p-1.5 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-[#27272a] text-gray-600 dark:text-gray-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 <ChevronLeft class="w-4 h-4" />
               </button>
-              <button class="p-1.5 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-[#27272a] text-gray-600 dark:text-gray-400 cursor-pointer">
+              <button
+                onClick={() => {
+                  const total = tabs.find((t) => t.id === activeTab.value)?.count() || 0;
+                  if (currentPage.value * itemsPerPage.value < total) currentPage.value++;
+                }}
+                disabled={
+                  filteredComments.value.length < itemsPerPage.value ||
+                  currentPage.value * itemsPerPage.value >= (tabs.find((t) => t.id === activeTab.value)?.count() || 0)
+                }
+                class="p-1.5 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-[#27272a] text-gray-600 dark:text-gray-400 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 <ChevronRight class="w-4 h-4" />
               </button>
             </div>

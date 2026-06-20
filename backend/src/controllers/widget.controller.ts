@@ -314,6 +314,22 @@ export class WidgetController {
     });
   }
 
+  static async getReplies(c: Context) {
+    const parentId = c.req.param("parentId");
+    const apiKey = c.req.query("api_key");
+    const threadKey = c.req.query("thread_key");
+
+    if (!apiKey || !threadKey || !parentId) return c.json({ error: "Missing parameters" }, 400);
+    const auth = await WidgetService.verifyApiKey(apiKey, c);
+    if (!auth.site) return c.json({ error: "Invalid API Key" }, 403);
+    
+    const thread = await WidgetService.getThread(auth.site.id, threadKey);
+    if (!thread) return c.json({ comments: [] });
+
+    const comments = await WidgetService.getReplies(thread.id, parentId);
+    return c.json({ comments });
+  }
+
   static async postComment(c: Context<{ Variables: AuthVariables }>) {
     const data = (c.req as any).valid("json");
 

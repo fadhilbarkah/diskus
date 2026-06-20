@@ -57,6 +57,13 @@
       "when": 1781423994497,
       "tag": "0007_crazy_black_queen",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1781934768904,
+      "tag": "0008_awesome_human_torch",
+      "breakpoints": true
     }
   ]
 }

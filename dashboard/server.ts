@@ -1,5 +1,4 @@
-import { serve } from "bun";
-import { file } from "bun";
+import { file, serve } from "bun";
 import { resolve } from "path";
 
 const port = Number(process.env.PORT) || 4173;

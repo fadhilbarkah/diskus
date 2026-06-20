@@ -110,6 +110,34 @@ export function useComments(
     }
   };
 
+  const loadReplies = async (parentId: string) => {
+    try {
+      const headers = embedHeaders({}, embedTokenStr);
+      if (widgetToken.value) {
+        headers.Authorization = `Bearer ${widgetToken.value}`;
+      }
+      
+      const res = await fetch(
+        `${apiUrl}/widget/comments/${parentId}/replies?api_key=${apiKey}&thread_key=${threadKey}${embedQueryParam(embedTokenStr)}`,
+        { headers }
+      );
+      if (!res.ok) throw new Error("Failed to load replies");
+      
+      const data = await res.json();
+      if (data.comments && data.comments.length > 0) {
+        // Filter out existing comments to avoid duplicates
+        const existingIds = new Set(comments.value.map(c => c.id));
+        const newComments = data.comments.filter((c: any) => !existingIds.has(c.id));
+        
+        if (newComments.length > 0) {
+          comments.value = [...comments.value, ...newComments];
+        }
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const addComment = async (
     content: string,
     authorName: string,
@@ -145,10 +173,11 @@ export function useComments(
           const newComment = data.comment;
           comments.value = [...comments.value, newComment];
           totalCount.value += 1;
+          return newComment;
         } else {
           showNotification("Your comment is awaiting moderation.", "success");
+          return true;
         }
-        return true;
       } else {
         const data = await res.json();
         showNotification(data.error || "Failed to add comment, please try again.", "error");
@@ -237,6 +266,7 @@ export function useComments(
     requireLogin,
     totalCount,
     fetchComments,
+    loadReplies,
     addComment,
     deleteComment,
     togglePin,

@@ -60,6 +60,9 @@ export class AdminController {
     const user = c.get("user")!;
     const statusFilter = c.req.query("status");
     const siteId = c.req.query("siteId");
+    const page = parseInt(c.req.query("page") || "1", 10);
+    const limit = parseInt(c.req.query("limit") || "50", 10);
+    const offset = (page - 1) * limit;
 
     const dbUser = await AdminService.getUserAccount(user.userId);
     const commentsList = await AdminService.getComments(
@@ -67,6 +70,8 @@ export class AdminController {
       user.role,
       statusFilter,
       siteId,
+      limit,
+      offset
     );
 
     const enrichedComments = commentsList.map((comment) => ({

@@ -26,6 +26,7 @@ interface Props {
   depth?: number;
   onDelete: (id: string) => Promise<void>;
   onPin?: (id: string, isPinned: boolean) => Promise<void>;
+  onLoadReplies?: (parentId: string) => Promise<void>;
   requireLogin?: boolean;
 }
 
@@ -38,11 +39,17 @@ export function CommentThread({
   depth = 0,
   onDelete,
   onPin,
+  onLoadReplies,
   requireLogin,
 }: Props) {
   const isReplying = globalActiveReplyId.value === comment.id;
   const showMenu = globalActiveMenuId.value === comment.id;
   const replies = repliesMap.get(comment.id) || [];
+
+  const isExpanded = useSignal(
+    replies.length > 0 || ((comment.repliesCount || 0) > 0 && (comment.repliesCount || 0) <= 3)
+  );
+  const isLoadingReplies = useSignal(false);
 
   // Local state for liking
   const hasLiked = useSignal(false);
@@ -119,6 +126,28 @@ export function CommentThread({
         localLikesCount.value = Math.max(0, localLikesCount.value - 1);
       }
     }
+  };
+
+  const handleReplySubmit = async (
+    content: string,
+    name: string,
+    email: string,
+    parentId?: string,
+    trap?: string
+  ) => {
+    const newComment = await onReply(content, name, email, parentId, trap);
+    if (newComment) {
+      isExpanded.value = true;
+      globalActiveReplyId.value = null;
+    }
+  };
+
+  const handleViewReplies = async () => {
+    if (!onLoadReplies) return;
+    isLoadingReplies.value = true;
+    await onLoadReplies(comment.id);
+    isLoadingReplies.value = false;
+    isExpanded.value = true;
   };
 
   const timeAgo = (ts: string) => {
@@ -283,7 +312,7 @@ export function CommentThread({
       {isReplying && (
         <div class="mt-4 mb-2 ml-11">
           <CommentForm
-            onSubmit={onReply}
+            onSubmit={handleReplySubmit}
             parentId={depth >= 2 ? comment.parentId || comment.id : comment.id}
             onCancel={() => (globalActiveReplyId.value = null)}
             apiUrl={apiUrl}
@@ -292,7 +321,26 @@ export function CommentThread({
         </div>
       )}
 
-      {replies.length > 0 && depth < 2 && (
+      {depth === 0 && (comment.repliesCount || 0) > 0 && !isExpanded.value && (
+        <div class="mt-3 ml-11">
+          <button
+            onClick={handleViewReplies}
+            disabled={isLoadingReplies.value}
+            class="text-[14px] font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 transition-colors flex items-center gap-1.5"
+          >
+            {isLoadingReplies.value ? (
+              <div class="w-4 h-4 border-2 border-blue-200 border-t-blue-600 rounded-full animate-spin"></div>
+            ) : (
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
+              </svg>
+            )}
+            View {comment.repliesCount} replies
+          </button>
+        </div>
+      )}
+
+      {isExpanded.value && replies.length > 0 && depth < 2 && (
         <div class="mt-6 ml-4 pl-2 md:pl-3 border-l-2 border-gray-200 dark:border-gray-800 relative pb-2 transition-colors duration-300">
           <div class="space-y-6">
             {replies.map((reply) => (
@@ -303,6 +351,7 @@ export function CommentThread({
                   onReply={onReply}
                   onLike={onLike}
                   onDelete={onDelete}
+                  onLoadReplies={onLoadReplies}
                   apiUrl={apiUrl}
                   depth={depth + 1}
                   requireLogin={requireLogin}

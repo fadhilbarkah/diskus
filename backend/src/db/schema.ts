@@ -84,6 +84,7 @@ export const comments = sqliteTable(
     threadIdIdx: index("comments_thread_id_idx").on(table.threadId),
     parentIdIdx: index("comments_parent_id_idx").on(table.parentId),
     statusIdx: index("comments_status_idx").on(table.status),
+    optimizedRootIdx: index("comments_optimized_root_idx").on(table.threadId, table.status, table.parentId, table.isPinned, table.createdAt),
   }),
 );
 

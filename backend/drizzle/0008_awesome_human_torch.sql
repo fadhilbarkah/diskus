@@ -1,0 +1,1 @@
+CREATE INDEX `comments_optimized_root_idx` ON `comments` (`thread_id`,`status`,`parent_id`,`is_pinned`,`created_at`);

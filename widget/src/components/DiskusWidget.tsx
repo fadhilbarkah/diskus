@@ -18,6 +18,7 @@ export interface Comment {
   createdAt: string; // ISO String from backend
   isPinned?: boolean;
   isAuthor?: boolean;
+  repliesCount?: number;
 }
 
 export function DiskusWidget({
@@ -46,6 +47,7 @@ export function DiskusWidget({
     totalCount,
     requireLogin,
     fetchComments,
+    loadReplies,
     addComment,
     deleteComment,
     togglePin,
@@ -221,6 +223,7 @@ export function DiskusWidget({
               onLike={handleLike}
               onDelete={deleteComment}
               onPin={togglePin}
+              onLoadReplies={loadReplies}
               apiUrl={apiUrl}
               requireLogin={requireLogin.value}
             />

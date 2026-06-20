@@ -1,7 +1,7 @@
 import crypto from "node:crypto";
-import { and, eq, isNotNull, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, isNull, sql } from "drizzle-orm";
 import type { Context } from "hono";
-import { db } from "../db";
+import { db, sqlite } from "../db";
 import {
   commentLikes,
   comments,
@@ -283,53 +283,137 @@ export class WidgetService {
       thread.title = title.substring(0, 500);
     }
 
-    const allComments = await db
-      .select()
+    const countRes = await db
+      .select({ count: sql<number>`count(*)` })
       .from(comments)
       .where(and(eq(comments.threadId, thread.id), eq(comments.status, "approved")))
-      .all();
+      .get();
+    const total = countRes?.count || 0;
 
-    const roots = allComments.filter((c) => !c.parentId);
-    const repliesMap = new Map<string, typeof allComments>();
+    const rootCountRes = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(comments)
+      .where(
+        and(
+          eq(comments.threadId, thread.id),
+          eq(comments.status, "approved"),
+          isNull(comments.parentId)
+        )
+      )
+      .get();
+    const rootsCount = rootCountRes?.count || 0;
 
-    for (const c of allComments) {
-      if (c.parentId) {
-        if (!repliesMap.has(c.parentId)) repliesMap.set(c.parentId, []);
-        repliesMap.get(c.parentId)?.push(c);
+    const paginated: any[] = [];
+
+    if (rootsCount > 0) {
+      const query = sqlite.query(`
+        SELECT 
+          c.id,
+          (
+            WITH RECURSIVE descendants AS (
+              SELECT id FROM comments WHERE parent_id = c.id AND status = 'approved'
+              UNION ALL
+              SELECT child.id FROM comments child
+              JOIN descendants d ON child.parent_id = d.id
+              WHERE child.status = 'approved'
+            )
+            SELECT count(*) FROM descendants
+          ) as repliesCount
+        FROM (
+          SELECT id
+          FROM comments
+          WHERE thread_id = $threadId AND status = 'approved' AND parent_id IS NULL
+          ORDER BY 
+            is_pinned DESC,
+            created_at DESC
+          LIMIT $limit OFFSET $offset
+        ) c
+      `);
+
+      const rootsResult = query.all({
+        $threadId: thread.id,
+        $limit: limit,
+        $offset: offset,
+      }) as { id: string; repliesCount: number }[];
+
+      const rootIds = rootsResult.map((r) => r.id);
+      const rootsToExpand = rootsResult.filter((r) => r.repliesCount > 0 && r.repliesCount <= 3).map(r => r.id);
+      const idsToFetch = new Set<string>(rootIds);
+
+      if (rootsToExpand.length > 0) {
+        const expandQuery = sqlite.query(`
+          WITH RECURSIVE descendants AS (
+            SELECT id FROM comments WHERE parent_id IN (${rootsToExpand.map(id => `'${id}'`).join(',')}) AND status = 'approved'
+            UNION ALL
+            SELECT child.id FROM comments child
+            JOIN descendants d ON child.parent_id = d.id
+            WHERE child.status = 'approved'
+          )
+          SELECT id FROM descendants
+        `);
+        const descendantIds = expandQuery.all() as { id: string }[];
+        descendantIds.forEach(d => idsToFetch.add(d.id));
       }
-    }
 
-    roots.sort((a, b) => {
-      if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
-      return new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime();
-    });
+      const allIds = Array.from(idsToFetch);
 
-    repliesMap.forEach((replies) => {
-      replies.sort((a, b) => new Date(a.createdAt!).getTime() - new Date(b.createdAt!).getTime());
-    });
+      if (allIds.length > 0) {
+        const fetchedComments = await db
+          .select()
+          .from(comments)
+          .where(inArray(comments.id, allIds))
+          .all();
 
-    const flattened: typeof allComments = [];
-    const traverse = (comment: (typeof allComments)[0]) => {
-      flattened.push(comment);
-      const replies = repliesMap.get(comment.id);
-      if (replies) {
-        for (const reply of replies) {
-          traverse(reply);
+        const commentMap = new Map(fetchedComments.map((c) => [c.id, c]));
+        
+        for (const root of rootsResult) {
+          if (commentMap.has(root.id)) {
+            const c = commentMap.get(root.id)! as any;
+            c.repliesCount = root.repliesCount;
+            paginated.push(c);
+            commentMap.delete(root.id);
+          }
+        }
+        
+        for (const c of commentMap.values()) {
+          paginated.push(c);
         }
       }
-    };
-
-    for (const root of roots) {
-      traverse(root);
     }
-
-    const paginated = flattened.slice(offset, offset + limit);
 
     return {
       comments: paginated,
-      hasMore: offset + limit < flattened.length,
-      total: flattened.length,
+      hasMore: offset + limit < rootsCount,
+      total,
     };
+  }
+
+  static async getReplies(threadId: string, parentId: string) {
+    const expandQuery = sqlite.query(`
+      WITH RECURSIVE descendants AS (
+        SELECT id FROM comments WHERE parent_id = $parentId AND status = 'approved' AND thread_id = $threadId
+        UNION ALL
+        SELECT child.id FROM comments child
+        JOIN descendants d ON child.parent_id = d.id
+        WHERE child.status = 'approved'
+      )
+      SELECT id FROM descendants
+    `);
+    
+    const descendantIdsResult = expandQuery.all({
+      $parentId: parentId,
+      $threadId: threadId
+    }) as { id: string }[];
+    
+    const descendantIds = descendantIdsResult.map(d => d.id);
+    
+    if (descendantIds.length === 0) return [];
+
+    return await db
+      .select()
+      .from(comments)
+      .where(inArray(comments.id, descendantIds))
+      .all();
   }
 
   static async createComment(data: CreateCommentData) {

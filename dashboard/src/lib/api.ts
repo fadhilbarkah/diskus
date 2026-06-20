@@ -57,8 +57,8 @@ export const api = {
   // Admin
   getAnalytics: (siteId?: string | null) =>
     fetchWithAuth(`/admin/analytics/summary${siteId ? `?siteId=${siteId}` : ""}`),
-  getComments: (status: string, siteId?: string | null) =>
-    fetchWithAuth(`/admin/comments?status=${status}${siteId ? `&siteId=${siteId}` : ""}`),
+  getComments: (status: string, siteId?: string | null, page: number = 1, limit: number = 50) =>
+    fetchWithAuth(`/admin/comments?status=${status}&page=${page}&limit=${limit}${siteId ? `&siteId=${siteId}` : ""}`),
   bulkUpdateComments: (ids: string[], status: string) =>
     fetchWithAuth("/admin/comments/bulk", {
       method: "PATCH",
