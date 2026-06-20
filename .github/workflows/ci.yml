@@ -39,7 +39,7 @@ jobs:
           echo "API_URL=http://localhost:3000" >> .env
       - name: Run backend tests
         working-directory: backend
-        run: bun test
+        run: bun run test:coverage
 
   test-dashboard:
     runs-on: ubuntu-latest
@@ -56,7 +56,7 @@ jobs:
           echo "VITE_API_URL=http://localhost:3000" > .env
       - name: Run dashboard tests
         working-directory: dashboard
-        run: bun run test
+        run: bun run test:coverage
 
   test-widget:
     runs-on: ubuntu-latest
@@ -69,4 +69,4 @@ jobs:
       - run: bun install --frozen-lockfile
       - name: Run widget tests
         working-directory: widget
-        run: bun run test
+        run: bun run test:coverage

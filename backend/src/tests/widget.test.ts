@@ -1,4 +1,5 @@
 import { afterEach, beforeAll, describe, expect, it, mock, spyOn } from "bun:test";
+import { NotificationService } from "../services/notification.service";
 import { Hono } from "hono";
 import widgetRoutes from "../routes/widget";
 import { AdminService } from "../services/admin.service";
@@ -220,6 +221,17 @@ describe("WidgetController", () => {
     expect(res.status).toBe(200);
   });
 
+  it("should fail get embed token if invalid api key", async () => {
+    spyOn(WidgetService, "issueEmbedToken").mockResolvedValue({ error: "invalid_key" } as any);
+    const res = await app.fetch(req("/widget/embed-token?api_key=wrong"));
+    expect(res.status).toBe(403);
+  });
+
+  it("should fail get embed token if missing api key", async () => {
+    const res = await app.fetch(req("/widget/embed-token"));
+    expect(res.status).toBe(400);
+  });
+
   it("should get comments", async () => {
     spyOn(WidgetService, "verifyApiKey").mockResolvedValue({
       site: { id: "s1", userId: "u1", commentsLimit: 10 },
@@ -284,10 +296,95 @@ describe("WidgetController", () => {
     expect(res.status).toBe(403);
   });
 
+  it("should block guest comment if requireLogin is true", async () => {
+    spyOn(WidgetService, "verifyApiKey").mockResolvedValue({
+      site: { id: "s1", userId: "u1", requireLogin: true },
+    } as any);
+    spyOn(WidgetService, "getThread").mockResolvedValue({ id: "t1", title: "Thread", url: "https://example.com" } as any);
+    const res = await app.fetch(
+      req(
+        "/widget/comments",
+        "POST",
+        {
+          api_key: "key",
+          thread_key: "t1",
+          content: "Hello",
+          authorName: "Guest",
+          authorEmail: "guest@test.com",
+        },
+        false, // not logged in
+      ),
+    );
+    expect(res.status).toBe(401);
+  });
+
+  it("should post comment and send email notification", async () => {
+    spyOn(WidgetService, "verifyApiKey").mockResolvedValue({
+      site: { id: "s1", userId: "u1", requireModeration: true, enableEmail: true },
+    } as any);
+    spyOn(WidgetService, "getThread").mockResolvedValue({ id: "t1", title: "Thread", url: "https://example.com" } as any);
+    spyOn(AdminService, "getUserAccount").mockResolvedValue({ email: "owner@test.com" } as any);
+    spyOn(WidgetService, "createComment").mockResolvedValue({
+      id: "c2",
+      authorEmail: "test@test.com",
+      status: "pending"
+    } as any);
+    spyOn(NotificationService, "sendNewCommentEmail").mockResolvedValue(undefined);
+    spyOn(NotificationService, "sendReplyEmail").mockResolvedValue(undefined);
+
+    spyOn(WidgetService, "getCommentById").mockResolvedValue({
+      id: "c1",
+      authorEmail: "parent@test.com",
+      authorName: "Parent"
+    } as any);
+
+    const res = await app.fetch(
+      req(
+        "/widget/comments",
+        "POST",
+        {
+          api_key: "key",
+          thread_key: "t1",
+          content: "Hello",
+          authorName: "N",
+          authorEmail: "e@e.com",
+          parentId: "c1",
+          origin_url: "https://example.com/post"
+        },
+        true,
+      ),
+    );
+    expect(res.status).toBe(201);
+    await new Promise(r => setTimeout(r, 10)); // wait for detached promise
+    expect(NotificationService.sendNewCommentEmail).toHaveBeenCalled();
+    expect(NotificationService.sendReplyEmail).toHaveBeenCalled();
+  });
+
   it("should delete comment", async () => {
     spyOn(WidgetService, "deleteComment").mockResolvedValue(undefined);
     const res = await app.fetch(req("/widget/comments/c1", "DELETE", undefined, true));
     expect(res.status).toBe(200);
+    // As a commenter, deleteComment should be called with user email (soft delete)
+    expect(WidgetService.deleteComment).toHaveBeenCalledWith("c1", "test@test.com");
+  });
+
+  it("should hard delete comment if admin", async () => {
+    const adminToken = await signToken({
+      userId: "u1",
+      email: "test@test.com",
+      role: "admin",
+      name: "User",
+    });
+    spyOn(WidgetService, "deleteComment").mockResolvedValue(undefined);
+    
+    const adminReq = new Request(`http://localhost/widget/comments/c1`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${adminToken}` },
+    });
+    const res = await app.fetch(adminReq);
+    expect(res.status).toBe(200);
+    // As an admin, deleteComment should be called without user email (hard delete)
+    expect(WidgetService.deleteComment).toHaveBeenCalledWith("c1");
   });
 
   it("should like comment", async () => {
@@ -309,6 +406,39 @@ describe("WidgetController", () => {
     const res = await app.fetch(
       req("/widget/comments/c1/unlike?api_key=key", "POST", undefined, true),
     );
+    expect(res.status).toBe(200);
+  });
+
+  it("should get replies", async () => {
+    spyOn(WidgetService, "verifyApiKey").mockResolvedValue({
+      site: { id: "s1", userId: "u1" },
+    } as any);
+    spyOn(AdminService, "getUserAccount").mockResolvedValue({ email: "owner@test.com" } as any);
+    spyOn(WidgetService, "getThread").mockResolvedValue({ id: "t1", title: "Thread", url: "https://example.com" } as any);
+    spyOn(WidgetService, "getReplies").mockResolvedValue({
+      comments: [{ id: "c2" }],
+      hasMore: false,
+    } as any);
+    const res = await app.fetch(req("/widget/comments/c1/replies?api_key=key&thread_key=t1"));
+    expect(res.status).toBe(200);
+  });
+
+  it("should toggle pin comment as commenter", async () => {
+    spyOn(WidgetService, "verifyCommentOwnership").mockResolvedValue(true);
+    spyOn(AdminService, "togglePinComment").mockResolvedValue(undefined);
+    
+    const userToken = await signToken({
+      userId: "u1",
+      email: "user@test.com",
+      role: "user",
+      name: "User",
+    });
+    const reqObj = new Request(`http://localhost/widget/comments/c1/pin`, {
+      method: "PATCH",
+      headers: { Authorization: `Bearer ${userToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ isPinned: true })
+    });
+    const res = await app.fetch(reqObj);
     expect(res.status).toBe(200);
   });
 });

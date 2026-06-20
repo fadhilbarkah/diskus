@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { authState, logout, setAuth, updateUser } from "../lib/auth";
 import { selectedSiteId, theme, userSites } from "../lib/store";
 
@@ -30,6 +30,48 @@ describe("Dashboard Auth Lib", () => {
     setAuth("my-token", { id: "1", email: "test@test.com", role: "admin" });
     logout();
     expect(authState.token.value).toBeNull();
+  });
+
+  describe("isTokenValidLocally", () => {
+    const createToken = (exp?: number) => {
+      const header = btoa(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+      const payload = exp ? btoa(JSON.stringify({ exp })) : btoa(JSON.stringify({}));
+      const signature = btoa("signature");
+      return `${header}.${payload}.${signature}`;
+    };
+
+    beforeEach(() => {
+      vi.resetModules();
+      localStorage.removeItem("diskus_token");
+      localStorage.removeItem("diskus_user");
+    });
+
+    it("should accept valid token on boot", async () => {
+      const validToken = createToken(Math.floor(Date.now() / 1000) + 3600); // 1 hour valid
+      localStorage.setItem("diskus_token", validToken);
+      localStorage.setItem("diskus_user", JSON.stringify({ email: "test@test.com" }));
+
+      const mod = await import("../lib/auth");
+      expect(mod.authState.token.value).toBe(validToken);
+    });
+
+    it("should clear expired token on boot", async () => {
+      const expiredToken = createToken(Math.floor(Date.now() / 1000) - 3600); // 1 hour ago
+      localStorage.setItem("diskus_token", expiredToken);
+      localStorage.setItem("diskus_user", JSON.stringify({ email: "test@test.com" }));
+
+      const mod = await import("../lib/auth");
+      expect(mod.authState.token.value).toBeNull();
+      expect(localStorage.getItem("diskus_token")).toBeNull();
+    });
+
+    it("should clear malformed token on boot", async () => {
+      localStorage.setItem("diskus_token", "not.a.jwt");
+      localStorage.setItem("diskus_user", JSON.stringify({ email: "test@test.com" }));
+
+      const mod = await import("../lib/auth");
+      expect(mod.authState.token.value).toBeNull();
+    });
   });
 });
 

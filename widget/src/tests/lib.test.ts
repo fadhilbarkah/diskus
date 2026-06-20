@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { globalAuthMode, globalIsGuestReady, globalShowAuthModal } from "../lib/auth";
+import { embedToken } from "../lib/embed";
 import { applyHostTheme, hostTheme } from "../lib/theme";
 
 describe("Widget Auth Lib", () => {
@@ -45,5 +46,16 @@ describe("Widget Theme Lib", () => {
   it("should manage hostTheme", () => {
     applyHostTheme("dark");
     expect(hostTheme.value).toBe("dark");
+  });
+});
+
+describe("Widget Embed Lib", () => {
+  it("should have correct initial values", () => {
+    expect(embedToken.value).toBeNull();
+  });
+
+  it("should update value correctly", () => {
+    embedToken.value = "new_token";
+    expect(embedToken.value).toBe("new_token");
   });
 });

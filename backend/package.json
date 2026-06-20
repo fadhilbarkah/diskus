@@ -10,7 +10,7 @@
     "db:studio": "drizzle-kit studio",
     "reset-password": "bun run src/scripts/reset-password.ts",
     "test": "bun test",
-    "test:coverage": "bun test --coverage"
+    "test:coverage": "bun test --coverage --coverage-threshold-lines=90"
   },
   "dependencies": {
     "@hono/zod-validator": "^0.8.0",
