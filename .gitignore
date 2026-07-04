@@ -58,3 +58,5 @@ test-widget.html
 *.db-journal
 *.db-shm
 *.db-wal
+
+opencode.json

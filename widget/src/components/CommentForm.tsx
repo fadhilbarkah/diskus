@@ -159,9 +159,9 @@ export function CommentForm({ onSubmit, parentId, onCancel, apiUrl, requireLogin
                   class="w-full h-full object-cover opacity-90 dark:opacity-80"
                 />
               </div>
-              <textarea
+               <textarea
                 ref={!canComment ? undefined : textareaRef}
-                class="flex-1 py-1 px-0 text-[14px] text-gray-900 dark:text-gray-100 resize-none outline-none placeholder-gray-400 dark:placeholder-gray-500 bg-transparent transition-all duration-300 ease-in-out"
+                class="flex-1 py-1 px-0 text-[16px] text-gray-900 dark:text-gray-100 resize-none outline-none placeholder-gray-400 dark:placeholder-gray-500 bg-transparent transition-all duration-300 ease-in-out"
                 placeholder={!canComment ? "Write a reply..." : "Write a comment..."}
                 value={!canComment ? "" : content.value}
                 readOnly={!canComment}
