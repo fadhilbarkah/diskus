@@ -24,7 +24,8 @@ if [ ! -f "$ENV_FILE" ]; then
 # Diskus Environment Variables (Auto-generated)
 JWT_SECRET=${SECRET}
 DASHBOARD_ORIGIN=*
-SEED_DB=true
+# Set to true if you want to populate demo threads and comments
+SEED_DB=false
 
 # Optional: Set these for platform emails via SMTP
 # SMTP_HOST=

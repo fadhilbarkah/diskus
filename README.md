@@ -104,13 +104,15 @@ Diskus is fully containerized for easy production deployment using Docker Compos
    > **Note:** The script will automatically generate a secure `.env` file with a strong `JWT_SECRET` if one does not exist, and then run `docker-compose up -d --build`.
 
 2. The services will be available at:
-   - **Frontend (Dashboard & Widget Embed)**: `http://localhost:5173` (or your domain)
+   - **Frontend (Dashboard & Widget Embed)**: `http://localhost:8080` (or your domain)
    - **Backend API**: `http://localhost:3000`
 
 > **Note:** The database uses a Docker Volume (`diskus-data`), so your comments will persist even if you restart the containers.
 
 ### Initial Setup in Production
-Instead of manually seeding the database, simply open your frontend domain in the browser. You will be greeted with a "Create Admin Account" screen. **Register your account immediately** to secure your deployment, as the setup screen will permanently disappear once the first admin is created.
+By default (`SEED_DB=false`), simply open your frontend domain (`http://localhost:8080`) in the browser. You will be greeted with a "Create Admin Account" screen. **Register your account immediately** to secure your deployment, as the setup screen will permanently disappear once the first admin is created.
+
+*(Optional: If you explicitly want to populate the database with demo threads and comments, set `SEED_DB=true` in `.env`. Note that this creates a default admin account with `admin@blog.com` / `password123`)*
 
 ### Resetting the Production Database
 If you ever need to completely wipe your production database (e.g., to resolve severe migration conflicts or start fresh), you must destroy the Docker Named Volume. **WARNING: This will permanently delete all comments and user data.**
